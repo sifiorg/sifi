@@ -1,0 +1,48 @@
+name: Chromatic
+on:
+  push:
+    branches-ignore:
+      - /release-/
+      - beta
+    paths:
+      - '.github/workflows/chromatic.yml'
+      - 'packages/frontend/**'
+      - '@types'
+      - 'configs/**'
+
+jobs:
+  test:
+    # Don't run on forks
+    if: github.repository == 'sideshiftfi/sifi'
+
+    runs-on: ubuntu-latest-16-cores
+    container: node:18.12.1-bullseye
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - uses: actions/cache@v3
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install system dependencies
+        run: apt update && apt-get install -y jq
+
+      - name: Install dependencies
+        run: yarn --ignore-engines
+
+      - name: Build Storybook
+        run: yarn workspace @sifi/frontend build-storybook
+
+      - name: Upload Storybook to Chromatic
+        run: yarn workspace @sifi/frontend chromatic

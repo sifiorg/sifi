@@ -1,0 +1,38 @@
+{
+  "editor.formatOnSave": true,
+  "files.trimTrailingWhitespace": true,
+  "files.exclude": {
+    "**/.eslintcache": true,
+    "**/*.{log,snap,tsbuildinfo,min.css}": true,
+    "**/{node_modules,dist,temp}": true,
+    "{yarn.lock,dont-use-tsconfig-directly}": true,
+    "packages/frontend/storybook-static/**": true,
+    "packages/frontend/cypress/fixtures/**": true
+  },
+  "search.exclude": {
+    "**/.eslintcache": true,
+    "**/*.{log,snap,tsbuildinfo,svg,png,min.css}": true,
+    "**/{node_modules,dist,temp}": true,
+    "yarn.lock": true,
+    "{yarn.lock,dont-use-tsconfig-directly}": true,
+    "packages/frontend/storybook-static/**": true,
+    "packages/frontend/cypress/fixtures/**": true
+  },
+  "files.watcherExclude": {
+    "**/.eslintcache": true,
+    "**/*.{log,snap,tsbuildinfo,min.css}": true,
+    "**/{node_modules,dist,temp}": true,
+    "{yarn.lock,dont-use-tsconfig-directly}": true,
+    "packages/frontend/storybook-static/**": true,
+    "packages/frontend/cypress/fixtures/**": true
+  },
+  "workbench.colorCustomizations": {},
+  "eslint.packageManager": "yarn",
+  "eslint.workingDirectories": ["packages/*"],
+  "eslint.lintTask.enable": true,
+  "eslint.options": {
+    "overrideConfigFile": ".eslintrc.vscode.json"
+  },
+  "vsicons.presets.nestjs": true,
+  "files.insertFinalNewline": true
+}
