@@ -5686,13 +5686,13 @@ chownr@^2.0.0:
   integrity sha512-bIomtDF5KGpdogkLd9VspvFzk9KfpyyGlS8YFVZl7TGPBHL5snIOnxeshwVgPteQ9b4Eydl+pVbIyE1DcvCWgQ==
 
 chromatic@^6.14.0:
-  version "6.17.0"
-  resolved "https://registry.yarnpkg.com/chromatic/-/chromatic-6.17.0.tgz#c7a1c15262e748abd9e2bc7247653974e6eb2ea0"
-  integrity sha512-0CYJOwAAHrcD0kXqMDvZql7wih+IO7A7E8hdCRotC0cmfHK8gOFWK6ajUsZUVwrr2zF6IFSJ23wsMLuaZxqSlw==
+  version "6.17.3"
+  resolved "https://registry.yarnpkg.com/chromatic/-/chromatic-6.17.3.tgz#e0825f30e3efe71b016f7b5e265fbfbfde71c522"
+  integrity sha512-x6WAHLBqub/BYiGXEOsgw9T3m459SmwOvIz0Ra7rCriE2A9AqDKRmVdAEhzVud24ut6ehd54FJpDtArnR5/TbA==
   dependencies:
     "@discoveryjs/json-ext" "^0.5.7"
     "@types/webpack-env" "^1.17.0"
-    snyk-nodejs-lockfile-parser "^1.43.1"
+    snyk-nodejs-lockfile-parser "^1.47.4"
 
 ci-info@^2.0.0:
   version "2.0.0"
@@ -12258,10 +12258,10 @@ snyk-config@^5.0.0:
     lodash.merge "^4.6.2"
     minimist "^1.2.5"
 
-snyk-nodejs-lockfile-parser@^1.43.1:
-  version "1.47.3"
-  resolved "https://registry.yarnpkg.com/snyk-nodejs-lockfile-parser/-/snyk-nodejs-lockfile-parser-1.47.3.tgz#cab44a8b2ae631927986713ce9b2ebdc5077a613"
-  integrity sha512-A6gq8kG4iTZ29kABPgKeVpo6a11dywYMEqQsBo+cYdx7EpHq+nGugV1nB/3bwbYLdhKtxZ1Be9Bx6eh2PwR12g==
+snyk-nodejs-lockfile-parser@^1.47.4:
+  version "1.49.0"
+  resolved "https://registry.yarnpkg.com/snyk-nodejs-lockfile-parser/-/snyk-nodejs-lockfile-parser-1.49.0.tgz#5185e4ce0f471a989cc22ea9c0bd0d6fd5770403"
+  integrity sha512-73iqwHB8YSWex/PTx+TRUwtNPyKn5wP4n/kxEPbX9EfN3uSIcw6mSKiLm8gSKl5gtf8hcP0R0f1tBFjjdzQvRQ==
   dependencies:
     "@snyk/dep-graph" "^2.3.0"
     "@snyk/graphlib" "2.1.9-patch.3"
@@ -12273,6 +12273,8 @@ snyk-nodejs-lockfile-parser@^1.43.1:
     lodash.flatmap "^4.5.0"
     lodash.isempty "^4.4.0"
     lodash.topairs "^4.3.0"
+    micromatch "^4.0.5"
+    p-map "^4.0.0"
     semver "^7.3.5"
     snyk-config "^5.0.0"
     tslib "^1.9.3"
