@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-new-black font-text text-flashbang-white m-0 min-h-screen min-w-min;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display;
+  }
+
+  #headlessui-portal-root {
+    @apply z-50;
+  }
+}
+
+@font-face {
+  font-family: 'Vectrex';
+  src: local('Vectrex'), local('Vectrex'), url('./fonts/VectrexWeb-Bold.woff2') format('woff2'),
+    url('./fonts/VectrexWeb-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: bold;
+}
+
+@font-face {
+  font-family: 'GT Pressura Mono';
+  src: local('GT Pressura Mono'), url('./fonts/GT-Pressura-Mono-Light.woff2') format('woff2'),
+    url('./fonts/GT-Pressura-Mono-Light.woff') format('woff');
+  font-weight: 300;
+  font-style: regular;
+}
+
+@font-face {
+  font-family: 'GT Pressura Mono';
+  src: local('GT Pressura Mono'), url('./fonts/GT-Pressura-Mono-Regular.woff2') format('woff2'),
+    url('./fonts/GT-Pressura-Mono-Regular.woff') format('woff');
+  font-weight: 500;
+  font-style: regular;
+}
+
+@font-face {
+  font-family: 'GT Pressura Mono';
+  src: local('GT Pressura Mono'), url('./fonts/GT-Pressura-Mono-Bold.woff2') format('woff2'),
+    url('./fonts/GT-Pressura-Mono-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: bold;
+}
+
+/*
+ * Legal Disclaimer for Web licence
+ *
+ * Licence to use self-hosted webfonts for displaying dynamic text on specified website domains. Our package includes WOFF and WOFF2 font formats.
+ *
+ * Should the license page views limit be exceeded the license holder will be required to contact Lineto.com for an upgrade.
+ *
+ * It is strictly prohibited to rename the font and to download or use these fonts in any other media.
+ *
+ * These Web fonts are licensed exclusively for the use on the following domain(s) and their subdomains:
+ *
+ * sideshift.fi
+ *
+ */
