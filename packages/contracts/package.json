@@ -1,18 +1,32 @@
 {
-  "name": "@sifi/contracts",
+  "name": "universalrouter",
   "version": "1.0.0",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "repository": {
-    "type": "git",
-    "directory": "packages/contracts",
-    "url": "https://github.com/sideshiftfi/sifi.git"
-  },
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "clean": "rimraf dist && rimraf tsconfig.tsbuildinfo",
-    "compile": "",
-    "test": "node dist/index.js",
-    "lint": "",
-    "build": "tsc --build ."
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.1",
+    "@types/chai": "^4.3.4",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^18.11.18",
+    "chai": "^4.3.7",
+    "hardhat": "^2.12.4",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "@axelar-network/axelar-gmp-sdk-solidity": "^2.0.0",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.7",
+    "@nomiclabs/hardhat-etherscan": "^3.1.4",
+    "@openzeppelin/contracts": "^4.8.0",
+    "@rari-capital/solmate": "^6.4.0",
+    "dotenv": "^16.0.3",
+    "ethereum-waffle": "^3.4.4",
+    "hardhat-gas-reporter": "^1.0.9"
   }
 }

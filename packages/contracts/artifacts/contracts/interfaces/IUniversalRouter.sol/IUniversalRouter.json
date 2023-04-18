@@ -1,0 +1,62 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "IUniversalRouter",
+  "sourceName": "contracts/interfaces/IUniversalRouter.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "DeadlinePassed",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes1",
+          "name": "command",
+          "type": "bytes1"
+        },
+        {
+          "internalType": "uint256",
+          "name": "commandNum",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "output",
+          "type": "bytes"
+        }
+      ],
+      "name": "FailedCommand",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InsufficientEth",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidInputLength",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidToken",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidTokenAmount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "Unauthorized",
+      "type": "error"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

@@ -1,0 +1,747 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "/Users/jamesharbridge/Code/SideShift/0xHarbs/UniversalRouter/contracts/UniversalRouter.sol": {
+      "lastModificationDate": 1680793067628,
+      "contentHash": "bf4a949bb1f09cb6b529ca7dc9327e85",
+      "sourceName": "contracts/UniversalRouter.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./base/Dispatcher.sol",
+        "./base/RouterImmutables.sol",
+        "./interfaces/IUniversalRouter.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "UniversalRouter"
+      ]
+    },
+    "/Users/jamesharbridge/Code/SideShift/0xHarbs/UniversalRouter/contracts/base/Dispatcher.sol": {
+      "lastModificationDate": 1680793067630,
+      "contentHash": "a8b33c9e8fb2db2f0bdaf9f6cd92b43a",
+      "sourceName": "contracts/base/Dispatcher.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../libraries/Commands.sol",
+        "./RouterImmutables.sol",
+        "./RouterManagement.sol",
+        "@rari-capital/solmate/src/tokens/ERC20.sol",
+        "@rari-capital/solmate/src/utils/SafeTransferLib.sol",
+        "../libraries/BytesLib.sol",
+        "../modules/UniswapRouter.sol",
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "../modules/CurveRouter.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "Dispatcher"
+      ]
+    },
+    "/Users/jamesharbridge/Code/SideShift/0xHarbs/UniversalRouter/contracts/base/RouterImmutables.sol": {
+      "lastModificationDate": 1680793067631,
+      "contentHash": "1bbcb24a202cb7f132b95b65bba3ff05",
+      "sourceName": "contracts/base/RouterImmutables.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../interfaces/IWETH.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "RouterImmutables"
+      ]
+    },
+    "/Users/jamesharbridge/Code/SideShift/0xHarbs/UniversalRouter/contracts/interfaces/IUniversalRouter.sol": {
+      "lastModificationDate": 1678373634491,
+      "contentHash": "553cb344125c1390172cebd0a1cdafaa",
+      "sourceName": "contracts/interfaces/IUniversalRouter.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "IUniversalRouter"
+      ]
+    },
+    "/Users/jamesharbridge/Code/SideShift/0xHarbs/UniversalRouter/contracts/libraries/Commands.sol": {
+      "lastModificationDate": 1680793067632,
+      "contentHash": "0c0abff06ade5960be2d8aa7d80af84f",
+      "sourceName": "contracts/libraries/Commands.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "Commands"
+      ]
+    },
+    "/Users/jamesharbridge/Code/SideShift/0xHarbs/UniversalRouter/contracts/libraries/BytesLib.sol": {
+      "lastModificationDate": 1678125485329,
+      "contentHash": "75f8aae6e2ce71766e59c02ca591feac",
+      "sourceName": "contracts/libraries/BytesLib.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "BytesLib"
+      ]
+    },
+    "/Users/jamesharbridge/Code/SideShift/0xHarbs/UniversalRouter/contracts/modules/UniswapRouter.sol": {
+      "lastModificationDate": 1680793067633,
+      "contentHash": "6f5daf91c3da3343c125ce2c1b34e304",
+      "sourceName": "contracts/modules/UniswapRouter.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@rari-capital/solmate/src/utils/SafeTransferLib.sol",
+        "@rari-capital/solmate/src/tokens/ERC20.sol",
+        "../libraries/BytesLib.sol",
+        "../interfaces/IErrors.sol",
+        "../base/RouterImmutables.sol",
+        "../interfaces/IUniswapPair.sol",
+        "../interfaces/IUniswapV3SwapCallback.sol",
+        "../interfaces/IUniswapV3Pool.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "UniswapRouter"
+      ]
+    },
+    "/Users/jamesharbridge/Code/SideShift/0xHarbs/UniversalRouter/contracts/modules/CurveRouter.sol": {
+      "lastModificationDate": 1678374463994,
+      "contentHash": "f3f63773439acb36f9ac87e89674f6e6",
+      "sourceName": "contracts/modules/CurveRouter.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@rari-capital/solmate/src/utils/SafeTransferLib.sol",
+        "@rari-capital/solmate/src/tokens/ERC20.sol",
+        "../libraries/BytesLib.sol",
+        "../interfaces/ICurvePool.sol",
+        "../interfaces/IErrors.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "CurveRouter"
+      ]
+    },
+    "/Users/jamesharbridge/Code/SideShift/0xHarbs/UniversalRouter/contracts/base/RouterManagement.sol": {
+      "lastModificationDate": 1679488656122,
+      "contentHash": "42560d593e0d693cdab30155090f6683",
+      "sourceName": "contracts/base/RouterManagement.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@rari-capital/solmate/src/tokens/ERC20.sol",
+        "@rari-capital/solmate/src/utils/SafeTransferLib.sol",
+        "./RouterImmutables.sol",
+        "../libraries/BytesLib.sol",
+        "../libraries/Commands.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "RouterManagement"
+      ]
+    },
+    "/Users/jamesharbridge/Code/SideShift/0xHarbs/UniversalRouter/node_modules/@rari-capital/solmate/src/tokens/ERC20.sol": {
+      "lastModificationDate": 1672742112056,
+      "contentHash": "a0b1801a2ffe030a0f4ff4d508ceb74f",
+      "sourceName": "@rari-capital/solmate/src/tokens/ERC20.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.8.0"
+      ],
+      "artifacts": [
+        "ERC20"
+      ]
+    },
+    "/Users/jamesharbridge/Code/SideShift/0xHarbs/UniversalRouter/node_modules/@rari-capital/solmate/src/utils/SafeTransferLib.sol": {
+      "lastModificationDate": 1672742112060,
+      "contentHash": "2de39f553e7ea0899eb4c6fa167f4083",
+      "sourceName": "@rari-capital/solmate/src/utils/SafeTransferLib.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../tokens/ERC20.sol"
+      ],
+      "versionPragmas": [
+        ">=0.8.0"
+      ],
+      "artifacts": [
+        "SafeTransferLib"
+      ]
+    },
+    "/Users/jamesharbridge/Code/SideShift/0xHarbs/UniversalRouter/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol": {
+      "lastModificationDate": 1672833704590,
+      "contentHash": "ad7c2d0af148c8f9f097d65deeb4da6b",
+      "sourceName": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "IERC20"
+      ]
+    },
+    "/Users/jamesharbridge/Code/SideShift/0xHarbs/UniversalRouter/contracts/interfaces/IErrors.sol": {
+      "lastModificationDate": 1678357171856,
+      "contentHash": "fcd7e599598fff755c5316db43ca54e0",
+      "sourceName": "contracts/interfaces/IErrors.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "IErrors"
+      ]
+    },
+    "/Users/jamesharbridge/Code/SideShift/0xHarbs/UniversalRouter/contracts/interfaces/IUniswapPair.sol": {
+      "lastModificationDate": 1678125473979,
+      "contentHash": "fc25d8adc2666ef271f9fe8da68a3438",
+      "sourceName": "contracts/interfaces/IUniswapPair.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "IUniswapPair"
+      ]
+    },
+    "/Users/jamesharbridge/Code/SideShift/0xHarbs/UniversalRouter/contracts/interfaces/IUniswapV3SwapCallback.sol": {
+      "lastModificationDate": 1678125478863,
+      "contentHash": "1ab900b45d9c490c50a409d84907a6e2",
+      "sourceName": "contracts/interfaces/IUniswapV3SwapCallback.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "IUniswapV3SwapCallback"
+      ]
+    },
+    "/Users/jamesharbridge/Code/SideShift/0xHarbs/UniversalRouter/contracts/interfaces/IUniswapV3Pool.sol": {
+      "lastModificationDate": 1678125476300,
+      "contentHash": "f8d42305bd34a8da99b0a1468718a90f",
+      "sourceName": "contracts/interfaces/IUniswapV3Pool.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "IUniswapV3Pool"
+      ]
+    },
+    "/Users/jamesharbridge/Code/SideShift/0xHarbs/UniversalRouter/contracts/interfaces/IWETH.sol": {
+      "lastModificationDate": 1678125482701,
+      "contentHash": "67376bc2255e4e642a41189c399487ad",
+      "sourceName": "contracts/interfaces/IWETH.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "IWETH"
+      ]
+    },
+    "/Users/jamesharbridge/Code/SideShift/0xHarbs/UniversalRouter/contracts/interfaces/ICurvePool.sol": {
+      "lastModificationDate": 1678125467498,
+      "contentHash": "defb834991491df660a9e9a8bf80971d",
+      "sourceName": "contracts/interfaces/ICurvePool.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "ICryptoPool",
+        "ICurvePool"
+      ]
+    },
+    "/Users/jamesharbridge/Code/SideShift/0xHarbs/UniversalRouter/contracts/interfaces/IStargateReceiver.sol": {
+      "lastModificationDate": 1678125471585,
+      "contentHash": "b2348668712e4e658de04f9bbf09591b",
+      "sourceName": "contracts/interfaces/IStargateReceiver.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "IStargateReceiver"
+      ]
+    },
+    "/Users/jamesharbridge/Code/SideShift/0xHarbs/UniversalRouter/node_modules/hardhat/console.sol": {
+      "lastModificationDate": 1672144662227,
+      "contentHash": "4ff3cd2f6272c9a6516e9ee4f2b967d3",
+      "sourceName": "hardhat/console.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">= 0.4.22 <0.9.0"
+      ],
+      "artifacts": [
+        "console"
+      ]
+    }
+  }
+}

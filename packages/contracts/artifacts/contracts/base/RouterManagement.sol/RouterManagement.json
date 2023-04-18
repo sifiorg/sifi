@@ -1,0 +1,16 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "RouterManagement",
+  "sourceName": "contracts/base/RouterManagement.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "InvalidCommand",
+      "type": "error"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

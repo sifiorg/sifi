@@ -1,0 +1,90 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "Dispatcher",
+  "sourceName": "contracts/base/Dispatcher.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "BadPool",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "BadSwapType",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "FailedSwap",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "IncorrectETHValue",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "IncorrectFromToken",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InsufficientLiquidity",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InsufficientOutput",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidCommand",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NothingReceived",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "message",
+          "type": "bytes"
+        }
+      ],
+      "name": "ThrowingError",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "int256",
+          "name": "amount0Delta",
+          "type": "int256"
+        },
+        {
+          "internalType": "int256",
+          "name": "amount1Delta",
+          "type": "int256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_data",
+          "type": "bytes"
+        }
+      ],
+      "name": "uniswapV3SwapCallback",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

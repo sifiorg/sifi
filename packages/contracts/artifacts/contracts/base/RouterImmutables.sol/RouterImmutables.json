@@ -1,0 +1,154 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "RouterImmutables",
+  "sourceName": "contracts/base/RouterImmutables.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "weth",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "balancerRouter",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "bancorRouter",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "uniswapV2Factory",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "uniswapV3Factory",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "sushiswapRouter",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "pancakeswapRouter",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "shibaswapRouter",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "hyphenBridge",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "celerBridge",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "hopEthBridge",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "hopUsdcBridge",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "hopUsdtBridge",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "hopDaiBridge",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "hopWbtcBridge",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "hopMaticBridge",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "acrossBridge",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "multichainEthBridge",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "multichainErc20Bridge",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "synapseBridge",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "allBridge",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "portalBridge",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "optimismBridge",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "polygonPosBridge",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "polygonApproveAddr",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "omniBridge",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct RouterParameters",
+          "name": "params",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    }
+  ],
+  "bytecode": "0x6103c060405234801561001157600080fd5b50604051610aad380380610aad83398181016040528101906100339190610965565b806000015173ffffffffffffffffffffffffffffffffffffffff1660808173ffffffffffffffffffffffffffffffffffffffff1681525050806020015173ffffffffffffffffffffffffffffffffffffffff1660a08173ffffffffffffffffffffffffffffffffffffffff1681525050806040015173ffffffffffffffffffffffffffffffffffffffff1660c08173ffffffffffffffffffffffffffffffffffffffff1681525050806060015173ffffffffffffffffffffffffffffffffffffffff1660e08173ffffffffffffffffffffffffffffffffffffffff1681525050806080015173ffffffffffffffffffffffffffffffffffffffff166101008173ffffffffffffffffffffffffffffffffffffffff16815250508060a0015173ffffffffffffffffffffffffffffffffffffffff166101208173ffffffffffffffffffffffffffffffffffffffff16815250508060c0015173ffffffffffffffffffffffffffffffffffffffff166101408173ffffffffffffffffffffffffffffffffffffffff16815250508060e0015173ffffffffffffffffffffffffffffffffffffffff166101608173ffffffffffffffffffffffffffffffffffffffff168152505080610100015173ffffffffffffffffffffffffffffffffffffffff166101808173ffffffffffffffffffffffffffffffffffffffff168152505080610120015173ffffffffffffffffffffffffffffffffffffffff166101a08173ffffffffffffffffffffffffffffffffffffffff168152505080610140015173ffffffffffffffffffffffffffffffffffffffff166101c08173ffffffffffffffffffffffffffffffffffffffff168152505080610160015173ffffffffffffffffffffffffffffffffffffffff166101e08173ffffffffffffffffffffffffffffffffffffffff168152505080610180015173ffffffffffffffffffffffffffffffffffffffff166102008173ffffffffffffffffffffffffffffffffffffffff1681525050806101a0015173ffffffffffffffffffffffffffffffffffffffff166102208173ffffffffffffffffffffffffffffffffffffffff1681525050806101c0015173ffffffffffffffffffffffffffffffffffffffff166102408173ffffffffffffffffffffffffffffffffffffffff1681525050806101e0015173ffffffffffffffffffffffffffffffffffffffff166102608173ffffffffffffffffffffffffffffffffffffffff168152505080610200015173ffffffffffffffffffffffffffffffffffffffff166102808173ffffffffffffffffffffffffffffffffffffffff168152505080610220015173ffffffffffffffffffffffffffffffffffffffff166102a08173ffffffffffffffffffffffffffffffffffffffff168152505080610240015173ffffffffffffffffffffffffffffffffffffffff166102c08173ffffffffffffffffffffffffffffffffffffffff168152505080610260015173ffffffffffffffffffffffffffffffffffffffff166102e08173ffffffffffffffffffffffffffffffffffffffff168152505080610280015173ffffffffffffffffffffffffffffffffffffffff166103008173ffffffffffffffffffffffffffffffffffffffff1681525050806102a0015173ffffffffffffffffffffffffffffffffffffffff166103208173ffffffffffffffffffffffffffffffffffffffff1681525050806102c0015173ffffffffffffffffffffffffffffffffffffffff166103408173ffffffffffffffffffffffffffffffffffffffff1681525050806102e0015173ffffffffffffffffffffffffffffffffffffffff166103608173ffffffffffffffffffffffffffffffffffffffff168152505080610300015173ffffffffffffffffffffffffffffffffffffffff166103808173ffffffffffffffffffffffffffffffffffffffff168152505080610320015173ffffffffffffffffffffffffffffffffffffffff166103a08173ffffffffffffffffffffffffffffffffffffffff168152505050610993565b6000604051905090565b600080fd5b600080fd5b6000601f19601f8301169050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b61066e82610625565b810181811067ffffffffffffffff8211171561068d5761068c610636565b5b80604052505050565b60006106a0610611565b90506106ac8282610665565b919050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b60006106dc826106b1565b9050919050565b6106ec816106d1565b81146106f757600080fd5b50565b600081519050610709816106e3565b92915050565b6000610340828403121561072657610725610620565b5b610731610340610696565b90506000610741848285016106fa565b6000830152506020610755848285016106fa565b6020830152506040610769848285016106fa565b604083015250606061077d848285016106fa565b6060830152506080610791848285016106fa565b60808301525060a06107a5848285016106fa565b60a08301525060c06107b9848285016106fa565b60c08301525060e06107cd848285016106fa565b60e0830152506101006107e2848285016106fa565b610100830152506101206107f8848285016106fa565b6101208301525061014061080e848285016106fa565b61014083015250610160610824848285016106fa565b6101608301525061018061083a848285016106fa565b610180830152506101a0610850848285016106fa565b6101a0830152506101c0610866848285016106fa565b6101c0830152506101e061087c848285016106fa565b6101e083015250610200610892848285016106fa565b610200830152506102206108a8848285016106fa565b610220830152506102406108be848285016106fa565b610240830152506102606108d4848285016106fa565b610260830152506102806108ea848285016106fa565b610280830152506102a0610900848285016106fa565b6102a0830152506102c0610916848285016106fa565b6102c0830152506102e061092c848285016106fa565b6102e083015250610300610942848285016106fa565b61030083015250610320610958848285016106fa565b6103208301525092915050565b6000610340828403121561097c5761097b61061b565b5b600061098a8482850161070f565b91505092915050565b60805160a05160c05160e05161010051610120516101405161016051610180516101a0516101c0516101e05161020051610220516102405161026051610280516102a0516102c0516102e05161030051610320516103405161036051610380516103a051603f610a6e6000396000505060005050600050506000505060005050600050506000505060005050600050506000505060005050600050506000505060005050600050506000505060005050600050506000505060005050600050506000505060005050600050506000505060005050603f6000f3fe6080604052600080fdfea26469706673582212204a6c1984304fdb80ed33464ea5bf734e74181773bd78e05e616d02347d035a6a64736f6c63430008090033",
+  "deployedBytecode": "0x6080604052600080fdfea26469706673582212204a6c1984304fdb80ed33464ea5bf734e74181773bd78e05e616d02347d035a6a64736f6c63430008090033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
