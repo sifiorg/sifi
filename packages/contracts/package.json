@@ -1,8 +1,12 @@
 {
-  "name": "universalrouter",
+  "name": "@sifi/contracts",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "directory": "packages/contracts",
+    "url": "git+https://github.com/sideshiftfi/sifi.git"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
