@@ -12,6 +12,11 @@ const config: HardhatUserConfig = {
   solidity: '0.8.17',
 };
 
+// NOTE: This is the private key shared publicly from the Mastering Ethereum book
+const MASTERING_ETHEREUM_PRIVATE_KEY =
+  'f8f8a2f43c8376ccb0871305060d7b27b0554d2cc72bccf41b2705608452f315';
+const account = process.env.PRIVATE_KEY_TEST || MASTERING_ETHEREUM_PRIVATE_KEY;
+
 module.exports = {
   solidity: '0.8.9',
   settings: {
@@ -29,7 +34,7 @@ module.exports = {
   networks: {
     mainnet: {
       url: process.env.MAINNET_RPC_URL || 'https://rpc.flashbots.net',
-      accounts: [process.env.PRIVATE_KEY_TEST],
+      accounts: [account],
     },
     hardhat: {
       forking: {
@@ -70,13 +75,13 @@ module.exports = {
   },
   etherscan: {
     apiKey: {
-      mainnet: process.env.ETHERSCAN_API_KEY,
+      mainnet: process.env.ETHERSCAN_API_KEY || '',
     },
   },
   gasReporter: {
     enabled: true,
     currency: 'USD',
-    coinmarketcap: process.env.COINMARKETCAP_API_KEY,
+    coinmarketcap: process.env.COINMARKETCAP_API_KEY || '',
   },
   mocha: {
     timeout: 100000000,
