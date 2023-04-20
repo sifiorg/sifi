@@ -28,13 +28,13 @@ module.exports = {
   },
   networks: {
     mainnet: {
-      url: process.env.MAINNET_RPC_URL,
+      url: process.env.MAINNET_RPC_URL || 'https://rpc.flashbots.net',
       accounts: [process.env.PRIVATE_KEY_TEST],
     },
     hardhat: {
       forking: {
         // Mainnet fork
-        url: process.env.MAINNET_RPC_URL,
+        url: process.env.MAINNET_RPC_URL || 'https://rpc.flashbots.net',
         blockNumber: 16663728,
 
         // // Polygon fork
