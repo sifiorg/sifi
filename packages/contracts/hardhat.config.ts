@@ -1,21 +1,30 @@
-import { HardhatUserConfig } from "hardhat/config";
-import "@nomiclabs/hardhat-ethers";
-import "hardhat-gas-reporter";
-import "@nomiclabs/hardhat-etherscan";
-import * as dotenv from "dotenv";
+import type { HardhatUserConfig } from 'hardhat/config';
+
+import '@typechain/hardhat';
+import '@nomiclabs/hardhat-ethers';
+import '@nomiclabs/hardhat-waffle';
+import 'hardhat-gas-reporter';
+import '@nomiclabs/hardhat-etherscan';
+import * as dotenv from 'dotenv';
 dotenv.config();
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.17",
+  solidity: '0.8.17',
 };
 
 module.exports = {
-  solidity: "0.8.9",
+  solidity: '0.8.9',
   settings: {
     optimizer: {
       enabled: true,
       runs: 1000000,
     },
+  },
+  paths: {
+    artifacts: './artifacts',
+    cache: './cache',
+    sources: './contracts',
+    tests: './test',
   },
   networks: {
     mainnet: {
@@ -66,10 +75,14 @@ module.exports = {
   },
   gasReporter: {
     enabled: true,
-    currency: "USD",
+    currency: 'USD',
     coinmarketcap: process.env.COINMARKETCAP_API_KEY,
   },
   mocha: {
     timeout: 100000000,
+  },
+  typechain: {
+    outDir: 'typechain',
+    target: 'ethers-v5',
   },
 };

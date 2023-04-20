@@ -1,5 +1,5 @@
-import { ethers } from "hardhat";
-import { RouterParametersStruct } from "../typechain-types/contracts/UniversalRouter";
+import { ethers } from 'hardhat';
+import { RouterParametersStruct } from '../typechain/contracts/UniversalRouter';
 import {
   WETH_ADDRESS,
   BALANCER_ROUTER,
@@ -27,13 +27,13 @@ import {
   POLYGON_POS_BRIDGE,
   POLYGON_APPROVE_ADDR,
   OMNI_BRIDGE,
-} from "../config";
+} from '../config';
 
 async function main() {
   const [deployer] = await ethers.getSigners();
   console.log(`Deploying contract with the account: ${deployer.address}`);
 
-  const UniversalRouter = await ethers.getContractFactory("UniversalRouter");
+  const UniversalRouter = await ethers.getContractFactory('UniversalRouter');
   const routerStruct: RouterParametersStruct = {
     weth: WETH_ADDRESS,
     balancerRouter: BALANCER_ROUTER,
@@ -73,7 +73,7 @@ async function main() {
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main().catch((error) => {
+main().catch(error => {
   console.error(error);
   process.exitCode = 1;
 });

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity 0.8.9;
 
-import {Dispatcher, BytesLib, RouterImmutables, RouterManagement, Commands, ERC20, SafeTransferLib} from "./base/Dispatcher.sol";
-import {RouterParameters} from "./base/RouterImmutables.sol";
-import {IUniversalRouter} from "./interfaces/IUniversalRouter.sol";
+import {Dispatcher, BytesLib, RouterImmutables, RouterManagement, Commands, ERC20, SafeTransferLib} from './base/Dispatcher.sol';
+import {RouterParameters} from './base/RouterImmutables.sol';
+import {IUniversalRouter} from './interfaces/IUniversalRouter.sol';
 
 contract UniversalRouter is Dispatcher, IUniversalRouter {
     address constant owner = 0xE9290C80b28db1B3d9853aB1EE60c6630B87F57E;
@@ -31,10 +31,7 @@ contract UniversalRouter is Dispatcher, IUniversalRouter {
     /// @notice Executes a single command
     /// @param commands The command bytes
     /// @param input The input bytes for the command
-    function singleExecute(
-        bytes memory commands,
-        bytes memory input
-    ) public payable {
+    function singleExecute(bytes memory commands, bytes memory input) public payable {
         bool success;
         bytes memory output;
 
@@ -42,10 +39,7 @@ contract UniversalRouter is Dispatcher, IUniversalRouter {
         uint256 addrLocation;
         uint256 cachedBalance = address(this).balance - msg.value;
 
-        (amountLocation, addrLocation, input) = collectTokenFees(
-            commands,
-            input
-        );
+        (amountLocation, addrLocation, input) = collectTokenFees(commands, input);
 
         (success, output) = dispatch(
             commands[0],
@@ -63,10 +57,7 @@ contract UniversalRouter is Dispatcher, IUniversalRouter {
     /// @notice Executes multiple commands in a single transaction
     /// @param commands The array of command bytes
     /// @param inputs The array of input bytes for the commands
-    function multiExecute(
-        bytes[] memory commands,
-        bytes[] memory inputs
-    ) public payable {
+    function multiExecute(bytes[] memory commands, bytes[] memory inputs) public payable {
         bool success;
         bytes memory output;
 
@@ -100,10 +91,7 @@ contract UniversalRouter is Dispatcher, IUniversalRouter {
 
                 // NOTE: Multiswap flag re-used to signal chained fromETH when bridging
                 // NOTE: These tx's need to know diff between newly received and cached balance
-                if (
-                    maskedCommand > 0x05 &&
-                    command & Commands.FLAG_MULTI_SWAP != 0x00
-                ) {
+                if (maskedCommand > 0x05 && command & Commands.FLAG_MULTI_SWAP != 0x00) {
                     ethInput = address(this).balance - cachedBalance;
                 }
             } else {
@@ -118,9 +106,7 @@ contract UniversalRouter is Dispatcher, IUniversalRouter {
                 addrLocation,
                 amountLocation,
                 input,
-                commandNum == 0
-                    ? msg.value == 0 ? 0 : (msg.value * 9998) / 10000
-                    : ethInput
+                commandNum == 0 ? msg.value == 0 ? 0 : (msg.value * 9998) / 10000 : ethInput
             );
 
             if (!success) revert FailedCommand(command, commandNum, output);
@@ -156,10 +142,7 @@ contract UniversalRouter is Dispatcher, IUniversalRouter {
     /// @notice Allows the owner to update to withdraw ERC20 tokens
     /// @param _tokens The array of ERC20 tokens to withdraw
     /// @param _receiver The address to send the tokens to
-    function withdrawERC20(
-        ERC20[] calldata _tokens,
-        address _receiver
-    ) external {
+    function withdrawERC20(ERC20[] calldata _tokens, address _receiver) external {
         if (msg.sender != owner) revert Unauthorized();
         for (uint256 i = 0; i < _tokens.length; ) {
             SafeTransferLib.safeTransfer(
