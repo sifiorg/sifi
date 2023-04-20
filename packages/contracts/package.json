@@ -8,7 +8,7 @@
     "url": "git+https://github.com/sideshiftfi/sifi.git"
   },
   "scripts": {
-    "test": "mocha --config .mocharc.js ./test/Test.ts"
+    "test": "npx hardhat compile && npx hardhat typechain && mocha --config .mocharc.js ./test/Test.ts"
   },
   "keywords": [],
   "author": "",
