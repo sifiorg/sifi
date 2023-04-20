@@ -33,13 +33,16 @@ module.exports = {
   },
   networks: {
     mainnet: {
-      url: process.env.MAINNET_RPC_URL || 'https://rpc.flashbots.net',
+      url: process.env.MAINNET_RPC_URL || 'https://eth.llamarpc.com',
       accounts: [account],
     },
     hardhat: {
+      network: {
+        timeout: 10000,
+      },
       forking: {
         // Mainnet fork
-        url: process.env.MAINNET_RPC_URL || 'https://rpc.flashbots.net',
+        url: process.env.MAINNET_RPC_URL || 'https://eth.llamarpc.com',
         blockNumber: 16663728,
 
         // // Polygon fork
