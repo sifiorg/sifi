@@ -21,7 +21,6 @@
     "@headlessui/react": "^1.7.4",
     "@heroicons/react": "^2.0.12",
     "@lifi/sdk": "^1.6.4",
-    "@sifi/contracts": "1.0.0",
     "@sifi/shared-ui": "^1.3.10",
     "@tanstack/react-query": "^4.13.0",
     "axios": "^1.3.2",
