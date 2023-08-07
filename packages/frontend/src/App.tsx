@@ -9,7 +9,7 @@ const App = () => {
     <AppProvider>
       <Header />
       <main className="px-2 sm:px-8">
-        <div className="flex min-h-[90vh] flex-col justify-center">
+        <div className="mt-12 flex min-h-[90vh] flex-col md:mt-0 md:justify-center">
           <Hero />
         </div>
         <FAQ />
