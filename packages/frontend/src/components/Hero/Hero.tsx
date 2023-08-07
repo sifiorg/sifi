@@ -3,8 +3,8 @@ import { CreateSwap } from '../CreateSwap/CreateSwap';
 
 const Hero = () => (
   <HeroComponent
-    title="The Best Rates in DeFi"
-    body="Find the most efficient routes for your trades with our advanced DEX aggregator."
+    title="On-Chain Swap"
+    body="We'll find the optimal route for your swap. You get the best price. It's Sifi."
   >
     <div className="flex h-full w-full max-w-[27rem] flex-col justify-center">
       <CreateSwap />
