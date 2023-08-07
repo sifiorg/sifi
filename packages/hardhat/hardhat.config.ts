@@ -9,10 +9,6 @@ dotenv.config({ path: '../../.env' });
 
 const { RPC_URL, ETHERSCAN_API_KEY, PRIVATE_KEY } = process.env;
 
-if (!RPC_URL) {
-  throw new Error('RPC_URL missing from environment');
-}
-
 const config = {
   solidity: {
     version: '0.8.21',
@@ -25,14 +21,10 @@ const config = {
   },
   networks: {
     mainnet: {
-      url: RPC_URL,
+      url: RPC_URL ?? '	https://mainnet.infura.io/v3/',
       accounts: [] as string[],
     },
     hardhat: {
-      forking: {
-        url: RPC_URL,
-        blockNumber: 17853419,
-      },
     },
   },
   etherscan: {
@@ -55,6 +47,16 @@ if (ETHERSCAN_API_KEY) {
 
 if (PRIVATE_KEY) {
   config.networks.mainnet.accounts = [PRIVATE_KEY];
+}
+
+if (RPC_URL)  {
+  config.networks.hardhat = {
+    ...config.networks.hardhat,
+    forking: {
+      url: RPC_URL,
+      blockNumber: 17853419,
+    },
+  };
 }
 
 export default config;
