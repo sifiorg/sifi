@@ -15,34 +15,43 @@ jobs:
     # Don't run on forks
     if: github.repository == 'sideshiftfi/sifi'
 
-    runs-on: ubuntu-latest-16-cores
+    runs-on: ubuntu-latest
     container: node:18.12.1-bullseye
 
     steps:
+      - name: Install system dependencies
+        run: apt update && apt-get install -y jq
+
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
 
       - uses: actions/cache@v3
-        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        name: Setup pnpm cache
         with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - name: Install system dependencies
-        run: apt update && apt-get install -y jq
+            ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: yarn --ignore-engines
+        run: pnpm install
 
       - name: Build Storybook
-        run: yarn workspace @sifi/frontend build-storybook
+        run: pnpm -C packages/frontend build-storybook
 
       - name: Upload Storybook to Chromatic
-        run: yarn workspace @sifi/frontend chromatic
+        run: pnpm -C packages/frontend chromatic
