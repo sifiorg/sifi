@@ -46,3 +46,9 @@ jobs:
 
       - name: Compile hardhat
         run: pnpm -C packages/hardhat compile
+
+      - name: Test hardhat
+        env:
+          RPC_URL: ${{ secrets.RPC_URL }}
+        if: ${{ env.RPC_URL != null }}
+        run: pnpm -C packages/hardhat test
