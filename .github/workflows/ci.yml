@@ -44,9 +44,6 @@ jobs:
       - name: Build
         run: pnpm -r build
 
-      - name: Compile hardhat
-        run: pnpm -C packages/hardhat compile
-
       - name: Test hardhat
         env:
           RPC_URL: ${{ secrets.RPC_URL }}
