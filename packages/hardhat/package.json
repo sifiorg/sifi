@@ -9,7 +9,7 @@
     "url": "https://github.com/sideshiftfi/sifi.git"
   },
   "scripts": {
-    "compile": "npx hardhat compile",
+    "build": "npx hardhat compile",
     "coverage": "npx hardhat coverage",
     "docs": "solidity-docgen --solc-module solc-0.8",
     "fork": "FORK=true npx hardhat node",
