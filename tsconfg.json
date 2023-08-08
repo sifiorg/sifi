@@ -3,9 +3,6 @@
     "jsx": "react",
     "baseUrl": "./packages",
     "paths": {
-      "@sifi/hardhat/*": [
-        "contracts/src/*"
-      ],
       "@sifi/frontend/*": [
         "frontend/src/*"
       ]
