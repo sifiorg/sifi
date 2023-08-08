@@ -7,7 +7,7 @@ import './tasks/grantTransferRole';
 
 dotenv.config({ path: '../../.env' });
 
-const { RPC_URL, ETHERSCAN_API_KEY, PRIVATE_KEY } = process.env;
+const { RPC_URL, ETHERSCAN_API_KEY, PRIVATE_KEY, OPTIMIZER_RUNS } = process.env;
 
 const config = {
   solidity: {
@@ -15,7 +15,7 @@ const config = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 10_000
+        runs: OPTIMIZER_RUNS ? parseInt(OPTIMIZER_RUNS) : 200,
       },
     }
   },
@@ -33,7 +33,6 @@ const config = {
     enabled: true,
     currency: "USD",
     coinmarketcap: process.env.COINMARKETCAP_API_KEY,
-    outputFile: "gas-report.txt",
   },
 } satisfies HardhatUserConfig;
 
