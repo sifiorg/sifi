@@ -10,17 +10,8 @@
   },
   "scripts": {
     "build": "npx hardhat compile",
-    "coverage": "npx hardhat coverage",
-    "docs": "solidity-docgen --solc-module solc-0.8",
-    "fork": "FORK=true npx hardhat node",
-    "fork:script": "FORK=true npx hardhat run",
-    "fork:test": "FORK=true npx hardhat test",
-    "lint:check": "solhint 'contracts/**/*.sol' && prettier --check './**'",
-    "lint:fix": "sort-package-json && prettier --write './**' && solhint --fix 'contracts/**/*.sol'",
-    "sizer": "TEST=true hardhat compile && TEST=true npx hardhat size-contracts",
-    "test": "TEST=true npx hardhat compile && TEST=true npx hardhat test",
-    "watcher:start:goerli": "npx hardhat run ./scripts/watcher/yearn.ts --network goerli",
-    "watcher:start:mainnet": "pm2 start \"npx hardhat run ./scripts/watcher/yearn.ts --network mainnet\" --exp-backoff-restart-delay=1000"
+    "lint": "solhint 'contracts/**/*.sol'",
+    "test": "hardhat test"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.1",
