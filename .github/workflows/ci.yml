@@ -42,7 +42,13 @@ jobs:
         run: pnpm install
 
       - name: Build
-        run: pnpm -r build
+        run: pnpm build
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm -filter '!@sifi/hardhat' packages/frontend test
 
       - name: Test hardhat
         env:
