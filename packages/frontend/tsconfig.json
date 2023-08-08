@@ -1,8 +1,22 @@
 {
-  "extends": "../../tsconfig.build.json",
   "compilerOptions": {
+    "target": "es6",
+    "lib": ["dom", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
     "composite": true,
     "outDir": "dist"
   },
-  "include": ["src/**/*", ".storybook/decorators/*"]
+  "include": ["src/**/*", ".storybook/decorators/*"],
+  "exclude": ["node_modules", "dist"]
 }
