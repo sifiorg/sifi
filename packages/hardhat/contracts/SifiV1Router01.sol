@@ -151,6 +151,6 @@ contract SifiV1Router01 is Ownable {
     IERC20(token).safeTransfer(recipient, IERC20(token).balanceOf(address(this)));
   }
 
-  // Required to allow receiving ETH
+  // This contract will receive ETH from other contracts as swap settlements
   receive() external payable {}
 }
