@@ -11,10 +11,13 @@
     ]
   },
   "scripts": {
-    "build": "lerna run build --stream",
-    "clean": "lerna run clean --stream",
-    "test": "lerna run test --stream",
-    "lint": "lerna run lint --stream --parallel --no-bail"
+    "build": "pnpm -r build",
+    "clean": "pnpm -r clean",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "all": "npm-run-all -p build lint test",
+    "all:fresh": "pnpm clean && pnpm all",
+    "all:super-fresh": "rm -rf node_modules && pnpm install && pnpm all:fresh"
   },
   "devDependencies": {
     "@typescript-eslint/parser": "^5.40.0",
@@ -23,6 +26,7 @@
     "eslint-import-resolver-workspaces": "^1.2.0",
     "eslint-plugin-workspaces": "^0.7.0",
     "prettier": "^2.7.1",
-    "typescript": "^4.9.3"
+    "typescript": "^4.9.3",
+    "npm-run-all": "^4.1.5"
   }
 }
