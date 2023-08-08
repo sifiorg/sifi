@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "tsc && vite build",
-    "clean": "rimraf dist && rimraf tsconfig.tsbuildinfo",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "dev": "vite",
     "lint": "eslint \"./src/**/*.{js,jsx,ts,tsx}\"",
     "preview": "vite preview",
