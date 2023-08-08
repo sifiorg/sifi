@@ -90,13 +90,15 @@ contract SifiV1Router01 is Ownable {
 
     if (amounts[1] > amountOut) {
       // Transfer positive slippage to fee address
-      payable(fees).transfer(amounts[1] - amountOut);
+      (bool sentPositiveSlippage, ) = payable(fees).call{value: amounts[1] - amountOut}('');
+      require(sentPositiveSlippage, 'Transfer positive slippage failed');
 
       amounts[1] = amountOut;
     }
 
     // Transfer ETH to user
-    payable(to).transfer(amounts[1]);
+    (bool sent, ) = to.call{value: amounts[1]}('');
+    require(sent, 'Transfer out failed');
 
     return amounts;
   }
@@ -140,7 +142,8 @@ contract SifiV1Router01 is Ownable {
   function withdraw(address token, address recipient) external onlyOwner {
     if (token == address(0)) {
       // Send ETH
-      payable(recipient).transfer(address(this).balance);
+      (bool sent, ) = payable(recipient).call{value: address(this).balance}('');
+      require(sent, 'Transfer failed');
 
       return;
     }
