@@ -19,7 +19,7 @@ contract SifiV1Router01 is Ownable {
   IWETH private immutable weth;
   address private immutable fees;
 
-  constructor(address _spender, address _fees, address payable _weth, address _uniswapV2router02) {
+  constructor(address _spender, address payable _fees, address _weth, address _uniswapV2router02) {
     spender = ISpender(_spender);
     fees = _fees;
     weth = IWETH(_weth);
@@ -68,10 +68,10 @@ contract SifiV1Router01 is Ownable {
     uint256 amountIn,
     uint256 amountOut,
     address[] memory path,
-    address to,
+    address payable to,
     uint256 slippage,
     uint256 deadline
-  ) public payable returns (uint256[] memory amounts) {
+  ) public returns (uint256[] memory amounts) {
     spender.transferFrom({token: path[0], from: msg.sender, to: address(this), amount: amountIn});
 
     IERC20(path[0]).safeApprove(address(uniswapV2router02), amountIn);
@@ -90,7 +90,7 @@ contract SifiV1Router01 is Ownable {
 
     if (amounts[1] > amountOut) {
       // Transfer positive slippage to fee address
-      (bool sentPositiveSlippage, ) = payable(fees).call{value: amounts[1] - amountOut}('');
+      (bool sentPositiveSlippage, ) = (fees).call{value: amounts[1] - amountOut}('');
       require(sentPositiveSlippage, 'Transfer positive slippage failed');
 
       amounts[1] = amountOut;
@@ -98,7 +98,7 @@ contract SifiV1Router01 is Ownable {
 
     // Transfer ETH to user
     (bool sent, ) = to.call{value: amounts[1]}('');
-    require(sent, 'Transfer out failed');
+    require(sent, 'TRANSFER_ETH_FAILED');
 
     return amounts;
   }
@@ -110,7 +110,7 @@ contract SifiV1Router01 is Ownable {
     address to,
     uint256 slippage,
     uint256 deadline
-  ) public payable returns (uint256[] memory amounts) {
+  ) public returns (uint256[] memory amounts) {
     spender.transferFrom({token: path[0], from: msg.sender, to: address(this), amount: amountIn});
 
     IERC20(path[0]).safeApprove(address(uniswapV2router02), amountIn);
