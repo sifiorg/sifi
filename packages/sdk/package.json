@@ -1,0 +1,36 @@
+{
+  "name": "@sifi/sdk",
+  "version": "1.0.0",
+  "license": "MIT",
+  "description": "🛸 SDK for integrating with SideShift.fi",
+  "repository": {
+    "type": "git",
+    "directory": "packages/sdk",
+    "url": "git+https://github.com/sideshiftfi/sifi.git"
+  },
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "module": "dist/sdk.esm.js",
+  "keywords": [
+    "sideshift.fi",
+    "ethereum",
+    "swap"
+  ],
+  "scripts": {
+    "build": "tsdx build",
+    "start": "tsdx watch",
+    "test": "tsdx test",
+    "prepublishOnly": "tsdx build"
+  },
+  "dependencies": {
+    "typescript": "^4.9.3"
+  },
+  "devDependencies": {
+    "@types/node": "~18.11.19",
+    "tsdx": "^0.14.1",
+    "undici": "~5.23.0"
+  }
+}
