@@ -5,6 +5,9 @@
     "paths": {
       "@sifi/frontend/*": [
         "frontend/src/*"
+      ],
+      "@sifi/sdk/*": [
+        "sdk/src/*"
       ]
     }
   }
