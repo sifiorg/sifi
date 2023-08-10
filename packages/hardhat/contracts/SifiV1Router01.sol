@@ -14,6 +14,8 @@ contract SifiV1Router01 is Ownable {
   using SafeERC20 for IERC20;
   using Address for address;
 
+  error EthTransferFailed();
+
   ISpender private immutable spender;
   IUniswapV2Router02 private immutable uniswapV2router02;
   IWETH private immutable weth;
@@ -91,14 +93,20 @@ contract SifiV1Router01 is Ownable {
     if (amounts[1] > amountOut) {
       // Transfer positive slippage to fee address
       (bool sentPositiveSlippage, ) = (fees).call{value: amounts[1] - amountOut}('');
-      require(sentPositiveSlippage, 'ETH_TRANSFER_POS_SLIP_FAILED');
+
+      if (!sentPositiveSlippage) {
+        revert EthTransferFailed();
+      }
 
       amounts[1] = amountOut;
     }
 
     // Transfer ETH to user
     (bool sent, ) = to.call{value: amounts[1]}('');
-    require(sent, 'ETH_TRANSFER_FAILED');
+
+    if (!sent) {
+      revert EthTransferFailed();
+    }
 
     return amounts;
   }
@@ -143,7 +151,10 @@ contract SifiV1Router01 is Ownable {
     if (token == address(0)) {
       // Send ETH
       (bool sent, ) = payable(recipient).call{value: address(this).balance}('');
-      require(sent, 'ETH_TRANSFER_FAILED');
+
+      if (!sent) {
+        revert EthTransferFailed();
+      }
 
       return;
     }
