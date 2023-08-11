@@ -9,3 +9,4 @@ typechain-types
 cache
 artifacts
 gas-report.txt
+solidity-files-cache.json

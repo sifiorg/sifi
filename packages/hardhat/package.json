@@ -22,6 +22,7 @@
     "chai": "^4.3.7",
     "dotenv": "^16.3.1",
     "hardhat": "^2.17.1",
+    "hardhat-deploy": "^0.11.34",
     "solhint": "3.5.1",
     "solhint-plugin-prettier": "^0.0.5"
   }
