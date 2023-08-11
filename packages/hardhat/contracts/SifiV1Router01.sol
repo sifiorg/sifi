@@ -40,7 +40,7 @@ contract SifiV1Router01 is Ownable {
     address[] memory path,
     address to,
     uint16 slippage,
-    uint256 deadline
+    uint48 deadline
   ) public payable returns (uint256[] memory amounts) {
     path[0] = address(weth);
 
@@ -72,7 +72,7 @@ contract SifiV1Router01 is Ownable {
     address[] memory path,
     address payable to,
     uint16 slippage,
-    uint256 deadline
+    uint48 deadline
   ) public returns (uint256[] memory amounts) {
     spender.transferFrom({token: path[0], from: msg.sender, to: address(this), amount: amountIn});
 
@@ -117,7 +117,7 @@ contract SifiV1Router01 is Ownable {
     address[] memory path,
     address to,
     uint16 slippage,
-    uint256 deadline
+    uint48 deadline
   ) public returns (uint256[] memory amounts) {
     spender.transferFrom({token: path[0], from: msg.sender, to: address(this), amount: amountIn});
 
