@@ -25,12 +25,10 @@
     "test": "tsdx test",
     "prepublishOnly": "tsdx build"
   },
-  "dependencies": {
-    "typescript": "^4.9.3"
-  },
   "devDependencies": {
     "@types/node": "~18.11.19",
     "tsdx": "^0.14.1",
+    "typescript": "^4.9.3",
     "undici": "~5.23.0"
   }
 }
