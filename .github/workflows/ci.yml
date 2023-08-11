@@ -52,6 +52,6 @@ jobs:
 
       - name: Test hardhat
         env:
-          RPC_URL: ${{ secrets.RPC_URL }}
-        if: ${{ env.RPC_URL != null }}
+          RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
+        if: ${{ env.MAINNET_RPC_URL != null }}
         run: pnpm -C packages/hardhat test
