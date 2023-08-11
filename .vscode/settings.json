@@ -34,5 +34,6 @@
     "overrideConfigFile": ".eslintrc.vscode.json"
   },
   "vsicons.presets.nestjs": true,
-  "files.insertFinalNewline": true
+  "files.insertFinalNewline": true,
+  "solidity.monoRepoSupport": true
 }
