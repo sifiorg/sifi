@@ -41,6 +41,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
       - name: Build
         run: pnpm build
 
@@ -55,3 +58,9 @@ jobs:
           RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
         if: ${{ env.MAINNET_RPC_URL != null }}
         run: pnpm -C packages/hardhat test
+
+      - name: Test foundry
+        env:
+          RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
+        if: ${{ env.MAINNET_RPC_URL != null }}
+        run: pnpm -C packages/hardhat forge test -vv
