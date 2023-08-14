@@ -1,10 +1,10 @@
-type GetQuoteOptions = {
+export type GetQuoteOptions = {
   fromToken: string;
   toToken: string;
   fromAmount: bigint | string;
 };
 
-type Quote = {
+export type Quote = {
   id: string;
   toAmount: bigint;
   estimatedGas: bigint;
@@ -12,7 +12,7 @@ type Quote = {
   toAmountAfterFeesUsd: string;
 };
 
-type GetSwapOptions = {
+export type GetSwapOptions = {
   /**
    * Quote ID or Quote object.
    */
