@@ -43,26 +43,31 @@ export type Swap = {
   estimatedGasTotalUsd: string;
 };
 
+export class SifiError extends Error {
+  constructor(message: string, public readonly code?: string) {
+    super(message);
+    this.name = 'SifiError';
+  }
+}
+
 async function handleResponse(response: Response) {
   const contentType = response.headers.get('content-type');
 
   if (response.ok) {
     if (!contentType?.startsWith('application/json')) {
-      throw new Error(
-        `Failed to get quote. Unexpected response content type: ${contentType ?? '<none>'}`
-      );
+      throw new SifiError(`Unexpected response content type: ${contentType ?? '<none>'}`);
     }
 
     return await response.json();
   }
 
   if (contentType?.startsWith('application/json')) {
-    const json = (await response.json()) as { code: number; message: string };
+    const json = (await response.json()) as { code: string; message: string };
 
-    throw new Error(`Failed to get quote: ${json.code}: ${json.message}`);
+    throw new SifiError(json.message, json.code);
   }
 
-  throw new Error(`Failed to get quote: ${response.statusText}`);
+  throw new SifiError(`Request failed: ${response.statusText}`);
 }
 
 export class Sifi {
