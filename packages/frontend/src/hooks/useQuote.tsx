@@ -38,6 +38,7 @@ const useQuote = () => {
   const enabled = !!fromToken && !!toToken && !!fromAmount;
   const queryKey = getQueryKey('quote', fromAmount, toToken?.address, fromToken?.address);
 
+  // TODO: Quote gets fetched 4 times
   const {
     data: quote,
     error,

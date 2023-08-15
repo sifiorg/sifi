@@ -52,6 +52,7 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
     if (!fromAmount) return 'Enter an amount';
     const hasFetchedSwapQuote = !!quote || isFromEthereum;
     if (fromBalance && hasFetchedSwapQuote && !hasSufficientBalance) {
+      // TODO: Does not work properly once switching to a Token
       return 'Insufficient Balance';
     }
 
