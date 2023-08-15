@@ -34,10 +34,10 @@ const useSwapRoutes = () => {
       )
       .toString(),
     fromTokenAddress: fromToken?.address || '', // TODO: FIX this
-    fromAddress: address || ethers.constants.AddressZero,
+    fromAddress: address || ETH_CONTRACT_ADDRESS,
     toChainId: 1,
     toTokenAddress: toToken?.address || '', // TODO: FIX this,
-    toAddress: address || ethers.constants.AddressZero,
+    toAddress: address || ETH_CONTRACT_ADDRESS,
     options: { order: 'RECOMMENDED' },
   };
 

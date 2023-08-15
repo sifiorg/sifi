@@ -24,17 +24,17 @@ const useQuote = () => {
 
   const quoteRequest: QuoteRequest = {
     fromChain: 1,
-    fromToken: fromToken?.address || ethers.constants.AddressZero,
-    toToken: toToken?.address || ethers.constants.AddressZero,
+    fromToken: fromToken?.address || ETH_CONTRACT_ADDRESS,
+    toToken: toToken?.address || ETH_CONTRACT_ADDRESS,
     fromAmount: ethers.utils
       .parseUnits(
         fromAmount?.endsWith('.') ? `${fromAmount}0` : fromAmount || '0',
         fromToken?.decimals || 0
       )
       .toString(),
-    fromAddress: address || ethers.constants.AddressZero,
+    fromAddress: address || ETH_CONTRACT_ADDRESS,
     toChain: 1,
-    toAddress: address || ethers.constants.AddressZero,
+    toAddress: address || ETH_CONTRACT_ADDRESS,
   };
 
   const handleSuccesfulQuoteFetch = (quote: Step): void => {
