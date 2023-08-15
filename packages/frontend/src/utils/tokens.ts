@@ -1,4 +1,4 @@
-import type { Token } from '@lifi/sdk';
+import type { Token } from '@sifi/sdk';
 import { POPULAR_TOKEN_SYMBOLS } from '../constants';
 
 export const getOrderedTokenList = (tokenList: Token[]) => {

@@ -12,7 +12,7 @@ const useAllowance = () => {
   const { tokens } = useTokens();
   const { isConnected, address } = useAccount();
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  const approvalAddress = quote?.estimate.approvalAddress as `0x${string}`;
+  const approveAddress = quote?.approveAddress as `0x${string}`;
 
   const [fromTokenSymbol] = useWatch({
     name: [SwapFormKey.FromToken],
@@ -22,7 +22,7 @@ const useAllowance = () => {
 
   const enabled =
     !!fromToken &&
-    !!approvalAddress &&
+    !!approveAddress &&
     isConnected &&
     !isFetchingQuote &&
     !!address &&
@@ -32,7 +32,7 @@ const useAllowance = () => {
     address: fromToken?.address as `0x${string}`,
     abi: erc20ABI,
     functionName: 'allowance',
-    args: [address || ETH_CONTRACT_ADDRESS, approvalAddress],
+    args: [address || ETH_CONTRACT_ADDRESS, approveAddress],
     enabled,
     staleTime: Infinity,
   });

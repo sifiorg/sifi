@@ -1,4 +1,3 @@
-import { Token } from '@lifi/sdk';
 import { useQuery } from '@tanstack/react-query';
 import {
   type FunctionComponent,
@@ -8,10 +7,11 @@ import {
   useState,
   useMemo,
 } from 'react';
-import { useLiFi } from './SDKProvider';
 import { useCoinGecko } from '../hooks/useCoinGecko';
 import { getOrderedTokenList } from '../utils/tokens';
 import { enableUnlistedTokenTrading } from '../utils/featureFlags';
+import { useSifi } from './SDKProvider';
+import type { Token } from '@sifi/sdk';
 
 const TokensContext = createContext<{
   tokens: Token[];
@@ -23,7 +23,7 @@ const TokensContext = createContext<{
 });
 
 const TokensProvider: FunctionComponent<{ children: ReactNode }> = ({ children }) => {
-  const lifi = useLiFi();
+  const sifi = useSifi();
   const selectedChainId = 1;
   const { getTokenByAddress } = useCoinGecko();
   const [tokens, setTokens] = useState<Token[]>([]);
@@ -31,9 +31,9 @@ const TokensProvider: FunctionComponent<{ children: ReactNode }> = ({ children }
   const { refetch } = useQuery(
     ['tokens'],
     async () => {
-      const data = await lifi.getTokens();
+      const data = await sifi.getTokens(selectedChainId);
 
-      return getOrderedTokenList(data.tokens[selectedChainId]);
+      return getOrderedTokenList(data);
     },
     { enabled: false }
   );

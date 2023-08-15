@@ -12,7 +12,7 @@ const useApprove = () => {
   const { data: signer } = useSigner();
   const { quote } = useQuote();
   const { tokens } = useTokens();
-  const approvalAddress = quote?.estimate?.approvalAddress as `0x${string}`;
+  const approveAddress = quote?.approveAddress as `0x${string}`;
 
   const [fromTokenSymbol] = useWatch({
     name: [SwapFormKey.FromToken],
@@ -26,13 +26,10 @@ const useApprove = () => {
   });
 
   const requestApproval = async (): Promise<void> => {
-    if (!approvalAddress) throw new Error('Approval address is missing');
+    if (!approveAddress) throw new Error('Approval address is missing');
     if (!tokenContract) throw new Error('Token contract is missing');
 
-    const tx = await tokenContract.functions.approve(
-      approvalAddress,
-      BigNumber.from(MAX_ALLOWANCE)
-    );
+    const tx = await tokenContract.functions.approve(approveAddress, BigNumber.from(MAX_ALLOWANCE));
 
     // Wagmi's contract expects to return [ContractTransaction],
     // but it is actually a ContractTransaction
@@ -40,7 +37,7 @@ const useApprove = () => {
   };
 
   return useQuery(
-    ['requestApproval', { tokenAddress: fromToken?.address, approvalAddress }],
+    ['requestApproval', { tokenAddress: fromToken?.address, approveAddress }],
     async () => requestApproval(),
     {
       enabled: false,

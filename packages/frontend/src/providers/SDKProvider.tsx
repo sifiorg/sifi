@@ -12,7 +12,7 @@ const SDKProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   // TODO: Add error handling
   const value = useMemo(() => {
     if (!sifi) {
-      sifi = new Sifi(baseUrl);
+      sifi = new Sifi();
     }
 
     return sifi;
