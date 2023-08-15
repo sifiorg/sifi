@@ -3,7 +3,7 @@ const mockTokens = {
     // Sorted by Chain ID
     '1': [
       {
-        address: '0x0000000000000000000000000000000000000000',
+        address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
         symbol: 'ETH',
         decimals: 18,
         chainId: 1,
