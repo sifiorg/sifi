@@ -12,7 +12,9 @@ type WalletBalanceToken = {
 
 const useWalletBalance = () => {
   const { address } = useAccount();
-  const shouldFetch = Boolean(address);
+  // TOOD: Fix wallet balance fetching - /v1/user-wallet-balance endpoint does not exist
+  // const shouldFetch = Boolean(address);
+  const shouldFetch = false;
 
   const walletBalanceResponse = useQuery<WalletBalanceToken[]>(
     ['walletBalance'],
