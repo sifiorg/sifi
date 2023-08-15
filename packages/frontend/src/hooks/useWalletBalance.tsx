@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { useAccount } from 'wagmi';
-import { apiUrl } from '../utils';
+import { baseUrl } from '../utils';
 
 type WalletBalanceToken = {
   balance: string;
@@ -17,7 +17,7 @@ const useWalletBalance = () => {
   const walletBalanceResponse = useQuery<WalletBalanceToken[]>(
     ['walletBalance'],
     async () => {
-      const { data } = await axios.get(`${apiUrl}/v1/user-wallet-balance?address=${address}`);
+      const { data } = await axios.get(`${baseUrl}/v1/user-wallet-balance?address=${address}`);
 
       return data;
     },

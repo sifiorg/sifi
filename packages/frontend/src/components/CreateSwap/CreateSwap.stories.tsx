@@ -3,7 +3,7 @@ import { StoryFn, Meta } from '@storybook/react';
 import isChromatic from 'chromatic/isChromatic';
 import { CreateSwap } from './CreateSwap';
 import { MockWagmiDecorator } from '../../../.storybook/decorators/wagmiDecorator';
-import { apiUrl } from '../../utils';
+import { baseUrl } from '../../utils';
 
 export default {
   title: 'Components/CreateSwap',
@@ -19,7 +19,7 @@ export const Default = Template.bind({});
 export const Loading = Template.bind({});
 Loading.parameters = {
   msw: [
-    rest.get(`${apiUrl}/lifi/tokens`, (_req, res, ctx) => {
+    rest.get(`${baseUrl}/lifi/tokens`, (_req, res, ctx) => {
       return res(ctx.delay(isChromatic() ? 5000 : 'infinite'));
     }),
   ],
