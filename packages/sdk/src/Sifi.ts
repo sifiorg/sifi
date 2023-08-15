@@ -43,6 +43,20 @@ export type Swap = {
   estimatedGasTotalUsd: string;
 };
 
+export type GetTokensOptions = {
+  chainId: number;
+};
+
+// From @uniswap/token-lists/dist/types.d.ts
+export type Token = {
+  chainId: number;
+  address: string;
+  name: string;
+  decimals: number;
+  symbol: string;
+  logoURI?: string;
+};
+
 export class SifiError extends Error {
   constructor(message: string, public readonly code?: string) {
     super(message);
@@ -113,5 +127,19 @@ export class Sifi {
       tx: response.tx,
       estimatedGasTotalUsd: response.estimatedGasTotalUsd,
     };
+  }
+
+  async getTokens(options: number | GetTokensOptions): Promise<Token[]> {
+    if (typeof options === 'number') {
+      options = { chainId: options };
+    }
+
+    const query = new URLSearchParams({
+      chainId: options.chainId.toString(),
+    }).toString();
+
+    const response = await fetch(`${this.baseUrl}tokens?${query}`).then(handleResponse);
+
+    return response;
   }
 }
