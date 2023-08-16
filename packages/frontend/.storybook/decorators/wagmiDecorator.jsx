@@ -1,7 +1,7 @@
 import { Wallet } from 'ethers';
 import { configureChains, createClient, WagmiConfig } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
-import { MockConnector } from '@wagmi/core/connectors/mock';
+import { MockConnector } from 'wagmi/connectors/mock';
 import { jsonRpcProvider } from 'wagmi/providers/jsonRpc';
 
 const mainnetRpcUrl = 'https://eth-rpc.gateway.pokt.network/';
@@ -36,12 +36,12 @@ const mockWagmiClient = (wallet, mockOptions = {}) =>
 
 const MockWagmiDecorator =
   (wallet = demoWallet) =>
-  Story => {
-    return (
-      <WagmiConfig client={mockWagmiClient(wallet)}>
-        <Story />
-      </WagmiConfig>
-    );
-  };
+    Story => {
+      return (
+        <WagmiConfig client={mockWagmiClient(wallet)}>
+          <Story />
+        </WagmiConfig>
+      );
+    };
 
 export { MockWagmiDecorator };

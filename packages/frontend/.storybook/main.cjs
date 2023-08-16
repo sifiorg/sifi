@@ -12,5 +12,8 @@ module.exports = {
   docsPage: {
     docs: "automatic"
   },
-  staticDirs: ["../public"]
+  staticDirs: ["../public"],
+  docs: {
+    autodocs: true,
+  },
 };
