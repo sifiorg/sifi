@@ -1,12 +1,11 @@
-import { FunctionComponent, useEffect, useMemo } from 'react';
+import { FunctionComponent, useMemo } from 'react';
 import { useAccount } from 'wagmi';
 import { useFormContext } from 'react-hook-form';
 import { CoinSelector } from '@sifi/shared-ui';
 import { SwapFormKeyHelper, SwapFormType } from '../../providers/SwapFormProvider';
 import { useTokens } from '../../hooks/useTokens';
-import { formatTokenAmount, getTokenBySymbol, isStorybookDev } from '../../utils';
+import { formatTokenAmount, getTokenBySymbol } from '../../utils';
 import { useWalletBalance } from '../../hooks/useWalletBalance';
-import isChromatic from 'chromatic';
 
 const TokenSelector: FunctionComponent<{
   close: () => void;
@@ -31,9 +30,7 @@ const TokenSelector: FunctionComponent<{
     () =>
       tokens?.map(token => {
         const walletToken = walletBalanceData?.find(
-          walletToken =>
-            walletToken.tokenAddress.toLowerCase() === token.address.toLowerCase() ||
-            walletToken.tokenAddress === token.coinKey?.toLowerCase()
+          walletToken => walletToken.tokenAddress.toLowerCase() === token.address.toLowerCase()
         );
 
         return {

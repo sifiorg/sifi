@@ -8,7 +8,6 @@ import { ApproveButton } from './ApproveButton';
 import { SwitchNetworkButton } from './SwitchNetworkButton';
 import { useApprove } from '../../hooks/useApprove';
 import { useTokens } from '../../hooks/useTokens';
-import { useSwapRoutes } from '../../hooks/useSwapRoutes';
 import { useQuote } from '../../hooks/useQuote';
 import { SwapFormKey } from '../../providers/SwapFormProvider';
 import { getTokenBySymbol } from '../../utils';
@@ -23,8 +22,6 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
   const { chain } = useNetwork();
   const { tokens } = useTokens();
   const { isFetching: isApproving } = useApprove();
-  const { routes, isFetching: isFetchingSwapRoutes } = useSwapRoutes();
-  const route = routes?.[0];
   const { allowance, isAllowanceAboveMinumum, isFetching: isFetchingAllowance } = useAllowance();
   const [fromTokenSymbol, fromAmount] = useWatch({
     name: [SwapFormKey.FromToken, SwapFormKey.FromAmount],
@@ -35,33 +32,27 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
     chain?.id && fromToken?.chainId && chain.id !== fromToken.chainId
   );
   const { data: fromBalance } = useTokenBalance(fromToken);
-  const hasSufficientBalance = isFromEthereum
-    ? route && fromBalance?.value.gt(route.fromAmount)
-    : quote && fromBalance?.value.gt(quote.action.fromAmount);
-  const isShiftButtonLoading =
-    isLoading || isFetchingAllowance || isFetchingSwapRoutes || isFetchingQuote;
+  const hasSufficientBalance = quote && fromBalance?.value.gt(fromAmount);
+
+  const isShiftButtonLoading = isLoading || isFetchingAllowance || isFetchingQuote;
 
   const showApproveButton =
     Boolean(
-      !!quote &&
-        !!allowance &&
-        !isAllowanceAboveMinumum &&
-        !isFromEthereum &&
-        hasSufficientBalance
+      !!quote && !!allowance && !isAllowanceAboveMinumum && !isFromEthereum && hasSufficientBalance
     ) || isApproving;
 
   const isShiftButtonDisabled =
     !isConnected ||
-    !route ||
-    isFetchingSwapRoutes ||
-    showApproveButton ||
+    // TODO: Temporary until the approve button is fixed
+    // showApproveButton ||
     !fromAmount ||
     !hasSufficientBalance;
 
   const getShiftButtonLabel = () => {
     if (!fromAmount) return 'Enter an amount';
-    const hasFetchedSwapQuote = !!quote || (!!route && isFromEthereum);
+    const hasFetchedSwapQuote = !!quote || isFromEthereum;
     if (fromBalance && hasFetchedSwapQuote && !hasSufficientBalance) {
+      // TODO: Does not work properly once switching to a Token
       return 'Insufficient Balance';
     }
 
@@ -69,7 +60,7 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
   };
 
   if (!isConnected) return <ConnectWallet />;
-  if (userIsConnectedToWrongNetwork) return <SwitchNetworkButton/>
+  if (userIsConnectedToWrongNetwork) return <SwitchNetworkButton />;
 
   return (
     <>
