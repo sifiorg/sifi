@@ -3,22 +3,20 @@ import { useWatch, useForm, useFormContext } from 'react-hook-form';
 import { useAccount, useSigner } from 'wagmi';
 import { showToast, ShiftInput } from '@sifi/shared-ui';
 import { useTokens } from '../../hooks/useTokens';
-import { useLiFi } from '../../providers/SDKProvider';
-import { getTokenBySymbol, parseErrorMessage } from '../../utils';
+import { useSifi } from '../../providers/SDKProvider';
+import { formatTokenAmount, getTokenBySymbol, parseErrorMessage } from '../../utils';
 import { SwapFormKey, SwapFormKeyHelper } from '../../providers/SwapFormProvider';
-import { useSwapRoutes } from '../../hooks/useSwapRoutes';
 import { useCullQueries } from '../../hooks/useCullQueries';
 import { CreateSwapButtons } from '../CreateSwapButtons/CreateSwapButtons';
 import { useQuote } from '../../hooks/useQuote';
-import { ETH_CONTRACT_ADDRESS } from '../../constants';
 import { TokenSelector, useTokenSelector } from '../TokenSelector';
 import { useTokenBalance } from '../../hooks/useTokenBalance';
+import { useMutation } from '@tanstack/react-query';
 
 const CreateSwap = () => {
-  useCullQueries('routes');
   useCullQueries('quote');
-  const { isConnected } = useAccount();
-  const LiFi = useLiFi();
+  const { address } = useAccount();
+  const sifi = useSifi();
   const { data: signer } = useSigner();
   const { handleSubmit } = useForm();
   const { tokens } = useTokens();
@@ -27,37 +25,53 @@ const CreateSwap = () => {
   });
   const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
   const toToken = getTokenBySymbol(toTokenSymbol, tokens);
+  const { isConnected } = useAccount();
   const [isLoading, setIsLoading] = useState(false);
-  const { routes, isFetching: isFetchingSwapRoutes } = useSwapRoutes();
-  const { isFetching: isFetchingQuote } = useQuote();
-  const route = routes?.[0];
-  const isFromEthereum = fromToken?.address === ETH_CONTRACT_ADDRESS;
+  const { quote, isFetching: isFetchingQuote } = useQuote();
   const ShiftInputLabel = { from: 'You pay', to: 'You receive' } as const;
-
   const { data: fromBalance } = useTokenBalance(fromToken);
   const { data: toBalance } = useTokenBalance(toToken);
+  const isToSwapInputLoading = isFetchingQuote;
 
-  const isToSwapInputLoading = isFetchingQuote || (isFromEthereum && isFetchingSwapRoutes);
+  const mutation = useMutation(
+    async () => {
+      if (!quote) {
+        throw new Error('Quote is missing');
+      }
+      if (!signer) throw new Error('Signer is missing');
+      if (!address) throw new Error('fromAddress is missing');
+
+      const { tx } = await sifi.getSwap({ fromAddress: address, quote });
+      const res = await signer.sendTransaction({
+        chainId: tx.chainId,
+        data: tx.data,
+        from: tx.from,
+        gasLimit: tx.gasLimit,
+        to: tx.to,
+        value: tx.value,
+      });
+      return res;
+    },
+    {
+      onError: error => {
+        if (error instanceof Error) {
+          showToast({ text: parseErrorMessage(error.message), type: 'error' });
+        } else {
+          console.error(error);
+        }
+      },
+      onSettled: () => {
+        setIsLoading(false);
+      },
+    }
+  );
 
   const executeSwap = async () => {
-    if (!signer) throw new Error('Signer is missing');
     if (!fromToken || !toToken) throw new Error('Tokens are missing');
-    if (!route) throw new Error('Route is missing');
+    if (!address) throw new Error('fromAddress is missing');
 
-    try {
-      // TODO: Can use react-query for this
-      setIsLoading(true);
-      await LiFi.executeRoute(signer, route);
-      setIsLoading(false);
-    } catch (error) {
-      if (error instanceof Error) {
-        showToast({ text: parseErrorMessage(error.message), type: 'error' });
-      } else {
-        console.error(error);
-      }
-
-      setIsLoading(false);
-    }
+    setIsLoading(true);
+    mutation.mutate();
   };
 
   const { closeTokenSelector, openTokenSelector, tokenSelectorType, isTokenSelectorOpen } =
@@ -119,18 +133,19 @@ const CreateSwap = () => {
         </form>
       </div>
       {/* Temorary info section */}
-      {isConnected && route && (
+      {isConnected && quote && (
         <dl className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
-          <div className="sm:col-span-1">
+          {/* TODO: Add this back in */}
+          {/* <div className="sm:col-span-1">
             <dt className="text-smoke text-sm font-medium">USD Value</dt>
             <dd className="font-display text-flashbang-white mt-1 text-sm">
               {route.toAmountUSD} USD
             </dd>
-          </div>
+          </div> */}
           <div className="sm:col-span-1">
-            <dt className="text-smoke text-sm font-medium">Gas Cost</dt>
+            <dt className="text-smoke text-sm font-medium">Estimated Gas Cost</dt>
             <dd className="font-display text-flashbang-white mt-1 text-sm">
-              {route.gasCostUSD} USD
+              {formatTokenAmount(quote.estimatedGas.toString(), 4)} USD
             </dd>
           </div>
         </dl>

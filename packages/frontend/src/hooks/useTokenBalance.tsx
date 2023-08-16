@@ -1,5 +1,5 @@
 import { useAccount, useBalance } from 'wagmi';
-import type { Token } from '@lifi/sdk';
+import type { Token } from '@sifi/sdk';
 import { ETH_CONTRACT_ADDRESS } from '../constants';
 
 const useTokenBalance = (token: Token | null) => {

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { useAccount } from 'wagmi';
-import { apiUrl } from '../utils';
+import { baseUrl } from '../utils';
 
 type WalletBalanceToken = {
   balance: string;
@@ -12,12 +12,14 @@ type WalletBalanceToken = {
 
 const useWalletBalance = () => {
   const { address } = useAccount();
-  const shouldFetch = Boolean(address);
+  // TOOD: Fix wallet balance fetching - /v1/user-wallet-balance endpoint does not exist
+  // const shouldFetch = Boolean(address);
+  const shouldFetch = false;
 
   const walletBalanceResponse = useQuery<WalletBalanceToken[]>(
     ['walletBalance'],
     async () => {
-      const { data } = await axios.get(`${apiUrl}/v1/user-wallet-balance?address=${address}`);
+      const { data } = await axios.get(`${baseUrl}/v1/user-wallet-balance?address=${address}`);
 
       return data;
     },

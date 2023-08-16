@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Token } from '@lifi/sdk';
+import type { Token } from '@sifi/sdk';
 
 export const coinGeckoBaseUrl = 'https://api.coingecko.com/api/v3';
 
@@ -17,7 +17,8 @@ const useCoinGecko = () => {
       name: data.name,
       symbol: data.symbol?.toUpperCase(),
       logoURI: data.image?.small,
-      priceUSD: data.market_data?.current_price?.usd,
+      // TODO: This doesn't exist after @sifi/sdk migration
+      // priceUSD: data.market_data?.current_price?.usd,
     };
   };
 

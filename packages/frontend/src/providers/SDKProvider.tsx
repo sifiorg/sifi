@@ -1,25 +1,24 @@
-import LIFI from '@lifi/sdk';
+import { Sifi } from '@sifi/sdk';
 import { createContext, useContext, useMemo } from 'react';
-import { apiUrl } from '../utils';
+import { baseUrl } from '../utils';
 
-let lifi: LIFI;
+let sifi: Sifi;
 
-const SDKContext = createContext<LIFI>(new LIFI());
+const SDKContext = createContext<Sifi>(new Sifi());
 
-const useLiFi = (): LIFI => useContext(SDKContext);
+const useSifi = (): Sifi => useContext(SDKContext);
 
 const SDKProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+  // TODO: Add error handling
   const value = useMemo(() => {
-    if (!lifi) {
-      lifi = new LIFI({
-        apiUrl: `${apiUrl}/lifi/`,
-      });
+    if (!sifi) {
+      sifi = new Sifi();
     }
 
-    return lifi;
+    return sifi;
   }, []);
 
   return <SDKContext.Provider value={value}>{children}</SDKContext.Provider>;
 };
 
-export { SDKProvider, useLiFi };
+export { SDKProvider, useSifi };

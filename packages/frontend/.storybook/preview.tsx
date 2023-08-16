@@ -2,7 +2,7 @@ import React from 'react';
 import { rest } from 'msw';
 import { mockTokens, routesMock, mockAddress, mockBalances } from '../src/mocks';
 import { AppProvider } from '../src/AppProvider';
-import { apiUrl } from '../src/utils';
+import { baseUrl } from '../src/utils';
 import '@sifi/shared-ui/dist/index.css';
 import '../src/index.css';
 import { initialize, mswDecorator } from 'msw-storybook-addon';
@@ -20,13 +20,13 @@ export const parameters = {
   },
   msw: {
     handlers: [
-      rest.get(`${apiUrl}/lifi/tokens`, (_, res, ctx) => {
+      rest.get(`${baseUrl}/lifi/tokens`, (_, res, ctx) => {
         return res(ctx.status(200), ctx.json(mockTokens));
       }),
-      rest.post(`${apiUrl}/lifi/advanced/routes`, (_, res, ctx) => {
+      rest.post(`${baseUrl}/lifi/advanced/routes`, (_, res, ctx) => {
         return res(ctx.status(200), ctx.json(routesMock));
       }),
-      rest.get(`${apiUrl}/v1/user-wallet-balance?address=${mockAddress}`, (_, res, ctx) => {
+      rest.get(`${baseUrl}/v1/user-wallet-balance?address=${mockAddress}`, (_, res, ctx) => {
         return res(ctx.status(200), ctx.json(mockBalances));
       }),
     ],

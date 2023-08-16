@@ -1,18 +1,18 @@
-import { BigNumber, ethers } from 'ethers';
+import { ethers } from 'ethers';
 import { erc20ABI, useAccount, useContractRead } from 'wagmi';
 import { useWatch } from 'react-hook-form';
 import { useQuote } from './useQuote';
 import { useTokens } from './useTokens';
 import { getTokenBySymbol } from '../utils';
 import { SwapFormKey } from '../providers/SwapFormProvider';
-import { MIN_ALLOWANCE } from '../constants';
+import { ETH_CONTRACT_ADDRESS, MIN_ALLOWANCE } from '../constants';
 
 const useAllowance = () => {
   const { quote, isFetching: isFetchingQuote } = useQuote();
   const { tokens } = useTokens();
   const { isConnected, address } = useAccount();
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  const approvalAddress = quote?.estimate.approvalAddress as `0x${string}`;
+  const approveAddress = quote?.approveAddress as `0x${string}`;
 
   const [fromTokenSymbol] = useWatch({
     name: [SwapFormKey.FromToken],
@@ -22,17 +22,17 @@ const useAllowance = () => {
 
   const enabled =
     !!fromToken &&
-    !!approvalAddress &&
+    !!approveAddress &&
     isConnected &&
     !isFetchingQuote &&
     !!address &&
-    fromToken.address !== ethers.constants.AddressZero;
+    fromToken.address !== ETH_CONTRACT_ADDRESS;
 
   const { data: allowance, ...rest } = useContractRead({
     address: fromToken?.address as `0x${string}`,
     abi: erc20ABI,
     functionName: 'allowance',
-    args: [address || ethers.constants.AddressZero, approvalAddress],
+    args: [address || ETH_CONTRACT_ADDRESS, approveAddress],
     enabled,
     staleTime: Infinity,
   });
