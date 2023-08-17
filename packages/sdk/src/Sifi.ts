@@ -33,11 +33,29 @@ export type GetSwapOptions = {
 
 export type Swap = {
   tx: {
+    /**
+     * Address with checksum
+     */
     from: string;
+    /**
+     * Address with checksum
+     */
     to: string;
-    value: string;
+    /**
+     * Value as hex string, e.g. `0x0` when swapping from the native token
+     */
+    value?: string;
+    /**
+     * Data as hex string, e.g. `0xdeadbeef`
+     */
     data: string;
+    /**
+     * Chain ID as number, e.g. `1` for Ethereum mainnet
+     */
     chainId: number;
+    /**
+     * Gas price as hex string, e.g. `0x030d40`
+     */
     gasLimit: string;
   };
   estimatedGasTotalUsd: string;
