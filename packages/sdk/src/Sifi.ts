@@ -114,6 +114,11 @@ async function handleResponse(response: Response) {
   throw new SifiError(`Request failed: ${response.statusText}`);
 }
 
+/**
+ * Placeholder address used to represent the native token.
+ */
+export const ETH_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
+
 export class Sifi {
   constructor(private readonly baseUrl = 'https://api.sideshift.fi/v1/') {}
 
