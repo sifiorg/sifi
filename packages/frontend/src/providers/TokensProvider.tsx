@@ -7,7 +7,6 @@ import {
   useState,
   useMemo,
 } from 'react';
-import { useCoinGecko } from '../hooks/useCoinGecko';
 import { getOrderedTokenList } from '../utils/tokens';
 import { enableUnlistedTokenTrading } from '../utils/featureFlags';
 import { useSifi } from './SDKProvider';
@@ -25,7 +24,6 @@ const TokensContext = createContext<{
 const TokensProvider: FunctionComponent<{ children: ReactNode }> = ({ children }) => {
   const sifi = useSifi();
   const selectedChainId = 1;
-  const { getTokenByAddress } = useCoinGecko();
   const [tokens, setTokens] = useState<Token[]>([]);
 
   const { refetch } = useQuery(
@@ -49,7 +47,7 @@ const TokensProvider: FunctionComponent<{ children: ReactNode }> = ({ children }
   const appendTokenFetchedByAddress = async (address: `0x${string}`) => {
     const token = tokens?.find(token => token.address.toLowerCase() === address.toLowerCase());
     if (!token) {
-      const fetchedToken = await getTokenByAddress(address);
+      const fetchedToken = await sifi.getToken(selectedChainId, address);
       if (fetchedToken) {
         setTokens(tokens => [...tokens, fetchedToken]);
       }
