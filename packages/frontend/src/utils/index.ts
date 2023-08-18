@@ -4,3 +4,4 @@ export * from './tokens';
 export * from './queries';
 export * from './api';
 export * from './parseErrorMessage';
+export * from './evm';

@@ -4,7 +4,7 @@ import { useAccount, useSigner } from 'wagmi';
 import { showToast, ShiftInput } from '@sifi/shared-ui';
 import { useTokens } from '../../hooks/useTokens';
 import { useSifi } from '../../providers/SDKProvider';
-import { formatTokenAmount, getTokenBySymbol, parseErrorMessage } from '../../utils';
+import { formatTokenAmount, getEvmTxUrl, getTokenBySymbol, parseErrorMessage } from '../../utils';
 import { SwapFormKey, SwapFormKeyHelper } from '../../providers/SwapFormProvider';
 import { useCullQueries } from '../../hooks/useCullQueries';
 import { CreateSwapButtons } from '../CreateSwapButtons/CreateSwapButtons';
@@ -62,6 +62,23 @@ const CreateSwap = () => {
       },
       onSettled: () => {
         setIsLoading(false);
+      },
+      onSuccess: async tx => {
+        const txHash = tx.hash;
+        const explorerLink = getEvmTxUrl('ethereum', txHash);
+
+        showToast({
+          text: 'Your swap has been confirmed. Please stand by.',
+          type: 'info',
+        });
+
+        await tx.wait();
+
+        showToast({
+          type: 'success',
+          text: 'Your swap has confirmed. It may take a while until it confirms on the blockchain.',
+          ...(explorerLink ? { link: { text: 'View Transaction', href: explorerLink } } : {}),
+        });
       },
     }
   );
