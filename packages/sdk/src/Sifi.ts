@@ -129,6 +129,17 @@ export class Sifi {
     };
   }
 
+  async getToken(chainId: number, address: string): Promise<Token> {
+    const query = new URLSearchParams({
+      chainId: chainId.toString(),
+      address,
+    });
+
+    const response = await fetch(`${this.baseUrl}token?${query}`).then(handleResponse);
+
+    return response;
+  }
+
   async getTokens(options: number | GetTokensOptions): Promise<Token[]> {
     if (typeof options === 'number') {
       options = { chainId: options };
