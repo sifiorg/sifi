@@ -1,14 +1,12 @@
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { DEV_CHAINS } from '../helper-hardhat-config';
-import { network } from 'hardhat';
-import verify from '../utils/verify/verify';
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { verify } from '../helpers';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments, getNamedAccounts } = hre;
   const { deploy, get, log } = deployments;
 
-  const { deployerRouter } = await getNamedAccounts();
+  const { defaultDeployer } = await getNamedAccounts();
 
   const spenderAddress = (await get('Spender')).address;
 
@@ -20,18 +18,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   args.push('0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'); // UniswapV2Router02
 
   const sifiV1Router01 = await deploy('SifiV1Router01', {
-    from: deployerRouter,
+    from: defaultDeployer,
     args,
     log: true,
     autoMine: true,
   });
 
-  if (!DEV_CHAINS.includes(network.name)) {
-    log('Verifying...');
-    await verify(sifiV1Router01.address, args);
-  }
+  await verify(sifiV1Router01.address, args);
 };
 
 export default func;
 
-func.tags = ['SifiV1Router01'];
+func.tags = ['SifiV1Router01', 'v1'];

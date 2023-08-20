@@ -1,6 +1,17 @@
 {
+  "plugins": [
+    "prettier-plugin-solidity"
+  ],
   "printWidth": 100,
   "singleQuote": true,
   "trailingComma": "es5",
-  "arrowParens": "avoid"
+  "arrowParens": "avoid",
+  "overrides": [
+    {
+      "files": "*.sol",
+      "options": {
+        "parser": "solidity-parse"
+      }
+    }
+  ]
 }
