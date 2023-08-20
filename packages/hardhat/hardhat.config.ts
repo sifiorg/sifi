@@ -45,7 +45,7 @@ const config = {
     coinmarketcap: process.env.COINMARKETCAP_API_KEY,
   },
   namedAccounts: {
-    deployerRouter: {
+    defaultDeployer: {
       default: 0,
     },
     deployerSpender: {
@@ -58,6 +58,7 @@ if (ETHERSCAN_API_KEY) {
   config.etherscan = {
     apiKey: {
       mainnet: ETHERSCAN_API_KEY,
+      sepolia: ETHERSCAN_API_KEY,
     },
   };
 }
@@ -84,7 +85,12 @@ if (DEV_MNEMONIC) {
     },
   };
 
-  config.networks.sepolia.accounts = { mnemonic: DEV_MNEMONIC };
+  config.networks.sepolia = {
+    ...config.networks.sepolia,
+    accounts: {
+      mnemonic: DEV_MNEMONIC,
+    },
+  };
 }
 
 export default config;

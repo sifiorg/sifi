@@ -35,5 +35,8 @@
   },
   "vsicons.presets.nestjs": true,
   "files.insertFinalNewline": true,
-  "solidity.monoRepoSupport": true
+  "solidity.monoRepoSupport": true,
+  "prettier.documentSelectors": ["**/*.{ts,sol}"],
+  "npm.packageManager": "pnpm",
+  "prettier.enableDebugLogs": true
 }
