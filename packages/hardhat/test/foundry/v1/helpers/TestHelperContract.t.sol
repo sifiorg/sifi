@@ -2,8 +2,8 @@
 pragma solidity ^0.8.21;
 
 import 'forge-std/Test.sol';
-import 'contracts/Spender.sol';
-import 'contracts/SifiV1Router01.sol';
+import 'contracts/v1/Spender.sol';
+import 'contracts/v1/SifiV1Router01.sol';
 import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol';
 

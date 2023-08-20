@@ -11,7 +11,7 @@
   "scripts": {
     "build": "npx hardhat compile",
     "lint": "solhint 'contracts/**/*.sol'",
-    "test": "hardhat test"
+    "test": "hardhat test && forge test --ffi"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.1",
@@ -24,7 +24,7 @@
     "dotenv": "^16.3.1",
     "hardhat": "^2.17.1",
     "hardhat-deploy": "^0.11.34",
-    "solhint": "3.5.1",
+    "solhint": "^3.6.2",
     "solhint-plugin-prettier": "^0.0.5"
   }
 }
