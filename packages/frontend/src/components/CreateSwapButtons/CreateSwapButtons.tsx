@@ -1,5 +1,6 @@
 import { useWatch } from 'react-hook-form';
 import { useAccount, useNetwork } from 'wagmi';
+import { ethers } from 'ethers';
 import { useCullQueries } from '../../hooks/useCullQueries';
 import { Button } from '../Button';
 import { ConnectWallet } from '../ConnectWallet/ConnectWallet';
@@ -32,7 +33,8 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
     chain?.id && fromToken?.chainId && chain.id !== fromToken.chainId
   );
   const { data: fromBalance } = useTokenBalance(fromToken);
-  const hasSufficientBalance = quote && fromBalance?.value.gt(fromAmount);
+  const fromAmountInWei = ethers.utils.parseUnits(fromAmount, fromToken?.decimals);
+  const hasSufficientBalance = quote && fromBalance?.value.gt(fromAmountInWei);
 
   const isShiftButtonLoading = isLoading || isFetchingAllowance || isFetchingQuote;
 
