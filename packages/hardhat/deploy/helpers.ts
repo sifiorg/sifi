@@ -36,3 +36,8 @@ export async function verify(contactAdress: string, args: unknown[], attempts = 
     throw error;
   }
 }
+
+export const uniswapV2Router02AddressForNetwork: Partial<Record<string, string>> = {
+  mainnet: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
+  sepolia: '0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008',
+};

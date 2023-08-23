@@ -1,10 +1,14 @@
-import { getNamedAccounts } from 'hardhat';
+import { getNamedAccounts, network } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { DiamondCutFacet, DiamondLoupeFacet, IDiamondCut } from '../../typechain-types';
+import { DiamondCutFacet, DiamondLoupeFacet } from '../../typechain-types';
 import { FacetCutAction } from '../../types/diamond.t';
-import { getFunctionSelectorsFromContract, verify } from '../helpers';
+import {
+  getFunctionSelectorsFromContract,
+  uniswapV2Router02AddressForNetwork,
+  verify,
+} from '../helpers';
 
-const FACET_NAMES = ['DiamondCutFacet', 'DiamondLoupeFacet', 'OwnershipFacet'];
+const FACET_NAMES = ['DiamondCutFacet', 'DiamondLoupeFacet', 'OwnershipFacet', 'UniV2RouterFacet'];
 
 /**
  * Add, replace, or remove facets in the diamond
@@ -12,7 +16,24 @@ const FACET_NAMES = ['DiamondCutFacet', 'DiamondLoupeFacet', 'OwnershipFacet'];
 const func = async function (hre: HardhatRuntimeEnvironment) {
   const { ethers, deployments } = hre;
   const { get, deploy } = deployments;
+
   const { defaultDeployer } = await getNamedAccounts();
+  const diamondDeployment = await get('SifiDiamond');
+  const diamondCutDeployment = await get('DiamondCutFacet');
+
+  const initForFacet: Partial<Record<string, () => Promise<string>>> = {
+    UniV2RouterFacet: async () => {
+      const address = uniswapV2Router02AddressForNetwork[network.name];
+
+      if (!address) {
+        throw new Error(`UniswapV2Router02 address is unknown for network ${network.name}`);
+      }
+
+      const facet = await ethers.getContractAt('UniV2RouterFacet', diamondDeployment.address);
+
+      return facet.interface.encodeFunctionData('initUniV2Router', [address]);
+    },
+  };
 
   for (const facetName of FACET_NAMES) {
     const args: unknown[] = [];
@@ -26,9 +47,6 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
 
     await verify(facet.address, args);
   }
-
-  const diamondDeployment = await get('SifiDiamond');
-  const diamondCutDeployment = await get('DiamondCutFacet');
 
   const diamondCutFacet: DiamondCutFacet = await ethers.getContractAt(
     'DiamondCutFacet',
@@ -49,6 +67,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
         return {
           address: facetDeployment.address,
           selectors: getFunctionSelectorsFromContract(facet),
+          init: await initForFacet[facetName]?.(),
         };
       })
     )
@@ -86,6 +105,15 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
     }),
     {}
   );
+
+  const addedFacets = nextFacets.filter(
+    facet => !prevFacets.some(other => other.facetAddress === facet.address)
+  );
+
+  // Init functions are only supported for added facets
+  const inits = addedFacets
+    .filter(facet => facet.init)
+    .map(facet => ({ address: facet.address, calldata: facet.init! }));
 
   // Find selectors that are no longer used
   const cutsAddPerAddress = Object.entries(nextSelectorToAddress).reduce<Record<string, string[]>>(
@@ -176,20 +204,30 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
     }
   }
 
+  if (inits.length > 1) {
+    // Note that if multiple of the added/replaced cuts have an init functions
+    // the DiamondCut facet needs to be upgraded to support multiple init functions
+    // This can be as simple as having a map in this file of facet names to a function that
+    // returns either `undefined` or the init function name and an array of arguments
+    throw new Error('Only one init function is supported');
+  }
+
+  const [init] = inits;
+
+  if (init) {
+    console.log(`Init: ${init.address} (${init.calldata})`);
+  }
+
   if (process.env.DRY_RUN) {
     console.log('Dry run. Not performing cuts');
 
     return;
   }
 
-  // TODO: Add init support. Note that if multiple of the added/replaced cuts have an init functions
-  // the DiamondCut facet needs to be upgraded to support multiple init functions
-  // This can be as simple as having a map in this file of facet names to a function that
-  // returns either `undefined` or the init function name and an array of arguments
   await diamondCutFacet.diamondCut(
     cuts,
-    '0x0000000000000000000000000000000000000000',
-    Buffer.from([])
+    init?.address ?? '0x0000000000000000000000000000000000000000',
+    init?.calldata ?? Buffer.from([])
   );
 
   console.log(`Performed ${cuts.length} cuts`);
