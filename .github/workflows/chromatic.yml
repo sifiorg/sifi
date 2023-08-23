@@ -50,6 +50,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Build SDK
+        run: pnpm -C packages/sdk build
+
       - name: Build Storybook
         run: pnpm -C packages/frontend build-storybook
 
