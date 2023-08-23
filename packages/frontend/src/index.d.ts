@@ -4,3 +4,10 @@ interface Window extends Window {
     trackGoal: (code: string, cents: number) => void;
   };
 }
+
+declare module '*.svg' {
+  const src: string;
+  const ReactComponent: FunctionComponent<HTMLAttributes<HTMLOrSvgElement>>;
+  export { ReactComponent };
+  export default src;
+}
