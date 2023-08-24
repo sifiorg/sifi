@@ -7,14 +7,8 @@ import './tasks/grantTransferRole';
 
 dotenv.config({ path: '../../.env' });
 
-const {
-  MAINNET_RPC_URL,
-  ETHERSCAN_API_KEY,
-  OPTIMIZER_RUNS,
-  EVM_MNEMONIC,
-  SEPOLIA_RPC_URL,
-  DEV_MNEMONIC,
-} = process.env;
+const { MAINNET_RPC_URL, ETHERSCAN_API_KEY, EVM_MNEMONIC, SEPOLIA_RPC_URL, DEV_MNEMONIC } =
+  process.env;
 
 const config = {
   solidity: {
@@ -22,7 +16,8 @@ const config = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: OPTIMIZER_RUNS ? parseInt(OPTIMIZER_RUNS) : 200,
+        // NOTE: SifiDiamons is deployed in production with 1M runs
+        runs: 999999,
       },
     },
   },
