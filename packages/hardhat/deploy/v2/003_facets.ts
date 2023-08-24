@@ -8,7 +8,13 @@ import {
   verify,
 } from '../helpers';
 
-const FACET_NAMES = ['DiamondCutFacet', 'DiamondLoupeFacet', 'OwnershipFacet', 'UniV2RouterFacet'];
+const FACET_NAMES = [
+  'DiamondCutFacet',
+  'DiamondLoupeFacet',
+  'OwnershipFacet',
+  'UniV2RouterFacet',
+  'KittyFacet',
+];
 
 /**
  * Add, replace, or remove facets in the diamond
