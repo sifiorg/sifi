@@ -1,6 +1,6 @@
 import { FunctionComponent } from 'react';
 import { Footer as FooterComponent } from '@sifi/shared-ui';
-import logo from '../../assets/logo.svg';
+import logo from 'src/assets/logo.svg';
 
 const Footer: FunctionComponent = () => {
   return (

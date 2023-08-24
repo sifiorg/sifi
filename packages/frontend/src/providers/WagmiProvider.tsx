@@ -2,7 +2,7 @@ import type { FC, PropsWithChildren } from 'react';
 import { WagmiConfig, createClient, configureChains } from 'wagmi';
 import { mainnet, polygon } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
-import { connectors } from '../connectors';
+import { connectors } from 'src/connectors';
 
 const { provider, webSocketProvider } = configureChains([mainnet, polygon], [publicProvider()]);
 

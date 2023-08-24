@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { SwapFormType } from '../../providers/SwapFormProvider';
+import { SwapFormType } from 'src/providers/SwapFormProvider';
 
 const useTokenSelector = () => {
   const [tokenSelectorType, setTokenSelectorType] = useState<SwapFormType>('from');

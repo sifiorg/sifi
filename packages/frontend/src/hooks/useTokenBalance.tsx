@@ -1,6 +1,6 @@
 import { useAccount, useBalance } from 'wagmi';
 import type { Token } from '@sifi/sdk';
-import { ETH_CONTRACT_ADDRESS } from '../constants';
+import { ETH_CONTRACT_ADDRESS } from 'src/constants';
 
 const useTokenBalance = (token: Token | null) => {
   const { address } = useAccount();

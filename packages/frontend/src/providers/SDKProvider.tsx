@@ -1,6 +1,5 @@
 import { Sifi } from '@sifi/sdk';
 import { createContext, useContext, useMemo } from 'react';
-import { baseUrl } from '../utils';
 
 let sifi: Sifi;
 

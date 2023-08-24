@@ -2,10 +2,10 @@ import { FunctionComponent, useMemo } from 'react';
 import { useAccount } from 'wagmi';
 import { useFormContext } from 'react-hook-form';
 import { CoinSelector } from '@sifi/shared-ui';
-import { SwapFormKeyHelper, SwapFormType } from '../../providers/SwapFormProvider';
-import { useTokens } from '../../hooks/useTokens';
-import { formatTokenAmount, getTokenBySymbol } from '../../utils';
-import { useWalletBalance } from '../../hooks/useWalletBalance';
+import { SwapFormKeyHelper, SwapFormType } from 'src/providers/SwapFormProvider';
+import { useTokens } from 'src/hooks/useTokens';
+import { formatTokenAmount, getTokenBySymbol } from 'src/utils';
+import { useWalletBalance } from 'src/hooks/useWalletBalance';
 
 const TokenSelector: FunctionComponent<{
   close: () => void;
