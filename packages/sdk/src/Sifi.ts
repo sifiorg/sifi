@@ -29,6 +29,15 @@ export type GetSwapOptions = {
    * Recipient of swapped tokens. Defaults to `fromAddress`.
    */
   toAddress?: string;
+  /**
+   * Partner address (0xdeadbeef...)
+   */
+  partner?: string;
+  /**
+   * Fee in basis points (e.g. 25 for 0.25%). The fee is split evenly between the partner
+   * and SIFI. Defaults to 0, meaning no fee is charged.
+   */
+  feeBps?: number;
 };
 
 export type Swap = {
@@ -58,7 +67,10 @@ export type Token = {
 };
 
 export class SifiError extends Error {
-  constructor(message: string, public readonly code?: string) {
+  constructor(
+    message: string,
+    public readonly code?: string
+  ) {
     super(message);
     this.name = 'SifiError';
   }
@@ -117,6 +129,14 @@ export class Sifi {
 
     if (options.slippage !== undefined) {
       params.slippage = options.slippage.toString();
+    }
+
+    if (options.partner !== undefined) {
+      params.partner = options.partner;
+    }
+
+    if (options.feeBps !== undefined) {
+      params.feeBps = options.feeBps.toString();
     }
 
     const query = new URLSearchParams(params).toString();
