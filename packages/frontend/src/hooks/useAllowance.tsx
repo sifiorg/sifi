@@ -39,7 +39,7 @@ const useAllowance = () => {
 
   // TODO: Display errors in a toast
 
-  const fromAmountInWei = ethers.utils.parseUnits(fromAmount, fromToken?.decimals);
+  const fromAmountInWei = ethers.utils.parseUnits(fromAmount || '0', fromToken?.decimals);
   const isAllowanceAboveFromAmount = allowance?.gt(fromAmountInWei);
   const isAllowanceAboveMinimum = allowance?.gt(ethers.BigNumber.from(MIN_ALLOWANCE));
 
