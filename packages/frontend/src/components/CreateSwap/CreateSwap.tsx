@@ -29,8 +29,9 @@ const CreateSwap = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { quote, isFetching: isFetchingQuote } = useQuote();
   const ShiftInputLabel = { from: 'You pay', to: 'You receive' } as const;
-  const { data: fromBalance } = useTokenBalance(fromToken);
-  const { data: toBalance } = useTokenBalance(toToken);
+  const { data: fromBalance, refetch: refetchFromBalance } = useTokenBalance(fromToken);
+  const { data: toBalance, refetch: refetchToBalance } = useTokenBalance(toToken);
+
   const isToSwapInputLoading = isFetchingQuote;
 
   const mutation = useMutation(
@@ -79,6 +80,10 @@ const CreateSwap = () => {
           text: 'Your swap has confirmed. It may take a while until it confirms on the blockchain.',
           ...(explorerLink ? { link: { text: 'View Transaction', href: explorerLink } } : {}),
         });
+
+        refetchFromBalance();
+        refetchToBalance();
+        setValue(SwapFormKey.FromAmount, '');
       },
     }
   );
