@@ -6,7 +6,7 @@ import closeIcon from 'src/assets/icons/close.svg';
 import { type SupportedWallet } from 'src/connectors';
 import { Button } from '../Button';
 
-const supportedWallets: SupportedWallet[] = ['metamask', 'coinbase', 'walletconnect'];
+const supportedWallets: SupportedWallet[] = ['injected', 'coinbase', 'walletconnect'];
 
 type ConnectWalletModalProps = {
   isOpen: boolean;
@@ -60,6 +60,8 @@ const ConnectWalletModal: FunctionComponent<ConnectWalletModalProps> = ({
                 </Dialog.Title>
                 {supportedWallets.map(wallet => (
                   <WalletOption
+                    // Todo(Nathan): Make this dynamic
+                    injectedWalletName={wallet === 'injected' ? 'MetaMask' : undefined}
                     key={wallet}
                     walletOption={wallet}
                     activate={() => connectWallet(wallet)}

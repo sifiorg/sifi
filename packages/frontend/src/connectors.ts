@@ -5,7 +5,7 @@ import { InjectedConnector } from 'wagmi/connectors/injected';
 import { WalletConnectLegacyConnector } from 'wagmi/connectors/walletConnectLegacy';
 import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet';
 
-type SupportedWallet = 'metamask' | 'coinbase' | 'walletconnect';
+type SupportedWallet = 'injected' | 'coinbase' | 'walletconnect';
 
 const { chains } = configureChains([mainnet, polygon], [publicProvider()]);
 
