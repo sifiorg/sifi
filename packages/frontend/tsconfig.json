@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "target": "es6",
     "lib": ["dom", "esnext"],
     "allowJs": true,
@@ -17,6 +18,6 @@
     "composite": true,
     "outDir": "dist"
   },
-  "include": ["src/**/*", ".storybook/decorators/*"],
+  "include": ["src/**/*", ".storybook/decorators/*", "src"],
   "exclude": ["node_modules", "dist"]
 }

@@ -1,7 +1,7 @@
 import { FunctionComponent } from 'react';
 import { Accordion } from '@sifi/shared-ui';
-import layersIcon from '../../assets/layers.svg';
-import linkIcon from '../../assets/link.svg';
+import layersIcon from 'src/assets/layers.svg';
+import linkIcon from 'src/assets/link.svg';
 
 const items = {
   exchange: [

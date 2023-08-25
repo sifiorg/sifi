@@ -2,11 +2,11 @@ import { useQuery } from '@tanstack/react-query';
 import { BigNumber, ContractTransaction } from 'ethers';
 import { erc20ABI, useSigner, useContract } from 'wagmi';
 import { useWatch } from 'react-hook-form';
+import { MAX_ALLOWANCE } from 'src/constants';
+import { SwapFormKey } from 'src/providers/SwapFormProvider';
+import { getTokenBySymbol } from 'src/utils';
 import { useQuote } from './useQuote';
 import { useTokens } from './useTokens';
-import { MAX_ALLOWANCE } from '../constants';
-import { SwapFormKey } from '../providers/SwapFormProvider';
-import { getTokenBySymbol } from '../utils';
 
 const useApprove = () => {
   const { data: signer } = useSigner();

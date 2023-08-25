@@ -1,7 +1,7 @@
 import { FunctionComponent } from 'react';
 import { Menu } from '@sifi/shared-ui';
 import { useAccount, useDisconnect, useEnsName, useNetwork } from 'wagmi';
-import { formatAddress, formatEnsName } from '../../utils';
+import { formatAddress, formatEnsName } from 'src/utils';
 
 const HeaderMenu: FunctionComponent = () => {
   const { address, isConnected } = useAccount();

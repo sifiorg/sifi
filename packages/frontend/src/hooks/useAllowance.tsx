@@ -1,11 +1,11 @@
 import { ethers } from 'ethers';
 import { erc20ABI, useAccount, useContractRead } from 'wagmi';
+import { getTokenBySymbol } from 'src/utils';
+import { SwapFormKey } from 'src/providers/SwapFormProvider';
+import { ETH_CONTRACT_ADDRESS, MIN_ALLOWANCE } from 'src/constants';
 import { useWatch } from 'react-hook-form';
 import { useQuote } from './useQuote';
 import { useTokens } from './useTokens';
-import { getTokenBySymbol } from '../utils';
-import { SwapFormKey } from '../providers/SwapFormProvider';
-import { ETH_CONTRACT_ADDRESS, MIN_ALLOWANCE } from '../constants';
 
 const useAllowance = () => {
   const { quote, isFetching: isFetchingQuote } = useQuote();

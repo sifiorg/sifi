@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { useAccount } from 'wagmi';
-import { baseUrl } from '../utils';
+import { baseUrl } from 'src/utils';
 
 type WalletBalanceToken = {
   balance: string;

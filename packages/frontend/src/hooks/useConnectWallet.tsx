@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useConnect } from 'wagmi';
-import { connectors, type SupportedWallet } from '../connectors';
+import { connectors, type SupportedWallet } from 'src/connectors';
 import useAnalytics from './useAnalytics';
 
 // TODO(bill): export types from shared-ui, import here

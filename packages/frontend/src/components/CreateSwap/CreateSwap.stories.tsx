@@ -3,7 +3,7 @@ import { StoryFn, Meta } from '@storybook/react';
 import isChromatic from 'chromatic/isChromatic';
 import { CreateSwap } from './CreateSwap';
 import { MockWagmiDecorator } from '../../../.storybook/decorators/wagmiDecorator';
-import { baseUrl } from '../../utils';
+import { baseUrl } from 'src/utils';
 
 export default {
   title: 'Components/CreateSwap',

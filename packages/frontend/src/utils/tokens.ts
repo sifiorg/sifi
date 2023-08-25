@@ -1,5 +1,5 @@
 import type { Token } from '@sifi/sdk';
-import { POPULAR_TOKEN_SYMBOLS } from '../constants';
+import { POPULAR_TOKEN_SYMBOLS } from 'src/constants';
 
 export const getOrderedTokenList = (tokenList: Token[]) => {
   const popularTokenList = tokenList.filter(token => POPULAR_TOKEN_SYMBOLS.includes(token.symbol));

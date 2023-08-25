@@ -1,6 +1,6 @@
 import { createContext, FunctionComponent, ReactNode, useContext } from 'react';
 import isChromatic from 'chromatic';
-import { isStorybookDev, isTest } from '../utils';
+import { isStorybookDev, isTest } from 'src/utils';
 
 const analyticsMethods = {
   logEvent: (goalId: string) => {

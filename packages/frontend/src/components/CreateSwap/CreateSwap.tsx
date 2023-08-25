@@ -2,16 +2,16 @@ import { useEffect, useState } from 'react';
 import { useWatch, useForm, useFormContext } from 'react-hook-form';
 import { useAccount, useSigner } from 'wagmi';
 import { showToast, ShiftInput } from '@sifi/shared-ui';
-import { useTokens } from '../../hooks/useTokens';
-import { useSifi } from '../../providers/SDKProvider';
-import { formatTokenAmount, getEvmTxUrl, getTokenBySymbol, parseErrorMessage } from '../../utils';
-import { SwapFormKey, SwapFormKeyHelper } from '../../providers/SwapFormProvider';
-import { useCullQueries } from '../../hooks/useCullQueries';
-import { CreateSwapButtons } from '../CreateSwapButtons/CreateSwapButtons';
-import { useQuote } from '../../hooks/useQuote';
-import { TokenSelector, useTokenSelector } from '../TokenSelector';
-import { useTokenBalance } from '../../hooks/useTokenBalance';
+import { useTokens } from 'src/hooks/useTokens';
+import { useTokenBalance } from 'src/hooks/useTokenBalance';
 import { useMutation } from '@tanstack/react-query';
+import { useSifi } from 'src/providers/SDKProvider';
+import { formatTokenAmount, getEvmTxUrl, getTokenBySymbol, parseErrorMessage } from 'src/utils';
+import { SwapFormKey, SwapFormKeyHelper } from 'src/providers/SwapFormProvider';
+import { useCullQueries } from 'src/hooks/useCullQueries';
+import { useQuote } from 'src/hooks/useQuote';
+import { CreateSwapButtons } from '../CreateSwapButtons/CreateSwapButtons';
+import { TokenSelector, useTokenSelector } from '../TokenSelector';
 
 const CreateSwap = () => {
   useCullQueries('quote');
