@@ -25,7 +25,7 @@ const useConnectWallet = () => {
     setError(null);
     try {
       switch (wallet) {
-        case 'metamask':
+        case 'injected':
           connectInjected();
           logEvent('ONMZZFEX');
           break;
