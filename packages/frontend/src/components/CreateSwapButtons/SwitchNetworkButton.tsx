@@ -1,9 +1,9 @@
 import { useWatch } from 'react-hook-form';
 import { useSwitchNetwork } from 'wagmi';
-import { useTokens } from '../../hooks/useTokens';
-import { SwapFormKey } from '../../providers/SwapFormProvider';
+import { useTokens } from 'src/hooks/useTokens';
+import { SwapFormKey } from 'src/providers/SwapFormProvider';
+import { getTokenBySymbol } from 'src/utils';
 import { Button } from '../Button';
-import { getTokenBySymbol } from '../../utils';
 
 const SwitchNetworkButton = () => {
   const { switchNetwork, isLoading: isSwitchingNetwork } = useSwitchNetwork();

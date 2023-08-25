@@ -7,8 +7,8 @@ import {
   useState,
   useMemo,
 } from 'react';
-import { getOrderedTokenList } from '../utils/tokens';
-import { enableUnlistedTokenTrading } from '../utils/featureFlags';
+import { getOrderedTokenList } from 'src/utils/tokens';
+import { enableUnlistedTokenTrading } from 'src/utils/featureFlags';
 import { useSifi } from './SDKProvider';
 import type { Token } from '@sifi/sdk';
 

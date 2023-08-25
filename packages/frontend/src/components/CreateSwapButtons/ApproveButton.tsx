@@ -1,8 +1,8 @@
 import { showToast } from '@sifi/shared-ui';
 import { useWatch } from 'react-hook-form';
-import { useApprove } from '../../hooks/useApprove';
-import { useAllowance } from '../../hooks/useAllowance';
-import { SwapFormKey } from '../../providers/SwapFormProvider';
+import { useApprove } from 'src/hooks/useApprove';
+import { useAllowance } from 'src/hooks/useAllowance';
+import { SwapFormKey } from 'src/providers/SwapFormProvider';
 import { Button } from '../Button';
 
 const ApproveButton = () => {

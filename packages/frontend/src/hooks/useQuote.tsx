@@ -1,13 +1,13 @@
 import { useEffect } from 'react';
+import type { Quote } from '@sifi/sdk';
 import { useQuery } from '@tanstack/react-query';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { ethers } from 'ethers';
-import { useSifi } from '../providers/SDKProvider';
-import { SwapFormKey } from '../providers/SwapFormProvider';
+import { useSifi } from 'src/providers/SDKProvider';
+import { SwapFormKey } from 'src/providers/SwapFormProvider';
+import { formatTokenAmount, getQueryKey, getTokenBySymbol } from 'src/utils';
+import { ETH_CONTRACT_ADDRESS } from 'src/constants';
 import { useTokens } from './useTokens';
-import { formatTokenAmount, getQueryKey, getTokenBySymbol, parseErrorMessage } from '../utils';
-import { ETH_CONTRACT_ADDRESS } from '../constants';
-import type { Quote } from '@sifi/sdk';
 
 const useQuote = () => {
   const sifi = useSifi();

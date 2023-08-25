@@ -1,5 +1,5 @@
 import { StoryFn, Meta } from '@storybook/react';
-import searchIcon from '../../assets/search.svg';
+import searchIcon from 'src/assets/search.svg';
 import { Input } from './Input';
 
 export default {

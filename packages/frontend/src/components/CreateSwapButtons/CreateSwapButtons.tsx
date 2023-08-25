@@ -1,19 +1,19 @@
 import { useWatch } from 'react-hook-form';
 import { useAccount, useNetwork } from 'wagmi';
 import { ethers } from 'ethers';
-import { useCullQueries } from '../../hooks/useCullQueries';
-import { Button } from '../Button';
-import { ConnectWallet } from '../ConnectWallet/ConnectWallet';
-import { useAllowance } from '../../hooks/useAllowance';
+import { useCullQueries } from 'src/hooks/useCullQueries';
+import { useAllowance } from 'src/hooks/useAllowance';
+import { useApprove } from 'src/hooks/useApprove';
+import { useTokens } from 'src/hooks/useTokens';
+import { useQuote } from 'src/hooks/useQuote';
+import { SwapFormKey } from 'src/providers/SwapFormProvider';
+import { getTokenBySymbol } from 'src/utils';
+import { ETH_CONTRACT_ADDRESS } from 'src/constants';
+import { useTokenBalance } from 'src/hooks/useTokenBalance';
 import { ApproveButton } from './ApproveButton';
 import { SwitchNetworkButton } from './SwitchNetworkButton';
-import { useApprove } from '../../hooks/useApprove';
-import { useTokens } from '../../hooks/useTokens';
-import { useQuote } from '../../hooks/useQuote';
-import { SwapFormKey } from '../../providers/SwapFormProvider';
-import { getTokenBySymbol } from '../../utils';
-import { ETH_CONTRACT_ADDRESS } from '../../constants';
-import { useTokenBalance } from '../../hooks/useTokenBalance';
+import { Button } from '../Button';
+import { ConnectWallet } from '../ConnectWallet/ConnectWallet';
 
 const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
   useCullQueries('routes');

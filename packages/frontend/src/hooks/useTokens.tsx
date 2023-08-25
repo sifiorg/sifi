@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { TokensContext } from '../providers/TokensProvider';
+import { TokensContext } from 'src/providers/TokensProvider';
 
 const useTokens = () => useContext(TokensContext);
 

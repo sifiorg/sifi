@@ -1,10 +1,10 @@
 import { Dialog, Transition } from '@headlessui/react';
 import { type FunctionComponent, useState, Fragment, useEffect } from 'react';
 import { showToast, WalletOption } from '@sifi/shared-ui';
+import useConnectWallet from 'src/hooks/useConnectWallet';
+import closeIcon from 'src/assets/icons/close.svg';
+import { type SupportedWallet } from 'src/connectors';
 import { Button } from '../Button';
-import useConnectWallet from '../../hooks/useConnectWallet';
-import closeIcon from '../../assets/icons/close.svg';
-import { type SupportedWallet } from '../../connectors';
 
 const supportedWallets: SupportedWallet[] = ['metamask', 'coinbase', 'walletconnect'];
 
