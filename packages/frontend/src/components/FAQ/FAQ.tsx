@@ -29,7 +29,7 @@ const items = {
 const FAQ: FunctionComponent = () => {
   return (
     <section id="faq">
-      <div className="mx-auto w-full max-w-6xl py-16 px-4 md:px-0">
+      <div className="mx-auto w-full max-w-7xl py-16 px-4 sm:px-0">
         <h2 className="dark:text-flashbang-white font-display mb-6 text-left text-2xl sm:text-3xl md:text-[2.5rem] md:leading-[3rem]">
           Frequently Asked <br /> Questions
         </h2>
