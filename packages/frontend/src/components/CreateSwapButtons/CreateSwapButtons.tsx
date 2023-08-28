@@ -23,7 +23,7 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
   const { chain } = useNetwork();
   const { tokens } = useTokens();
   const { isFetching: isApproving } = useApprove();
-  const { allowance, isAllowanceAboveMinumum, isFetching: isFetchingAllowance } = useAllowance();
+  const { allowance, isAllowanceAboveFromAmount, isFetching: isFetchingAllowance } = useAllowance();
   const [fromTokenSymbol, fromAmount] = useWatch({
     name: [SwapFormKey.FromToken, SwapFormKey.FromAmount],
   });
@@ -40,15 +40,15 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
 
   const showApproveButton =
     Boolean(
-      !!quote && !!allowance && !isAllowanceAboveMinumum && !isFromEthereum && hasSufficientBalance
+      !!quote &&
+        !!allowance &&
+        !isAllowanceAboveFromAmount &&
+        !isFromEthereum &&
+        hasSufficientBalance
     ) || isApproving;
 
   const isShiftButtonDisabled =
-    !isConnected ||
-    // TODO: Temporary until the approve button is fixed
-    // showApproveButton ||
-    !fromAmount ||
-    !hasSufficientBalance;
+    !isConnected || showApproveButton || !fromAmount || !hasSufficientBalance;
 
   const getShiftButtonLabel = () => {
     if (!fromAmount) return 'Enter an amount';
