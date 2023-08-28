@@ -5,13 +5,17 @@
   "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
-    "directory": "packages/contracts",
+    "directory": "packages/hardhat",
     "url": "https://github.com/sideshiftfi/sifi.git"
   },
   "scripts": {
     "build": "npx hardhat compile",
+    "forge-build": "forge build --build-info",
     "lint": "solhint 'contracts/**/*.sol'",
-    "test": "hardhat test && forge test --ffi"
+    "test": "hardhat test && forge test --ffi",
+    "forge-test": "forge test --ffi -vvv",
+    "slither": "slither --filter-paths='test/|node_modules/|lib/' .",
+    "slither:ci": "slither --ignore-compile --filter-paths 'test/|node_modules/|lib/' --sarif results.sarif --no-fail ."
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.1",

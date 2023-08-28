@@ -1,5 +1,10 @@
 name: Node.js CI
 
+permissions:
+  id-token: write
+  contents: write # Checkout
+  security-events: write # Upload Sarif
+
 on:
   push:
   pull_request:
@@ -9,6 +14,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Slither
+        run: |
+          pip install slither-analyzer
+          slither --version
+
       - name: Checkout
         uses: actions/checkout@v3
 
@@ -45,7 +59,7 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Build
-        run: pnpm build
+        run: pnpm -C packages/hardhat build
 
       - name: Lint
         run: pnpm lint
@@ -59,8 +73,31 @@ jobs:
         if: ${{ env.MAINNET_RPC_URL != null }}
         run: pnpm -C packages/hardhat test
 
-      - name: Test foundry
-        env:
-          RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
-        if: ${{ env.MAINNET_RPC_URL != null }}
-        run: pnpm -C packages/hardhat forge test -vv
+      - name: Foundry forge build
+        run: pnpm -C packages/hardhat forge-build
+
+      - name: Foundry forge test
+        run: pnpm -C packages/hardhat forge-test
+
+      - name: Slither analyze
+        id: slither
+        continue-on-error: true
+        run: pnpm -C packages/hardhat slither:ci
+
+      - name: Check slither SARIF output existence
+        # Slither findings are treated as error, so we need to
+        # ckeck manually for sucesss by existence of SARIF file
+        id: check_files
+        uses: andstor/file-existence-action@v1
+        with:
+          files: 'packages/hardhat/results.sarif'
+
+      - name: Upload Slither SARIF file
+        # Only upload the SARIF file if the repository is sideshiftfi/sifi
+        # since this cannot be run in private repos
+        if: |
+          github.repository == 'sideshiftfi/sifi' &&
+          steps.check_files.outputs.files_exists == 'true'
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: packages/hardhat/results.sarif
