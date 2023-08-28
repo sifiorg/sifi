@@ -24,10 +24,8 @@ abstract contract TestHelperContract is Test {
 
   uint256 deadline;
 
-  string MAINNET_RPC_URL = vm.envString('MAINNET_RPC_URL');
-
   constructor() {
-    vm.createSelectFork(MAINNET_RPC_URL, 17853419);
+    vm.createSelectFork(StdChains.getChain(1).rpcUrl, 17853419);
 
     spender = new Spender();
 

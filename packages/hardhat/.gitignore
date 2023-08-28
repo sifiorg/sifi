@@ -11,3 +11,4 @@ artifacts
 gas-report.txt
 solidity-files-cache.json
 deployments/sepolia
+results.sarif
