@@ -29,6 +29,8 @@ const useApprove = () => {
     if (!approveAddress) throw new Error('Approval address is missing');
     if (!tokenContract) throw new Error('Token contract is missing');
 
+    // TODO: Handle case when account already has allowance but it's not sufficient
+
     const tx = await tokenContract.functions.approve(approveAddress, BigNumber.from(MAX_ALLOWANCE));
 
     // Wagmi's contract expects to return [ContractTransaction],

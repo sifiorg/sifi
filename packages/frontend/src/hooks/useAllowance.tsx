@@ -14,8 +14,8 @@ const useAllowance = () => {
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const approveAddress = quote?.approveAddress as `0x${string}`;
 
-  const [fromTokenSymbol] = useWatch({
-    name: [SwapFormKey.FromToken],
+  const [fromTokenSymbol, fromAmount] = useWatch({
+    name: [SwapFormKey.FromToken, SwapFormKey.FromAmount],
   });
 
   const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
@@ -37,9 +37,13 @@ const useAllowance = () => {
     staleTime: Infinity,
   });
 
-  const isAllowanceAboveMinumum = allowance?.gt(ethers.BigNumber.from(MIN_ALLOWANCE));
+  // TODO: Display errors in a toast
 
-  return { allowance, isAllowanceAboveMinumum, ...rest };
+  const fromAmountInWei = ethers.utils.parseUnits(fromAmount || '0', fromToken?.decimals);
+  const isAllowanceAboveFromAmount = allowance?.gt(fromAmountInWei);
+  const isAllowanceAboveMinimum = allowance?.gt(ethers.BigNumber.from(MIN_ALLOWANCE));
+
+  return { allowance, isAllowanceAboveMinimum, isAllowanceAboveFromAmount, ...rest };
 };
 
 export { useAllowance };
