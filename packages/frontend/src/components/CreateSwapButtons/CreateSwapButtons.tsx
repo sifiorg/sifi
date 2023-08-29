@@ -22,7 +22,7 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
   const { quote, isFetching: isFetchingQuote } = useQuote();
   const { chain } = useNetwork();
   const { tokens } = useTokens();
-  const { isFetching: isApproving } = useApprove();
+  const { isLoading: isApproving } = useApprove();
   const { allowance, isAllowanceAboveFromAmount, isFetching: isFetchingAllowance } = useAllowance();
   const [fromTokenSymbol, toTokenSymbol, fromAmount] = useWatch({
     name: [SwapFormKey.FromToken, SwapFormKey.ToToken, SwapFormKey.FromAmount],

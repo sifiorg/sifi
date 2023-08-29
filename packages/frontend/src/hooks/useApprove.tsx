@@ -1,5 +1,4 @@
-import type { Token } from '@sifi/sdk';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { erc20ABI, mainnet, usePublicClient, useWalletClient } from 'wagmi';
 import { useWatch } from 'react-hook-form';
 import { MAX_ALLOWANCE } from 'src/constants';
@@ -8,7 +7,11 @@ import { getTokenBySymbol } from 'src/utils';
 import { useQuote } from './useQuote';
 import { useTokens } from './useTokens';
 
-const useApprove = () => {
+type UseApproveOptions = {
+  closeModal?: () => void;
+};
+
+const useApprove = (options?: UseApproveOptions) => {
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
   const { quote } = useQuote();
@@ -34,19 +37,16 @@ const useApprove = () => {
       abi: erc20ABI,
       functionName: 'approve',
       args: [approveAddress, BigInt(MAX_ALLOWANCE)],
-    })
+    });
+
+    if (options?.closeModal) {
+      options.closeModal();
+    }
 
     await publicClient.waitForTransactionReceipt({ hash });
   };
 
-  return useQuery(
-    ['requestApproval', { tokenAddress: fromToken?.address, approveAddress }],
-    async () => requestApproval(),
-    {
-      enabled: false,
-      retry: 0,
-    }
-  );
+  return useMutation(['requestApproval'], requestApproval, { retry: 0 });
 };
 
 export { useApprove };
