@@ -6,7 +6,7 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {FacetTest} from './helpers/FacetTest.sol';
 import {Mainnet} from './helpers/Mainnet.sol';
 import {IDiamondCut} from 'contracts/v2/interfaces/IDiamondCut.sol';
-import {IUniV2RouterFacet} from 'contracts/v2/interfaces/IUniV2RouterFacet.sol';
+import {IUniV2Router} from 'contracts/v2/interfaces/IUniV2Router.sol';
 import {KittyFacet} from 'contracts/v2/facets/KittyFacet.sol';
 import {LibKitty} from 'contracts/v2/libraries/LibKitty.sol';
 

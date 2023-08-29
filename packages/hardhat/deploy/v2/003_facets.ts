@@ -8,6 +8,11 @@ import {
   verify,
 } from '../helpers';
 
+type Init = {
+  address: string;
+  calldata: string;
+};
+
 const FACET_NAMES = [
   'DiamondCutFacet',
   'DiamondLoupeFacet',
@@ -27,17 +32,27 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
   const diamondDeployment = await get('SifiDiamond');
   const diamondCutDeployment = await get('DiamondCutFacet');
 
-  const initForFacet: Partial<Record<string, () => Promise<string>>> = {
+  const initForFacet: Partial<Record<string, () => Promise<Init>>> = {
     UniV2RouterFacet: async () => {
-      const address = uniswapV2Router02AddressForNetwork[network.name];
+      const routerAddress = uniswapV2Router02AddressForNetwork[network.name];
 
-      if (!address) {
+      if (!routerAddress) {
         throw new Error(`UniswapV2Router02 address is unknown for network ${network.name}`);
       }
 
-      const facet = await ethers.getContractAt('UniV2RouterFacet', diamondDeployment.address);
+      const initDeployment = await deploy('InitUniV2Router', {
+        from: defaultDeployer,
+        args: [],
+        log: true,
+        autoMine: true,
+      });
 
-      return facet.interface.encodeFunctionData('initUniV2Router', [address]);
+      const initContract = await ethers.getContractAt('InitUniV2Router', initDeployment.address);
+
+      return {
+        address: initDeployment.address,
+        calldata: initContract.interface.encodeFunctionData('init', [routerAddress]),
+      };
     },
   };
 
@@ -117,9 +132,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
   );
 
   // Init functions are only supported for added facets
-  const inits = addedFacets
-    .filter(facet => facet.init)
-    .map(facet => ({ address: facet.address, calldata: facet.init! }));
+  const inits = addedFacets.map(facet => facet.init!).filter(Boolean);
 
   // Find selectors that are no longer used
   const cutsAddPerAddress = Object.entries(nextSelectorToAddress).reduce<Record<string, string[]>>(
