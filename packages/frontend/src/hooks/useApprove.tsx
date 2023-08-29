@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { BigNumber, ContractTransaction } from 'ethers';
-import { erc20ABI, useSigner, useContract } from 'wagmi';
+import { erc20ABI } from 'wagmi';
+import { getContract } from 'wagmi/actions';
 import { useWatch } from 'react-hook-form';
 import { MAX_ALLOWANCE } from 'src/constants';
 import { SwapFormKey } from 'src/providers/SwapFormProvider';
@@ -9,7 +10,6 @@ import { useQuote } from './useQuote';
 import { useTokens } from './useTokens';
 
 const useApprove = () => {
-  const { data: signer } = useSigner();
   const { quote } = useQuote();
   const { tokens } = useTokens();
   const approveAddress = quote?.approveAddress as `0x${string}`;
@@ -19,11 +19,13 @@ const useApprove = () => {
   });
   const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
 
-  const tokenContract = useContract({
-    address: fromToken?.address,
-    abi: erc20ABI,
-    signerOrProvider: signer,
-  });
+  const tokenContract = fromToken?.address
+    ? getContract({
+        address: fromToken?.address as `0x${string}`,
+        abi: erc20ABI,
+        // signerOrProvider: signer,
+      })
+    : undefined;
 
   const requestApproval = async (): Promise<void> => {
     if (!approveAddress) throw new Error('Approval address is missing');

@@ -34,7 +34,8 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
   );
   const { data: fromBalance } = useTokenBalance(fromToken);
   const fromAmountInWei = ethers.utils.parseUnits(fromAmount || '0', fromToken?.decimals);
-  const hasSufficientBalance = quote && fromBalance?.value.gt(fromAmountInWei);
+  const hasSufficientBalance =
+    fromBalance && quote && ethers.BigNumber.from(fromBalance?.value).gt(fromAmountInWei);
 
   const isShiftButtonLoading = isLoading || isFetchingAllowance || isFetchingQuote;
 

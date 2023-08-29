@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useWatch, useForm, useFormContext } from 'react-hook-form';
-import { useAccount, useSigner } from 'wagmi';
+import { useAccount, useWalletClient } from 'wagmi';
 import { showToast, ShiftInput } from '@sifi/shared-ui';
 import { useTokens } from 'src/hooks/useTokens';
 import { useTokenBalance } from 'src/hooks/useTokenBalance';
@@ -17,7 +17,7 @@ const CreateSwap = () => {
   useCullQueries('quote');
   const { address } = useAccount();
   const sifi = useSifi();
-  const { data: signer } = useSigner();
+  const { data: signer } = useWalletClient();
   const { handleSubmit } = useForm();
   const { tokens } = useTokens();
   const [fromTokenSymbol, toTokenSymbol] = useWatch({

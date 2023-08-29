@@ -29,6 +29,9 @@ const useMultiTokenBalances = (
 
   useEffect(() => {
     const fetchBalances = async () => {
+      // Temporary
+      return;
+
       const provider = new ethers.providers.Web3Provider((window as any).ethereum);
 
       const balanceFetchPromises = memoizedTokens.map(async token => {
