@@ -2,34 +2,19 @@
 pragma solidity 0.8.21;
 
 import {Address} from '@openzeppelin/contracts/utils/Address.sol';
-import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
-import {IUniswapV2Router02} from '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol';
-import {IWETH} from '@uniswap/v2-periphery/contracts/interfaces/IWETH.sol';
-import {LibDiamond} from '../libraries/LibDiamond.sol';
-import {IUniV2RouterFacet} from 'contracts/v2/interfaces/IUniV2RouterFacet.sol';
-import {Errors} from 'contracts/v2/libraries/Errors.sol';
+import {IUniV2Router} from 'contracts/v2/interfaces/IUniV2Router.sol';
 import {LibUniV2Router} from 'contracts/v2/libraries/LibUniV2Router.sol';
+import {LibKitty} from 'contracts/v2/libraries/LibKitty.sol';
+import {Errors} from 'contracts/v2/libraries/Errors.sol';
 
-contract UniV2RouterFacet is IUniV2RouterFacet, Errors {
+contract UniV2RouterFacet is IUniV2Router {
   using SafeERC20 for IERC20;
   using Address for address;
 
-  function initUniV2Router(address _uniswapV2Router02) public {
-    LibDiamond.enforceIsContractOwner();
-
-    LibUniV2Router.DiamondStorage storage s = LibUniV2Router.diamondStorage();
-
-    if (!s.isInitialized) {
-      s.isInitialized = true;
-      s.uniswapV2router02 = IUniswapV2Router02(_uniswapV2Router02);
-      s.weth = IWETH(s.uniswapV2router02.WETH());
-    }
-  }
-
   /**
-   * @param amountOut Quoted amount out
+   * @param amountOut Amount out before slippage
    * @param path [input coin, ..., output coin]
    * @param to Recipient of output coin
    * @param slippage Slippage tolerance in bps
@@ -40,15 +25,19 @@ contract UniV2RouterFacet is IUniV2RouterFacet, Errors {
     address[] memory path,
     address to,
     uint256 slippage,
-    uint256 deadline
+    uint256 deadline,
+    address partner,
+    uint16 feeBps
   ) external payable returns (uint256[] memory amounts) {
     LibUniV2Router.DiamondStorage storage s = LibUniV2Router.diamondStorage();
 
     path[0] = address(s.weth);
 
+    uint256 amountOutMin = (amountOut * (10_000 - slippage)) / 10_000;
+
     unchecked {
       amounts = s.uniswapV2router02.swapExactETHForTokens{value: msg.value}(
-        (amountOut * (10000 - slippage)) / 10000,
+        amountOutMin,
         path,
         address(this),
         deadline
@@ -57,10 +46,13 @@ contract UniV2RouterFacet is IUniV2RouterFacet, Errors {
 
     uint256 pathLengthMinusOne = path.length - 1;
 
-    if (amounts[pathLengthMinusOne] > amountOut) {
-      // Keep positive
-      amounts[pathLengthMinusOne] = amountOut;
-    }
+    amounts[pathLengthMinusOne] = LibKitty.calculateAndRegisterFee(
+      partner,
+      path[pathLengthMinusOne],
+      feeBps,
+      amountOut,
+      amounts[pathLengthMinusOne]
+    );
 
     // Transfer tokens to user
     IERC20(path[pathLengthMinusOne]).safeTransfer(to, amounts[pathLengthMinusOne]);
@@ -74,7 +66,9 @@ contract UniV2RouterFacet is IUniV2RouterFacet, Errors {
     address[] memory path,
     address payable to,
     uint256 slippage,
-    uint256 deadline
+    uint256 deadline,
+    address partner,
+    uint16 feeBps
   ) external returns (uint256[] memory amounts) {
     LibUniV2Router.DiamondStorage storage s = LibUniV2Router.diamondStorage();
 
@@ -86,26 +80,32 @@ contract UniV2RouterFacet is IUniV2RouterFacet, Errors {
 
     path[pathLengthMinusOne] = address(s.weth);
 
+    uint256 amountOutMin = (amountOut * (10_000 - slippage)) / 10_000;
+
     unchecked {
       amounts = s.uniswapV2router02.swapExactTokensForETH(
         amountIn,
-        (amountOut * (10000 - slippage)) / 10000,
+        amountOutMin,
         path,
         address(this),
         deadline
       );
     }
 
-    if (amounts[pathLengthMinusOne] > amountOut) {
-      // Keep positive
-      amounts[pathLengthMinusOne] = amountOut;
-    }
+    amounts[pathLengthMinusOne] = LibKitty.calculateAndRegisterFee(
+      partner,
+      // NOTE: `path[pathLengthMinusOne]` cannot be used since it's set to WETH
+      address(0),
+      feeBps,
+      amountOut,
+      amounts[pathLengthMinusOne]
+    );
 
     // Transfer ETH to user
     (bool sent, ) = to.call{value: amounts[pathLengthMinusOne]}('');
 
     if (!sent) {
-      revert EthTransferFailed();
+      revert Errors.EthTransferFailed();
     }
 
     return amounts;
@@ -117,7 +117,9 @@ contract UniV2RouterFacet is IUniV2RouterFacet, Errors {
     address[] memory path,
     address to,
     uint256 slippage,
-    uint256 deadline
+    uint256 deadline,
+    address partner,
+    uint16 feeBps
   ) external returns (uint256[] memory amounts) {
     LibUniV2Router.DiamondStorage storage s = LibUniV2Router.diamondStorage();
 
@@ -125,10 +127,12 @@ contract UniV2RouterFacet is IUniV2RouterFacet, Errors {
 
     IERC20(path[0]).safeApprove(address(s.uniswapV2router02), amountIn);
 
+    uint256 amountOutMin = (amountOut * (10_000 - slippage)) / 10_000;
+
     unchecked {
       amounts = s.uniswapV2router02.swapExactTokensForTokens(
         amountIn,
-        (amountOut * (10000 - slippage)) / 10000,
+        amountOutMin,
         path,
         address(this),
         deadline
@@ -137,10 +141,13 @@ contract UniV2RouterFacet is IUniV2RouterFacet, Errors {
 
     uint256 pathLengthMinusOne = path.length - 1;
 
-    if (amounts[pathLengthMinusOne] > amountOut) {
-      // Keep positive
-      amounts[pathLengthMinusOne] = amountOut;
-    }
+    amounts[pathLengthMinusOne] = LibKitty.calculateAndRegisterFee(
+      partner,
+      path[pathLengthMinusOne],
+      feeBps,
+      amountOut,
+      amounts[pathLengthMinusOne]
+    );
 
     // Transfer tokens to user
     IERC20(path[pathLengthMinusOne]).safeTransfer(to, amounts[pathLengthMinusOne]);

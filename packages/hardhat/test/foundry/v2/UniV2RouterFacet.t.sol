@@ -5,19 +5,32 @@ import 'forge-std/Test.sol';
 import {FacetTest} from './helpers/FacetTest.sol';
 import {Mainnet} from './helpers/Mainnet.sol';
 import {IDiamondCut} from 'contracts/v2/interfaces/IDiamondCut.sol';
+import {IUniV2Router} from 'contracts/v2/interfaces/IUniV2Router.sol';
 import {UniV2RouterFacet} from 'contracts/v2/facets/UniV2RouterFacet.sol';
-import {IUniV2RouterFacet} from 'contracts/v2/interfaces/IUniV2RouterFacet.sol';
+import {InitUniV2Router} from 'contracts/v2/init/InitUniV2Router.sol';
+
+/**
+ * @notice assertApproxRelEq is used in this test with a tolerance of 0.05 ether which equals to 5%
+ */
 
 contract UniV2RouterFacetTest is FacetTest {
-  IUniV2RouterFacet internal facet;
+  event CollectedFee(
+    address indexed partner,
+    address indexed token,
+    uint256 partnerFee,
+    uint256 diamondFee
+  );
+
+  IUniV2Router internal facet;
   uint256 private deadline;
+  address USER = makeAddr('USER');
+  address PARTNER = makeAddr('PARTNER');
 
   function setUp() public override {
     vm.createSelectFork(StdChains.getChain(1).rpcUrl, 17853419);
 
     super.setUp();
 
-    // Add UniV2RouterFacet to diamond
     IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](1);
 
     facet = new UniV2RouterFacet();
@@ -30,44 +43,70 @@ contract UniV2RouterFacetTest is FacetTest {
 
     IDiamondCut(address(diamond)).diamondCut(
       facetCuts,
-      address(facet),
-      abi.encodeWithSelector(facet.initUniV2Router.selector, Mainnet.UNISWAP_V2_ROUTER_02_ADDR)
+      address(new InitUniV2Router()),
+      abi.encodeWithSelector(InitUniV2Router.init.selector, Mainnet.UNISWAP_V2_ROUTER_02_ADDR)
     );
 
-    facet = IUniV2RouterFacet(address(diamond));
+    facet = IUniV2Router(address(diamond));
 
     deadline = block.timestamp + 1000;
   }
 
-  function testFork_uniswapV2SwapExactETHForTokens_PositiveSlippage() public {
+  function testFork_uniswapV2SwapExactETHForTokens_EthForUsdc_PositiveSlippage() public {
     address[] memory path = new address[](2);
     path[0] = Mainnet.EEE_ADDR;
     path[1] = address(Mainnet.USDC);
 
-    deal(address(this), 1 ether);
+    deal(USER, 1 ether);
 
-    uint256 balBefore = Mainnet.USDC.balanceOf(address(facet));
-
+    vm.prank(USER);
     facet.uniswapV2SwapExactETHForTokens{value: 1 ether}(
       1830 * (10 ** 6),
       path,
-      payable(this),
+      payable(USER),
       50,
-      deadline
+      deadline,
+      address(0),
+      0
     );
 
-    uint256 balAfter = Mainnet.USDC.balanceOf(address(facet));
-
-    assertApproxEqRel(Mainnet.USDC.balanceOf(address(this)), 1835 * (10 ** 6), 0.05 ether);
-    assertApproxEqRel(balAfter - balBefore, 160_000, 0.05 ether);
+    assertApproxEqRel(Mainnet.USDC.balanceOf(USER), 1830 * (10 ** 6), 0.05 ether);
+    assertApproxEqRel(Mainnet.USDC.balanceOf(address(facet)), 160_000, 0.05 ether);
   }
 
-  function testFork_uniswapV2SwapExactTokensForTokens_SwapsOnePool() public {
+  function testFork_uniswapV2SwapExactETHForTokens_EthForUsdc_CollectFees() public {
+    address[] memory path = new address[](2);
+    path[0] = Mainnet.EEE_ADDR;
+    path[1] = address(Mainnet.USDC);
+
+    deal(USER, 1 ether);
+
+    vm.expectEmit(true, true, true, false);
+    emit CollectedFee(PARTNER, address(Mainnet.USDC), 1.83 * (10 ** 6), 1.83 * (10 ** 6));
+
+    vm.prank(USER);
+    facet.uniswapV2SwapExactETHForTokens{value: 1 ether}(
+      1835 * (10 ** 6),
+      path,
+      USER,
+      50,
+      deadline,
+      PARTNER,
+      20
+    );
+
+    assertApproxEqRel(Mainnet.USDC.balanceOf(USER), 1830 * (10 ** 6), 0.05 ether);
+    assertApproxEqRel(Mainnet.USDC.balanceOf(address(facet)), 3.5 * (10 ** 6), 0.05 ether);
+  }
+
+  function testFork_uniswapV2SwapExactTokensForTokens_UsdcForDai_SwapsOnePool() public {
     address[] memory path = new address[](2);
     path[0] = address(Mainnet.USDC);
     path[1] = address(Mainnet.DAI);
 
-    deal(address(Mainnet.USDC), address(this), 2000 * (10 ** 6));
+    deal(address(Mainnet.USDC), USER, 2000 * (10 ** 6));
+
+    vm.startPrank(USER);
 
     Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
 
@@ -75,37 +114,98 @@ contract UniV2RouterFacetTest is FacetTest {
       2000 * (10 ** 6),
       2000 * (10 ** 18),
       path,
-      address(this),
+      USER,
       50,
-      deadline
+      deadline,
+      address(0),
+      0
     );
 
-    assertApproxEqRel(Mainnet.DAI.balanceOf(address(this)), 2000 * (10 ** 18), 0.05 ether);
+    assertApproxEqRel(Mainnet.DAI.balanceOf(USER), 2000 * (10 ** 18), 0.05 ether);
   }
 
-  function testFork_uniswapV2SwapExactTokensForETH_UsdcForEth() public {
+  function testFork_uniswapV2SwapExactTokensForTokens_UsdcForDai_CollectFees() public {
+    address[] memory path = new address[](2);
+    path[0] = address(Mainnet.USDC);
+    path[1] = address(Mainnet.DAI);
+
+    deal(address(Mainnet.USDC), USER, 2000 * (10 ** 6));
+
+    vm.startPrank(USER);
+
+    Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
+
+    vm.expectEmit(true, true, true, false);
+    emit CollectedFee(PARTNER, address(Mainnet.DAI), 2 * (10 ** 18), 2 * (10 ** 18));
+
+    facet.uniswapV2SwapExactTokensForTokens(
+      2000 * (10 ** 6),
+      2000 * (10 ** 18),
+      path,
+      USER,
+      50,
+      deadline,
+      PARTNER,
+      20
+    );
+
+    assertApproxEqRel(Mainnet.DAI.balanceOf(USER), 2000 * (10 ** 18), 0.05 ether);
+    assertApproxEqRel(Mainnet.DAI.balanceOf(address(facet)), 4 * (10 ** 18), 0.05 ether);
+  }
+
+  function testFork_uniswapV2SwapExactTokensForETH_UsdcForEth_PositiveSlippage() public {
     address[] memory path = new address[](2);
     path[0] = address(Mainnet.USDC);
     path[1] = Mainnet.EEE_ADDR;
 
-    uint256 balBefore = address(this).balance;
+    deal(address(Mainnet.USDC), USER, 2000 * (10 ** 6));
 
-    deal(address(Mainnet.USDC), address(this), 2000 * (10 ** 6));
+    vm.startPrank(USER);
 
     Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
 
     facet.uniswapV2SwapExactTokensForETH(
       2000 * (10 ** 6),
-      1.09 ether,
+      1.08 ether,
       path,
-      payable(this),
+      payable(USER),
       50,
-      deadline
+      deadline,
+      address(0),
+      0
     );
 
-    uint256 balAfter = address(this).balance;
+    assertApproxEqRel(USER.balance, 1.08 ether, 0.05 ether);
+    assertApproxEqRel(address(facet).balance, 0.006 ether, 0.05 ether);
+  }
 
-    assertApproxEqRel(balAfter - balBefore, 1.09 ether, 0.05 ether);
+  function testFork_uniswapV2SwapExactTokensForETH_UsdcForEth_CollectFees() public {
+    address[] memory path = new address[](2);
+    path[0] = address(Mainnet.USDC);
+    path[1] = Mainnet.EEE_ADDR;
+
+    deal(address(Mainnet.USDC), USER, 2000 * (10 ** 6));
+
+    vm.startPrank(USER);
+
+    Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
+
+    vm.expectEmit(true, true, true, false);
+    emit CollectedFee(PARTNER, address(0), 0.004 ether, 0.004 ether);
+
+    facet.uniswapV2SwapExactTokensForETH(
+      2000 * (10 ** 6),
+      1.08 ether,
+      path,
+      payable(USER),
+      50,
+      deadline,
+      PARTNER,
+      20
+    );
+
+    assertApproxEqRel(USER.balance, 1.08 ether, 0.05 ether);
+    assertApproxEqRel(address(facet).balance, 0.008 ether, 0.05 ether);
   }
 
   receive() external payable {}
