@@ -1,4 +1,4 @@
-import { FunctionComponent, useMemo } from 'react';
+import { FunctionComponent, useEffect, useMemo } from 'react';
 import { useAccount } from 'wagmi';
 import { useFormContext } from 'react-hook-form';
 import { CoinSelector } from '@sifi/shared-ui';
@@ -6,6 +6,7 @@ import { SwapFormKeyHelper, SwapFormType } from 'src/providers/SwapFormProvider'
 import { useTokens } from 'src/hooks/useTokens';
 import { formatTokenAmount, getTokenBySymbol } from 'src/utils';
 import { useWalletBalance } from 'src/hooks/useWalletBalance';
+import { useMultiTokenBalances } from 'src/hooks/useMultiTokenBalances';
 
 const TokenSelector: FunctionComponent<{
   close: () => void;
@@ -19,6 +20,17 @@ const TokenSelector: FunctionComponent<{
   const selectedToken = getTokenBySymbol(watch(selectId), tokens);
   const { data: walletBalanceData } = useWalletBalance();
 
+  const balances = useMultiTokenBalances(
+    address || '',
+    tokens,
+    // tokens.map(token => token.address),
+    1
+  );
+
+  useEffect(() => {
+    console.log('balances', balances);
+  }, [tokens]);
+
   const handleSelectToken = (newTokenAddress: `0x${string}`) => {
     const newToken = tokens?.find(token => token.address === newTokenAddress);
     if (!newToken) return;
@@ -29,9 +41,7 @@ const TokenSelector: FunctionComponent<{
   const formattedTokens = useMemo(
     () =>
       tokens?.map(token => {
-        const walletToken = walletBalanceData?.find(
-          walletToken => walletToken.tokenAddress.toLowerCase() === token.address.toLowerCase()
-        );
+        const tokenBalance = balances?.find(balance => balance.address === token.address);
 
         return {
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -41,10 +51,10 @@ const TokenSelector: FunctionComponent<{
           networkDisplayName: null,
           symbol: token.symbol,
           networkLogoURI: null,
-          balance: Boolean(address) ? formatTokenAmount(walletToken?.balance ?? '0') : undefined,
+          balance: Boolean(address) ? tokenBalance?.balance : undefined,
         };
       }),
-    [tokens, walletBalanceData, address]
+    [tokens, walletBalanceData, address, balances]
   );
 
   if (!formattedTokens) return null;
