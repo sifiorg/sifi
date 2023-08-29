@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
-import { ethers } from 'ethers';
+import { multicall } from '@wagmi/core';
+import { useEffect, useState } from 'react';
 import type { Token } from '@sifi/sdk';
+import { ethers } from 'ethers';
+import { useBalance } from 'wagmi';
 import { ETH_CONTRACT_ADDRESS } from 'src/constants';
 
 // Standard ERC20 ABI for `balanceOf` function
@@ -10,7 +12,8 @@ const ERC20_ABI = [
     inputs: [{ name: 'owner', type: 'address' }],
     name: 'balanceOf',
     outputs: [{ name: '', type: 'uint256' }],
-    type: 'function',
+    type: 'function' as const,
+    stateMutability: 'view',
   },
 ];
 
@@ -25,48 +28,53 @@ const useMultiTokenBalances = (
 ): WalletBalanceToken[] | undefined => {
   const [balances, setBalances] = useState<WalletBalanceToken[]>();
 
-  const memoizedTokens = useMemo(() => tokens, [tokens]);
+  const { data: ethBalance } = useBalance({
+    address: walletAddress as `0x${string}`,
+    chainId: chainId,
+  });
+
+  console.log(ethBalance);
 
   useEffect(() => {
     const fetchBalances = async () => {
-      // Temporary
-      return;
-
-      const provider = new ethers.providers.Web3Provider((window as any).ethereum);
-
-      const balanceFetchPromises = memoizedTokens.map(async token => {
-        if (token.address === ETH_CONTRACT_ADDRESS) {
-          return provider.getBalance(walletAddress);
-        }
-
-        const contract = new ethers.Contract(token.address, ERC20_ABI, provider);
-        try {
-          return await contract.balanceOf(walletAddress);
-        } catch (err) {
-          console.error(
-            `Failed to fetch balance for token at address ${token.address} for wallet ${walletAddress}`
-          );
-          console.error(err);
-          return ethers.BigNumber.from(0); // Return 0 balance if the call fails
-        }
-      });
+      const multicallContracts = tokens.map(token => ({
+        address: token.address,
+        abi: ERC20_ABI,
+        functionName: 'balanceOf',
+        args: [walletAddress],
+      }));
 
       try {
-        const data = await Promise.all(balanceFetchPromises);
+        const data = await multicall({ contracts: multicallContracts as any });
+
         const newBalances: WalletBalanceToken[] = data
-          .map((balance, index) => {
+          .map((result, index) => {
             const token = tokens[index];
-            if (!token) {
-              console.error(`Token at index ${index} is undefined`);
+            if (!token || result.status === 'failure') {
+              console.error(
+                `Failed to fetch balance for token at address ${token.address} for wallet ${walletAddress}`
+              );
               return;
             }
 
             return {
-              balance: ethers.utils.formatUnits(balance, token.decimals),
+              balance: ethers.utils.formatUnits(result.result, token.decimals),
               ...token,
             };
           })
           .filter((balance): balance is WalletBalanceToken => balance !== undefined);
+
+        // Add Ethereum balance to the list
+        if (ethBalance) {
+          newBalances.push({
+            balance: ethers.utils.formatUnits(ethBalance.value, 18),
+            symbol: 'ETH',
+            decimals: 18,
+            address: ETH_CONTRACT_ADDRESS,
+            chainId: chainId, // Add this line
+            name: 'Ethereum', // Add this line
+          });
+        }
 
         setBalances(newBalances);
       } catch (err: any) {
@@ -75,7 +83,7 @@ const useMultiTokenBalances = (
     };
 
     fetchBalances();
-  }, [walletAddress, memoizedTokens, chainId]);
+  }, [walletAddress, tokens, chainId, ethBalance]);
 
   return balances;
 };
