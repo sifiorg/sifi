@@ -1,6 +1,6 @@
 {
   "name": "@sifi/sdk",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "license": "MIT",
   "description": "🛸 SDK for integrating with SideShift.fi",
   "repository": {
