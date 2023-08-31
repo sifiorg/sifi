@@ -2,6 +2,17 @@
 pragma solidity 0.8.21;
 
 interface IUniV2Router {
+  struct ExactInputParams {
+    uint256 amountIn;
+    uint256 amountOut;
+    address recipient;
+    uint16 slippage;
+    uint16 feeBps;
+    uint48 deadline;
+    address partner;
+    address[] path;
+  }
+
   function uniswapV2SwapExactETHForTokens(
     uint256 amountOut,
     address[] memory path,
@@ -33,4 +44,8 @@ interface IUniV2Router {
     address partner,
     uint16 feeBps
   ) external returns (uint256[] memory amounts);
+
+  function uniswapV2ExactInput(
+    ExactInputParams memory params
+  ) external payable returns (uint256 amountOut);
 }
