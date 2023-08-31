@@ -19,6 +19,7 @@ const useQuote = () => {
   const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
   const toToken = getTokenBySymbol(toTokenSymbol, tokens);
   const isFromEthereum = fromToken?.address === ETH_CONTRACT_ADDRESS;
+  const isSameTokenPair = fromToken?.address === toToken?.address;
 
   const quoteRequest = {
     fromToken: fromToken?.address || ETH_CONTRACT_ADDRESS,
@@ -35,7 +36,7 @@ const useQuote = () => {
     setValue(SwapFormKey.ToAmount, formatTokenAmount(quote.toAmount.toString(), toToken?.decimals));
   };
 
-  const enabled = !!fromToken && !!toToken && !!fromAmount;
+  const enabled = Boolean(fromToken) && Boolean(toToken) && Boolean(fromAmount) && !isSameTokenPair;
   const queryKey = getQueryKey('quote', fromAmount, toToken?.address, fromToken?.address);
 
   // TODO: Quote gets fetched 4 times
