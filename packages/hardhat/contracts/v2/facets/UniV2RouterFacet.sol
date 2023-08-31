@@ -4,6 +4,7 @@ pragma solidity 0.8.21;
 import {Address} from '@openzeppelin/contracts/utils/Address.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import {IUniswapV2Pair} from 'contracts/v2/interfaces/external/IUniswapV2Pair.sol';
 import {IUniV2Router} from 'contracts/v2/interfaces/IUniV2Router.sol';
 import {LibUniV2Router} from 'contracts/v2/libraries/LibUniV2Router.sol';
 import {LibKitty} from 'contracts/v2/libraries/LibKitty.sol';
@@ -17,49 +18,77 @@ contract UniV2RouterFacet is IUniV2Router {
   function uniswapV2ExactInput(
     ExactInputParams memory params
   ) public payable returns (uint256 amountOut) {
+    if (block.timestamp > params.deadline) {
+      revert Errors.DeadlineExpired();
+    }
+
     LibUniV2Router.DiamondStorage storage s = LibUniV2Router.diamondStorage();
 
-    if (params.path[0] == address(0)) {
+    uint256 pathLengthMinusOne = params.path.length - 1;
+    bool isFromEth = params.path[0] == address(0);
+    bool isToEth = params.path[pathLengthMinusOne] == address(0);
+
+    if (isFromEth) {
+      params.path[0] = address(s.weth);
+    }
+
+    if (isToEth) {
+      params.path[pathLengthMinusOne] = address(s.weth);
+    }
+
+    (address[] memory pairs, uint256[] memory amounts) = LibUniV2Router.getPairsAndAmountsFromPath(
+      s.uniswapV2Factory,
+      params.amountIn,
+      params.path
+    );
+
+    // Enforce minimum amount/max slippage
+    if (
+      amounts[amounts.length - 1] < LibUniV2Router.applySlippage(params.amountOut, params.slippage)
+    ) {
+      revert Errors.InsufficientOutputAmount();
+    }
+
+    if (isFromEth) {
+      // From ETH
       if (msg.value != params.amountIn) {
         revert Errors.IncorrectEthValue();
       }
 
       s.weth.deposit{value: msg.value}();
 
-      params.path[0] = address(s.weth);
+      // Transfer tokens to the first pool
+      IERC20(params.path[0]).safeTransfer(pairs[0], params.amountIn);
     } else {
-      IERC20(params.path[0]).safeTransferFrom(msg.sender, address(this), params.amountIn);
+      // Transfer tokens from the sender to the first pool
+      IERC20(params.path[0]).safeTransferFrom(msg.sender, pairs[0], params.amountIn);
     }
 
-    bool isToEth = params.path[params.path.length - 1] == address(0);
+    // From https://github.com/Uniswap/v2-periphery/blob/master/contracts/UniswapV2Router02.sol
+    for (uint index; index < pathLengthMinusOne; ) {
+      uint256 indexPlusOne = index + 1;
+      bool zeroForOne = params.path[index] < params.path[indexPlusOne] ? true : false;
+      address to = index < params.path.length - 2 ? pairs[indexPlusOne] : address(this);
 
-    if (isToEth) {
-      params.path[params.path.length - 1] = address(s.weth);
-    }
-
-    IERC20(params.path[0]).safeApprove(address(s.uniswapV2router02), params.amountIn);
-
-    uint256 amountOutMin = LibUniV2Router.applySlippage(params.amountOut, params.slippage);
-
-    unchecked {
-      uint256[] memory amounts = s.uniswapV2router02.swapExactTokensForTokens(
-        params.amountIn,
-        amountOutMin,
-        params.path,
-        address(this),
-        params.deadline
+      IUniswapV2Pair(pairs[index]).swap(
+        zeroForOne ? 0 : amounts[indexPlusOne],
+        zeroForOne ? amounts[indexPlusOne] : 0,
+        to,
+        ''
       );
 
-      amountOut = amounts[params.path.length - 1];
+      unchecked {
+        index++;
+      }
     }
 
     // NOTE: Fee is collected as WETH instead of ETH
     amountOut = LibKitty.calculateAndRegisterFee(
       params.partner,
-      params.path[params.path.length - 1],
+      params.path[pathLengthMinusOne],
       params.feeBps,
       params.amountOut,
-      amountOut
+      amounts[pathLengthMinusOne]
     );
 
     if (amountOut == 0) {
@@ -76,7 +105,7 @@ contract UniV2RouterFacet is IUniV2Router {
         revert Errors.EthTransferFailed();
       }
     } else {
-      IERC20(params.path[params.path.length - 1]).safeTransfer(params.recipient, amountOut);
+      IERC20(params.path[pathLengthMinusOne]).safeTransfer(params.recipient, amountOut);
     }
   }
 
