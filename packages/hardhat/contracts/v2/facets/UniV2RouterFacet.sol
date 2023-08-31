@@ -9,10 +9,102 @@ import {IUniV2Router} from 'contracts/v2/interfaces/IUniV2Router.sol';
 import {LibUniV2Router} from 'contracts/v2/libraries/LibUniV2Router.sol';
 import {LibKitty} from 'contracts/v2/libraries/LibKitty.sol';
 import {Errors} from 'contracts/v2/libraries/Errors.sol';
+import {IUniswapV2Pair} from 'contracts/v2/interfaces/external/IUniswapV2Pair.sol';
 
 contract UniV2RouterFacet is IUniV2Router {
   using SafeERC20 for IERC20;
   using Address for address;
+
+  // TODO: Change to external once the legacy functions are removed
+  function uniswapV2ExactInputSingle(
+    ExactInputSingleParams memory params
+  ) public payable returns (uint256 amountOut) {
+    if (block.timestamp > params.deadline) {
+      revert Errors.DeadlineExpired();
+    }
+
+    LibUniV2Router.DiamondStorage storage s = LibUniV2Router.diamondStorage();
+
+    bool isFromEth = params.tokenIn == address(0);
+    bool isToEth = params.tokenOut == address(0);
+
+    if (isFromEth) {
+      params.tokenIn = address(s.weth);
+    }
+
+    if (isToEth) {
+      params.tokenOut = address(s.weth);
+    }
+
+    address pair = LibUniV2Router.pairFor(s.uniswapV2Factory, params.tokenIn, params.tokenOut);
+
+    (uint256 reserveIn, uint256 reserveOut, ) = IUniswapV2Pair(pair).getReserves();
+
+    if (params.tokenIn > params.tokenOut) {
+      (reserveIn, reserveOut) = (reserveOut, reserveIn);
+    }
+
+    unchecked {
+      amountOut =
+        ((params.amountIn * 997) * reserveOut) /
+        ((reserveIn * 1000) + (params.amountIn * 997));
+    }
+
+    // Enforce minimum amount/max slippage
+    if (amountOut < LibUniV2Router.applySlippage(params.amountOut, params.slippage)) {
+      revert Errors.InsufficientOutputAmount();
+    }
+
+    if (isFromEth) {
+      // From ETH
+      if (msg.value != params.amountIn) {
+        revert Errors.IncorrectEthValue();
+      }
+
+      s.weth.deposit{value: msg.value}();
+
+      // Transfer tokens to the pool
+      IERC20(params.tokenIn).safeTransfer(pair, params.amountIn);
+    } else {
+      // Transfer tokens from the sender to the pool
+      IERC20(params.tokenIn).safeTransferFrom(msg.sender, pair, params.amountIn);
+    }
+
+    bool zeroForOne = params.tokenIn < params.tokenOut ? true : false;
+
+    IUniswapV2Pair(pair).swap(
+      zeroForOne ? 0 : amountOut,
+      zeroForOne ? amountOut : 0,
+      address(this),
+      ''
+    );
+
+    // NOTE: Fee is collected as WETH instead of ETH
+    amountOut = LibKitty.calculateAndRegisterFee(
+      params.partner,
+      params.tokenOut,
+      params.feeBps,
+      params.amountOut,
+      amountOut
+    );
+
+    if (amountOut == 0) {
+      revert Errors.ZeroAmountOut();
+    }
+
+    if (isToEth) {
+      // Unwrap WETH
+      s.weth.withdraw(amountOut);
+
+      (bool sent, ) = params.recipient.call{value: amountOut}('');
+
+      if (!sent) {
+        revert Errors.EthTransferFailed();
+      }
+    } else {
+      IERC20(params.tokenOut).safeTransfer(params.recipient, amountOut);
+    }
+  }
 
   // TODO: Change to external once the legacy functions are removed
   function uniswapV2ExactInput(

@@ -439,5 +439,170 @@ contract UniV2RouterFacetTest is FacetTest {
     );
   }
 
+  function testFork_uniswapV2ExactInputSingle_EthForDai() public {
+    deal(USER, 1 ether);
+
+    vm.startPrank(USER);
+
+    uint256 expectedSwapOut = 1828504762394564021029;
+    uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
+
+    vm.expectEmit(true, true, true, true);
+    emit CollectedFee(address(0), address(Mainnet.DAI), 0, expectedFee);
+
+    facet.uniswapV2ExactInputSingle{value: 1 ether}(
+      IUniV2Router.ExactInputSingleParams({
+        amountIn: 1 ether,
+        amountOut: 1828504762394564021029,
+        recipient: USER,
+        slippage: 0,
+        feeBps: 10,
+        deadline: (uint48)(deadline),
+        partner: address(0),
+        tokenIn: address(0),
+        tokenOut: address(Mainnet.DAI)
+      })
+    );
+
+    assertEq(Mainnet.DAI.balanceOf(USER), expectedSwapOut - expectedFee);
+  }
+
+  function testFork_uniswapV2ExactInputSingle_revertDeadlineExpired() public {
+    vm.expectRevert(abi.encodeWithSelector(Errors.DeadlineExpired.selector));
+
+    facet.uniswapV2ExactInputSingle(
+      IUniV2Router.ExactInputSingleParams({
+        amountIn: 2000 * (10 ** 6),
+        amountOut: 1,
+        recipient: USER,
+        slippage: 0,
+        feeBps: 10,
+        deadline: (uint48)(block.timestamp - 1),
+        partner: address(0),
+        tokenIn: address(Mainnet.USDC),
+        tokenOut: address(Mainnet.DAI)
+      })
+    );
+  }
+
+  function testFork_uniswapV2ExactInputSingle_revertInsufficientOutputAmount() public {
+    deal(address(Mainnet.USDC), USER, 2000 * (10 ** 6));
+
+    vm.startPrank(USER);
+
+    uint256 expectedSwapOut = 1991846446632959177237;
+    uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
+
+    Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
+
+    vm.expectRevert(abi.encodeWithSelector(Errors.InsufficientOutputAmount.selector));
+
+    facet.uniswapV2ExactInputSingle(
+      IUniV2Router.ExactInputSingleParams({
+        amountIn: 2000 * (10 ** 6),
+        amountOut: expectedSwapOut + 1,
+        recipient: USER,
+        slippage: 0,
+        feeBps: 10,
+        deadline: (uint48)(deadline),
+        partner: address(0),
+        tokenIn: address(Mainnet.USDC),
+        tokenOut: address(Mainnet.DAI)
+      })
+    );
+  }
+
+  function testFork_uniswapV2ExactInputSingle_recipient() public {
+    address recipient = makeAddr('recipient');
+
+    deal(address(Mainnet.USDC), USER, 2000 * (10 ** 6));
+
+    vm.startPrank(USER);
+
+    uint256 expectedSwapOut = 1991846446632959177237;
+    uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
+
+    Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
+
+    vm.expectEmit(true, true, true, true);
+    emit CollectedFee(address(0), address(Mainnet.DAI), 2 * 0, expectedFee);
+
+    facet.uniswapV2ExactInputSingle(
+      IUniV2Router.ExactInputSingleParams({
+        amountIn: 2000 * (10 ** 6),
+        amountOut: expectedSwapOut,
+        recipient: recipient,
+        slippage: 0,
+        feeBps: 10,
+        deadline: (uint48)(deadline),
+        partner: address(0),
+        tokenIn: address(Mainnet.USDC),
+        tokenOut: address(Mainnet.DAI)
+      })
+    );
+
+    assertEq(Mainnet.DAI.balanceOf(recipient), expectedSwapOut - expectedFee);
+  }
+
+  function testFork_uniswapV2ExactInputSingle_UsdcForEth() public {
+    deal(address(Mainnet.USDC), USER, 2000 * (10 ** 6));
+
+    vm.startPrank(USER);
+
+    uint256 expectedSwapOut = 1086115131221856519;
+    uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
+
+    Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
+
+    vm.expectEmit(true, true, true, true);
+    emit CollectedFee(address(0), address(Mainnet.WETH), 2 * 0, expectedFee);
+
+    facet.uniswapV2ExactInputSingle(
+      IUniV2Router.ExactInputSingleParams({
+        amountIn: 2000 * (10 ** 6),
+        amountOut: expectedSwapOut,
+        recipient: USER,
+        slippage: 0,
+        feeBps: 10,
+        deadline: (uint48)(deadline),
+        partner: address(0),
+        tokenIn: address(Mainnet.USDC),
+        tokenOut: address(0)
+      })
+    );
+
+    assertEq(USER.balance, expectedSwapOut - expectedFee);
+  }
+
+  function testFork_uniswapV2ExactInputSingle_UsdcForDai() public {
+    deal(address(Mainnet.USDC), USER, 2000 * (10 ** 6));
+
+    vm.startPrank(USER);
+
+    uint256 expectedSwapOut = 1991846446632959177237;
+    uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
+
+    Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
+
+    vm.expectEmit(true, true, true, true);
+    emit CollectedFee(address(0), address(Mainnet.DAI), 2 * 0, expectedFee);
+
+    facet.uniswapV2ExactInputSingle(
+      IUniV2Router.ExactInputSingleParams({
+        amountIn: 2000 * (10 ** 6),
+        amountOut: expectedSwapOut,
+        recipient: USER,
+        slippage: 0,
+        feeBps: 10,
+        deadline: (uint48)(deadline),
+        partner: address(0),
+        tokenIn: address(Mainnet.USDC),
+        tokenOut: address(Mainnet.DAI)
+      })
+    );
+
+    assertEq(Mainnet.DAI.balanceOf(USER), expectedSwapOut - expectedFee);
+  }
+
   receive() external payable {}
 }
