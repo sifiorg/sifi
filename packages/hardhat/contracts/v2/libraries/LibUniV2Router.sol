@@ -22,4 +22,8 @@ library LibUniV2Router {
       s.slot := position
     }
   }
+
+  function applySlippage(uint256 amount, uint16 slippage) internal pure returns (uint256) {
+    return (amount * (10_000 - slippage)) / 10_000;
+  }
 }

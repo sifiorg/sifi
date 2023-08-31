@@ -13,6 +13,73 @@ contract UniV2RouterFacet is IUniV2Router {
   using SafeERC20 for IERC20;
   using Address for address;
 
+  // TODO: Change to external once the legacy functions are removed
+  function uniswapV2ExactInput(
+    ExactInputParams memory params
+  ) public payable returns (uint256 amountOut) {
+    LibUniV2Router.DiamondStorage storage s = LibUniV2Router.diamondStorage();
+
+    if (params.path[0] == address(0)) {
+      if (msg.value != params.amountIn) {
+        revert Errors.IncorrectEthValue();
+      }
+
+      s.weth.deposit{value: msg.value}();
+
+      params.path[0] = address(s.weth);
+    } else {
+      IERC20(params.path[0]).safeTransferFrom(msg.sender, address(this), params.amountIn);
+    }
+
+    bool isToEth = params.path[params.path.length - 1] == address(0);
+
+    if (isToEth) {
+      params.path[params.path.length - 1] = address(s.weth);
+    }
+
+    IERC20(params.path[0]).safeApprove(address(s.uniswapV2router02), params.amountIn);
+
+    uint256 amountOutMin = LibUniV2Router.applySlippage(params.amountOut, params.slippage);
+
+    unchecked {
+      uint256[] memory amounts = s.uniswapV2router02.swapExactTokensForTokens(
+        params.amountIn,
+        amountOutMin,
+        params.path,
+        address(this),
+        params.deadline
+      );
+
+      amountOut = amounts[params.path.length - 1];
+    }
+
+    // NOTE: Fee is collected as WETH instead of ETH
+    amountOut = LibKitty.calculateAndRegisterFee(
+      params.partner,
+      params.path[params.path.length - 1],
+      params.feeBps,
+      params.amountOut,
+      amountOut
+    );
+
+    if (amountOut == 0) {
+      revert Errors.ZeroAmountOut();
+    }
+
+    if (isToEth) {
+      // Unwrap WETH
+      s.weth.withdraw(amountOut);
+
+      (bool sent, ) = params.recipient.call{value: amountOut}('');
+
+      if (!sent) {
+        revert Errors.EthTransferFailed();
+      }
+    } else {
+      IERC20(params.path[params.path.length - 1]).safeTransfer(params.recipient, amountOut);
+    }
+  }
+
   /**
    * @param amountOut Amount out before slippage
    * @param path [input coin, ..., output coin]
@@ -29,35 +96,24 @@ contract UniV2RouterFacet is IUniV2Router {
     address partner,
     uint16 feeBps
   ) external payable returns (uint256[] memory amounts) {
-    LibUniV2Router.DiamondStorage storage s = LibUniV2Router.diamondStorage();
+    amounts = new uint256[](path.length);
+    amounts[0] = msg.value;
 
-    path[0] = address(s.weth);
+    // NOTE: May have been passed in as 0xeee
+    path[0] = address(0);
 
-    uint256 amountOutMin = (amountOut * (10_000 - slippage)) / 10_000;
-
-    unchecked {
-      amounts = s.uniswapV2router02.swapExactETHForTokens{value: msg.value}(
-        amountOutMin,
-        path,
-        address(this),
-        deadline
-      );
-    }
-
-    uint256 pathLengthMinusOne = path.length - 1;
-
-    amounts[pathLengthMinusOne] = LibKitty.calculateAndRegisterFee(
-      partner,
-      path[pathLengthMinusOne],
-      feeBps,
-      amountOut,
-      amounts[pathLengthMinusOne]
+    amounts[path.length - 1] = uniswapV2ExactInput(
+      ExactInputParams({
+        amountIn: msg.value,
+        amountOut: amountOut,
+        recipient: to,
+        slippage: (uint16)(slippage),
+        feeBps: feeBps,
+        deadline: (uint48)(deadline),
+        partner: partner,
+        path: path
+      })
     );
-
-    // Transfer tokens to user
-    IERC20(path[pathLengthMinusOne]).safeTransfer(to, amounts[pathLengthMinusOne]);
-
-    return amounts;
   }
 
   function uniswapV2SwapExactTokensForETH(
@@ -70,45 +126,24 @@ contract UniV2RouterFacet is IUniV2Router {
     address partner,
     uint16 feeBps
   ) external returns (uint256[] memory amounts) {
-    LibUniV2Router.DiamondStorage storage s = LibUniV2Router.diamondStorage();
+    amounts = new uint256[](path.length);
+    amounts[0] = amountIn;
 
-    IERC20(path[0]).safeTransferFrom(msg.sender, address(this), amountIn);
+    // NOTE: May have been passed in as 0xeee
+    path[path.length - 1] = address(0);
 
-    IERC20(path[0]).safeApprove(address(s.uniswapV2router02), amountIn);
-
-    uint256 pathLengthMinusOne = path.length - 1;
-
-    path[pathLengthMinusOne] = address(s.weth);
-
-    uint256 amountOutMin = (amountOut * (10_000 - slippage)) / 10_000;
-
-    unchecked {
-      amounts = s.uniswapV2router02.swapExactTokensForETH(
-        amountIn,
-        amountOutMin,
-        path,
-        address(this),
-        deadline
-      );
-    }
-
-    amounts[pathLengthMinusOne] = LibKitty.calculateAndRegisterFee(
-      partner,
-      // NOTE: `path[pathLengthMinusOne]` cannot be used since it's set to WETH
-      address(0),
-      feeBps,
-      amountOut,
-      amounts[pathLengthMinusOne]
+    amounts[path.length - 1] = uniswapV2ExactInput(
+      ExactInputParams({
+        amountIn: amountIn,
+        amountOut: amountOut,
+        recipient: to,
+        slippage: (uint16)(slippage),
+        feeBps: feeBps,
+        deadline: (uint48)(deadline),
+        partner: partner,
+        path: path
+      })
     );
-
-    // Transfer ETH to user
-    (bool sent, ) = to.call{value: amounts[pathLengthMinusOne]}('');
-
-    if (!sent) {
-      revert Errors.EthTransferFailed();
-    }
-
-    return amounts;
   }
 
   function uniswapV2SwapExactTokensForTokens(
@@ -121,37 +156,21 @@ contract UniV2RouterFacet is IUniV2Router {
     address partner,
     uint16 feeBps
   ) external returns (uint256[] memory amounts) {
-    LibUniV2Router.DiamondStorage storage s = LibUniV2Router.diamondStorage();
+    amounts = new uint256[](path.length);
 
-    IERC20(path[0]).safeTransferFrom(msg.sender, address(this), amountIn);
+    amounts[0] = amountIn;
 
-    IERC20(path[0]).safeApprove(address(s.uniswapV2router02), amountIn);
-
-    uint256 amountOutMin = (amountOut * (10_000 - slippage)) / 10_000;
-
-    unchecked {
-      amounts = s.uniswapV2router02.swapExactTokensForTokens(
-        amountIn,
-        amountOutMin,
-        path,
-        address(this),
-        deadline
-      );
-    }
-
-    uint256 pathLengthMinusOne = path.length - 1;
-
-    amounts[pathLengthMinusOne] = LibKitty.calculateAndRegisterFee(
-      partner,
-      path[pathLengthMinusOne],
-      feeBps,
-      amountOut,
-      amounts[pathLengthMinusOne]
+    amounts[path.length - 1] = uniswapV2ExactInput(
+      ExactInputParams({
+        amountIn: amountIn,
+        amountOut: amountOut,
+        recipient: to,
+        slippage: (uint16)(slippage),
+        feeBps: feeBps,
+        deadline: (uint48)(deadline),
+        partner: partner,
+        path: path
+      })
     );
-
-    // Transfer tokens to user
-    IERC20(path[pathLengthMinusOne]).safeTransfer(to, amounts[pathLengthMinusOne]);
-
-    return amounts;
   }
 }

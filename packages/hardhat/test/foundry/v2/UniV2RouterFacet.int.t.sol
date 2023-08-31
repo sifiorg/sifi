@@ -133,22 +133,26 @@ contract UniV2RouterIntegrationTest is FacetTest {
     uint256 balAfter = USER.balance;
 
     assertApproxEqRel(balAfter - balBefore, 1.08 ether, 0.05 ether);
-    assertApproxEqRel(kitty.partnerTokenBalance(PARTNER, address(0)), 0.004 ether, 0.05 ether);
-    assertApproxEqRel(address(diamond).balance, 0.008 ether, 0.05 ether);
+    assertApproxEqRel(
+      kitty.partnerTokenBalance(PARTNER, address(Mainnet.WETH)),
+      0.004 ether,
+      0.05 ether
+    );
+    assertApproxEqRel(Mainnet.WETH.balanceOf(address(diamond)), 0.008 ether, 0.05 ether);
 
     vm.prank(PARTNER);
     vm.expectEmit(true, true, true, false);
-    emit PartnerWithdraw(PARTNER, address(0), 100);
-    kitty.partnerWithdraw(address(0));
-    assertApproxEqRel(PARTNER.balance, 0.004 ether, 0.05 ether);
+    emit PartnerWithdraw(PARTNER, address(Mainnet.WETH), 100);
+    kitty.partnerWithdraw(address(Mainnet.WETH));
+    assertApproxEqRel(Mainnet.WETH.balanceOf(PARTNER), 0.004 ether, 0.05 ether);
 
     vm.expectRevert(
       abi.encodeWithSelector(KittyFacet.InsufficientOwnerBalance.selector, 4137565610928260)
     );
-    kitty.ownerWithdraw(address(0), 0.005 ether, payable(VAULT));
+    kitty.ownerWithdraw(address(Mainnet.WETH), 0.005 ether, payable(VAULT));
 
-    kitty.ownerWithdraw(address(0), 0.003 ether, payable(VAULT));
-    assertApproxEqRel(VAULT.balance, 0.003 ether, 0.05 ether);
+    kitty.ownerWithdraw(address(Mainnet.WETH), 0.003 ether, payable(VAULT));
+    assertApproxEqRel(Mainnet.WETH.balanceOf(VAULT), 0.003 ether, 0.05 ether);
   }
 
   function testFork_swapUsdcForDai() public {
