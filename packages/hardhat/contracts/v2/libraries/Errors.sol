@@ -6,4 +6,6 @@ abstract contract Errors {
   error EthTransferFailed();
   error IncorrectEthValue();
   error ZeroAmountOut();
+  error InsufficientOutputAmount();
+  error DeadlineExpired();
 }

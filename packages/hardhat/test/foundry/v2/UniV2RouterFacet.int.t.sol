@@ -53,7 +53,11 @@ contract UniV2RouterIntegrationTest is FacetTest {
     IDiamondCut(address(diamond)).diamondCut(
       facetCuts,
       address(new InitUniV2Router()),
-      abi.encodeWithSelector(InitUniV2Router.init.selector, Mainnet.UNISWAP_V2_ROUTER_02_ADDR)
+      abi.encodeWithSelector(
+        InitUniV2Router.init.selector,
+        Mainnet.UNISWAP_V2_ROUTER_02_ADDR,
+        Mainnet.UNISWAP_V2_FACTORY_ADDR
+      )
     );
 
     kitty = IKitty(address(diamond));
