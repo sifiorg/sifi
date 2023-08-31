@@ -8,6 +8,7 @@ import {IDiamondCut} from 'contracts/v2/interfaces/IDiamondCut.sol';
 import {IUniV2Router} from 'contracts/v2/interfaces/IUniV2Router.sol';
 import {UniV2RouterFacet} from 'contracts/v2/facets/UniV2RouterFacet.sol';
 import {InitUniV2Router} from 'contracts/v2/init/InitUniV2Router.sol';
+import {Errors} from 'contracts/v2/libraries/Errors.sol';
 
 /**
  * @notice assertApproxRelEq is used in this test with a tolerance of 0.05 ether which equals to 5%
@@ -44,7 +45,11 @@ contract UniV2RouterFacetTest is FacetTest {
     IDiamondCut(address(diamond)).diamondCut(
       facetCuts,
       address(new InitUniV2Router()),
-      abi.encodeWithSelector(InitUniV2Router.init.selector, Mainnet.UNISWAP_V2_ROUTER_02_ADDR)
+      abi.encodeWithSelector(
+        InitUniV2Router.init.selector,
+        Mainnet.UNISWAP_V2_ROUTER_02_ADDR,
+        Mainnet.UNISWAP_V2_FACTORY_ADDR
+      )
     );
 
     facet = IUniV2Router(address(diamond));
@@ -241,6 +246,40 @@ contract UniV2RouterFacetTest is FacetTest {
     assertEq(Mainnet.DAI.balanceOf(USER), expectedSwapOut - expectedFee);
   }
 
+  function testFork_uniswapV2ExactInput_DaiWethWbtc() public {
+    address[] memory path = new address[](3);
+    path[0] = address(Mainnet.DAI);
+    path[1] = address(Mainnet.WETH);
+    path[2] = address(Mainnet.WBTC);
+
+    deal(address(Mainnet.DAI), USER, 2000 ether);
+
+    vm.startPrank(USER);
+
+    uint256 expectedSwapOut = 1234;
+    uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
+
+    Mainnet.DAI.approve(address(facet), 2000 ether);
+
+    // vm.expectEmit(true, true, true, true);
+    // emit CollectedFee(address(0), address(Mainnet.DAI), 0, expectedFee);
+
+    facet.uniswapV2ExactInput(
+      IUniV2Router.ExactInputParams({
+        amountIn: 2000 ether,
+        amountOut: expectedSwapOut,
+        recipient: USER,
+        slippage: 0,
+        feeBps: 10,
+        deadline: (uint48)(deadline),
+        partner: address(0),
+        path: path
+      })
+    );
+
+    assertEq(Mainnet.WBTC.balanceOf(USER), expectedSwapOut - expectedFee);
+  }
+
   function testFork_uniswapV2ExactInput_UsdcForEth() public {
     address[] memory path = new address[](2);
     path[0] = address(Mainnet.USDC);
@@ -338,6 +377,66 @@ contract UniV2RouterFacetTest is FacetTest {
     );
 
     assertEq(Mainnet.DAI.balanceOf(recipient), expectedSwapOut - expectedFee);
+  }
+
+  function testFork_uniswapV2ExactInput_revertInsufficientOutputAmount() public {
+    address[] memory path = new address[](2);
+    path[0] = address(Mainnet.USDC);
+    path[1] = address(Mainnet.DAI);
+
+    deal(address(Mainnet.USDC), USER, 2000 * (10 ** 6));
+
+    vm.startPrank(USER);
+
+    uint256 expectedSwapOut = 1991846446632959177237;
+    uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
+
+    Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
+
+    vm.expectRevert(abi.encodeWithSelector(Errors.InsufficientOutputAmount.selector));
+
+    facet.uniswapV2ExactInput(
+      IUniV2Router.ExactInputParams({
+        amountIn: 2000 * (10 ** 6),
+        amountOut: expectedSwapOut + 1,
+        recipient: USER,
+        slippage: 0,
+        feeBps: 10,
+        deadline: (uint48)(deadline),
+        partner: address(0),
+        path: path
+      })
+    );
+  }
+
+  function testFork_uniswapV2ExactInput_revertDeadlineExpired() public {
+    address[] memory path = new address[](2);
+    path[0] = address(Mainnet.USDC);
+    path[1] = address(Mainnet.DAI);
+
+    deal(address(Mainnet.USDC), USER, 2000 * (10 ** 6));
+
+    vm.startPrank(USER);
+
+    uint256 expectedSwapOut = 1991846446632959177237;
+    uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
+
+    Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
+
+    vm.expectRevert(abi.encodeWithSelector(Errors.DeadlineExpired.selector));
+
+    facet.uniswapV2ExactInput(
+      IUniV2Router.ExactInputParams({
+        amountIn: 2000 * (10 ** 6),
+        amountOut: expectedSwapOut + 1,
+        recipient: USER,
+        slippage: 0,
+        feeBps: 10,
+        deadline: (uint48)(block.timestamp - 1),
+        partner: address(0),
+        path: path
+      })
+    );
   }
 
   receive() external payable {}

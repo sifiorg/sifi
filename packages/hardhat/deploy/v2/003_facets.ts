@@ -4,6 +4,7 @@ import { DiamondCutFacet, DiamondLoupeFacet } from '../../typechain-types';
 import { FacetCutAction } from '../../types/diamond.t';
 import {
   getFunctionSelectorsFromContract,
+  uniswapV2FactoryAddressForNetwork,
   uniswapV2Router02AddressForNetwork,
   verify,
 } from '../helpers';
@@ -35,6 +36,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
   const initForFacet: Partial<Record<string, () => Promise<Init>>> = {
     UniV2RouterFacet: async () => {
       const routerAddress = uniswapV2Router02AddressForNetwork[network.name];
+      const factoryAddress = uniswapV2FactoryAddressForNetwork[network.name];
 
       if (!routerAddress) {
         throw new Error(`UniswapV2Router02 address is unknown for network ${network.name}`);
@@ -51,7 +53,10 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
 
       return {
         address: initDeployment.address,
-        calldata: initContract.interface.encodeFunctionData('init', [routerAddress]),
+        calldata: initContract.interface.encodeFunctionData('init', [
+          routerAddress,
+          factoryAddress,
+        ]),
       };
     },
   };
