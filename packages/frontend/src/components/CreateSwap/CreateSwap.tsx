@@ -31,6 +31,7 @@ const CreateSwap = () => {
   const ShiftInputLabel = { from: 'You pay', to: 'You receive' } as const;
   const { data: fromBalance, refetch: refetchFromBalance } = useTokenBalance(fromToken);
   const { data: toBalance, refetch: refetchToBalance } = useTokenBalance(toToken);
+  const isSameTokenPair = fromToken && toToken && fromToken.address === toToken.address;
 
   const isToSwapInputLoading = isFetchingQuote;
 
@@ -116,6 +117,13 @@ const CreateSwap = () => {
     }
   }, [tokens]);
 
+  useEffect(() => {
+    if (isSameTokenPair) {
+      setValue(SwapFormKey.FromAmount, '');
+      setValue(SwapFormKey.ToAmount, '');
+    }
+  }, [isSameTokenPair]);
+
   return (
     <div className="m:w-full py-2 sm:max-w-md">
       <div className="bg-white pb-8 shadow sm:rounded-lg">
@@ -130,6 +138,7 @@ const CreateSwap = () => {
                   id={fromId}
                   openSelector={() => openTokenSelector('from')}
                   formMethods={methods}
+                  disabled={Boolean(isSameTokenPair)}
                 />
               </div>
               <ShiftInput

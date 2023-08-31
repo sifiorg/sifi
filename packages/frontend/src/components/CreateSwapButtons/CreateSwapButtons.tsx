@@ -24,10 +24,11 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
   const { tokens } = useTokens();
   const { isFetching: isApproving } = useApprove();
   const { allowance, isAllowanceAboveFromAmount, isFetching: isFetchingAllowance } = useAllowance();
-  const [fromTokenSymbol, fromAmount] = useWatch({
-    name: [SwapFormKey.FromToken, SwapFormKey.FromAmount],
+  const [fromTokenSymbol, toTokenSymbol, fromAmount] = useWatch({
+    name: [SwapFormKey.FromToken, SwapFormKey.ToToken, SwapFormKey.FromAmount],
   });
   const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
+  const toToken = getTokenBySymbol(toTokenSymbol, tokens);
   const isFromEthereum = fromToken?.address === ETH_CONTRACT_ADDRESS;
   const userIsConnectedToWrongNetwork = Boolean(
     chain?.id && fromToken?.chainId && chain.id !== fromToken.chainId
@@ -51,7 +52,12 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
     !isConnected || showApproveButton || !fromAmount || !hasSufficientBalance;
 
   const getShiftButtonLabel = () => {
+    if (fromToken?.address === toToken?.address) {
+      return 'Cannot shift same tokens';
+    }
+
     if (!fromAmount) return 'Enter an amount';
+
     const hasFetchedSwapQuote = !!quote || isFromEthereum;
     if (fromBalance && hasFetchedSwapQuote && !hasSufficientBalance) {
       // TODO: Does not work properly once switching to a Token
