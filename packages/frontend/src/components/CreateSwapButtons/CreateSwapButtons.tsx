@@ -7,7 +7,7 @@ import { useApprove } from 'src/hooks/useApprove';
 import { useTokens } from 'src/hooks/useTokens';
 import { useQuote } from 'src/hooks/useQuote';
 import { SwapFormKey } from 'src/providers/SwapFormProvider';
-import { getTokenBySymbol } from 'src/utils';
+import { getTokenBySymbol, isValidTokenAmount } from 'src/utils';
 import { ETH_CONTRACT_ADDRESS } from 'src/constants';
 import { useTokenBalance } from 'src/hooks/useTokenBalance';
 import { ApproveButton } from './ApproveButton';
@@ -49,7 +49,11 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
     ) || isApproving;
 
   const isShiftButtonDisabled =
-    !isConnected || showApproveButton || !fromAmount || !hasSufficientBalance;
+    !isConnected ||
+    showApproveButton ||
+    !fromAmount ||
+    !hasSufficientBalance ||
+    !isValidTokenAmount(fromAmount);
 
   const getShiftButtonLabel = () => {
     if (fromToken?.address === toToken?.address) {
@@ -57,6 +61,8 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
     }
 
     if (!fromAmount) return 'Enter an amount';
+
+    if (!isValidTokenAmount(fromAmount)) return 'Enter a valid amount';
 
     const hasFetchedSwapQuote = !!quote || isFromEthereum;
     if (fromBalance && hasFetchedSwapQuote && !hasSufficientBalance) {

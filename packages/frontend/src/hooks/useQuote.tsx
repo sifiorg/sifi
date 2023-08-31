@@ -5,7 +5,7 @@ import { useFormContext, useWatch } from 'react-hook-form';
 import { ethers } from 'ethers';
 import { useSifi } from 'src/providers/SDKProvider';
 import { SwapFormKey } from 'src/providers/SwapFormProvider';
-import { formatTokenAmount, getQueryKey, getTokenBySymbol } from 'src/utils';
+import { formatTokenAmount, getQueryKey, getTokenBySymbol, isValidTokenAmount } from 'src/utils';
 import { ETH_CONTRACT_ADDRESS } from 'src/constants';
 import { useTokens } from './useTokens';
 
@@ -36,7 +36,12 @@ const useQuote = () => {
     setValue(SwapFormKey.ToAmount, formatTokenAmount(quote.toAmount.toString(), toToken?.decimals));
   };
 
-  const enabled = Boolean(fromToken) && Boolean(toToken) && Boolean(fromAmount) && !isSameTokenPair;
+  const enabled =
+    Boolean(fromToken) &&
+    Boolean(toToken) &&
+    Boolean(fromAmount) &&
+    !isSameTokenPair &&
+    isValidTokenAmount(fromAmount);
   const queryKey = getQueryKey('quote', fromAmount, toToken?.address, fromToken?.address);
 
   // TODO: Quote gets fetched 4 times
