@@ -66,20 +66,24 @@ contract UniV2RouterIntegrationTest is FacetTest {
 
   function testFork_swapEthForUsdc() public {
     address[] memory path = new address[](2);
-    path[0] = Mainnet.EEE_ADDR;
+    path[0] = address(0);
     path[1] = address(Mainnet.USDC);
 
     deal(USER, 1 ether);
 
     vm.prank(USER);
-    uniV2Router.uniswapV2SwapExactETHForTokens{value: 1 ether}(
-      1830 * (10 ** 6),
-      path,
-      USER,
-      50,
-      deadline,
-      PARTNER,
-      20
+
+    uniV2Router.uniswapV2ExactInput{value: 1 ether}(
+      IUniV2Router.ExactInputParams({
+        amountIn: 1 ether,
+        amountOut: 1830 * (10 ** 6),
+        recipient: USER,
+        slippage: 50,
+        feeBps: 20,
+        deadline: (uint48)(deadline),
+        partner: PARTNER,
+        path: path
+      })
     );
 
     // From Swap event log
@@ -111,7 +115,7 @@ contract UniV2RouterIntegrationTest is FacetTest {
   function testFork_swapUsdcForEth() public {
     address[] memory path = new address[](2);
     path[0] = address(Mainnet.USDC);
-    path[1] = Mainnet.EEE_ADDR;
+    path[1] = address(0);
 
     uint256 balBefore = USER.balance;
 
@@ -121,15 +125,17 @@ contract UniV2RouterIntegrationTest is FacetTest {
 
     Mainnet.USDC.approve(address(diamond), 2000 * (10 ** 6));
 
-    uniV2Router.uniswapV2SwapExactTokensForETH(
-      2000 * (10 ** 6),
-      1.08 ether,
-      path,
-      payable(USER),
-      50,
-      deadline,
-      payable(PARTNER),
-      20
+    uniV2Router.uniswapV2ExactInput(
+      IUniV2Router.ExactInputParams({
+        amountIn: 2000 * (10 ** 6),
+        amountOut: 1.08 ether,
+        recipient: USER,
+        slippage: 50,
+        feeBps: 20,
+        deadline: (uint48)(deadline),
+        partner: PARTNER,
+        path: path
+      })
     );
 
     vm.stopPrank();
@@ -171,15 +177,17 @@ contract UniV2RouterIntegrationTest is FacetTest {
 
     Mainnet.USDC.approve(address(diamond), 2000 * (10 ** 6));
 
-    uniV2Router.uniswapV2SwapExactTokensForTokens(
-      2000 * (10 ** 6),
-      1900 * (10 ** 18),
-      path,
-      USER,
-      50,
-      deadline,
-      PARTNER,
-      20
+    uniV2Router.uniswapV2ExactInput(
+      IUniV2Router.ExactInputParams({
+        amountIn: 2000 * (10 ** 6),
+        amountOut: 1900 * (10 ** 18),
+        recipient: USER,
+        slippage: 50,
+        feeBps: 20,
+        deadline: (uint48)(deadline),
+        partner: PARTNER,
+        path: path
+      })
     );
 
     vm.stopPrank();
