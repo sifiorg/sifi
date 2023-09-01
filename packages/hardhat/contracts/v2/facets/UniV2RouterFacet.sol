@@ -15,10 +15,9 @@ contract UniV2RouterFacet is IUniV2Router {
   using SafeERC20 for IERC20;
   using Address for address;
 
-  // TODO: Change to external once the legacy functions are removed
   function uniswapV2ExactInputSingle(
     ExactInputSingleParams memory params
-  ) public payable returns (uint256 amountOut) {
+  ) external payable returns (uint256 amountOut) {
     if (block.timestamp > params.deadline) {
       revert Errors.DeadlineExpired();
     }
@@ -106,10 +105,9 @@ contract UniV2RouterFacet is IUniV2Router {
     }
   }
 
-  // TODO: Change to external once the legacy functions are removed
   function uniswapV2ExactInput(
     ExactInputParams memory params
-  ) public payable returns (uint256 amountOut) {
+  ) external payable returns (uint256 amountOut) {
     if (block.timestamp > params.deadline) {
       revert Errors.DeadlineExpired();
     }
@@ -199,99 +197,5 @@ contract UniV2RouterFacet is IUniV2Router {
     } else {
       IERC20(params.path[pathLengthMinusOne]).safeTransfer(params.recipient, amountOut);
     }
-  }
-
-  /**
-   * @param amountOut Amount out before slippage
-   * @param path [input coin, ..., output coin]
-   * @param to Recipient of output coin
-   * @param slippage Slippage tolerance in bps
-   * @param deadline Deadline in unix timestamp
-   */
-  function uniswapV2SwapExactETHForTokens(
-    uint256 amountOut,
-    address[] memory path,
-    address to,
-    uint256 slippage,
-    uint256 deadline,
-    address partner,
-    uint16 feeBps
-  ) external payable returns (uint256[] memory amounts) {
-    amounts = new uint256[](path.length);
-    amounts[0] = msg.value;
-
-    // NOTE: May have been passed in as 0xeee
-    path[0] = address(0);
-
-    amounts[path.length - 1] = uniswapV2ExactInput(
-      ExactInputParams({
-        amountIn: msg.value,
-        amountOut: amountOut,
-        recipient: to,
-        slippage: (uint16)(slippage),
-        feeBps: feeBps,
-        deadline: (uint48)(deadline),
-        partner: partner,
-        path: path
-      })
-    );
-  }
-
-  function uniswapV2SwapExactTokensForETH(
-    uint256 amountIn,
-    uint256 amountOut,
-    address[] memory path,
-    address payable to,
-    uint256 slippage,
-    uint256 deadline,
-    address partner,
-    uint16 feeBps
-  ) external returns (uint256[] memory amounts) {
-    amounts = new uint256[](path.length);
-    amounts[0] = amountIn;
-
-    // NOTE: May have been passed in as 0xeee
-    path[path.length - 1] = address(0);
-
-    amounts[path.length - 1] = uniswapV2ExactInput(
-      ExactInputParams({
-        amountIn: amountIn,
-        amountOut: amountOut,
-        recipient: to,
-        slippage: (uint16)(slippage),
-        feeBps: feeBps,
-        deadline: (uint48)(deadline),
-        partner: partner,
-        path: path
-      })
-    );
-  }
-
-  function uniswapV2SwapExactTokensForTokens(
-    uint256 amountIn,
-    uint256 amountOut,
-    address[] memory path,
-    address to,
-    uint256 slippage,
-    uint256 deadline,
-    address partner,
-    uint16 feeBps
-  ) external returns (uint256[] memory amounts) {
-    amounts = new uint256[](path.length);
-
-    amounts[0] = amountIn;
-
-    amounts[path.length - 1] = uniswapV2ExactInput(
-      ExactInputParams({
-        amountIn: amountIn,
-        amountOut: amountOut,
-        recipient: to,
-        slippage: (uint16)(slippage),
-        feeBps: feeBps,
-        deadline: (uint48)(deadline),
-        partner: partner,
-        path: path
-      })
-    );
   }
 }
