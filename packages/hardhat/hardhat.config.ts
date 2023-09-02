@@ -31,6 +31,7 @@ const config = {
       url: SEPOLIA_RPC_URL || '',
       accounts: { mnemonic: '' },
       chainId: 11155111,
+      gasMultiplier: 2,
     },
   },
   etherscan: {},
