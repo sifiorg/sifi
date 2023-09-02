@@ -20,6 +20,7 @@ const FACET_NAMES = [
   'UniV2RouterFacet',
   'KittyFacet',
   'UniV2LikeFacet',
+  'WarpLink',
 ];
 
 /**
@@ -73,6 +74,9 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
       };
     },
   };
+
+  // TODO: Make this more pretty with a declarative approach to inits
+  initForFacet.WarpLink = initForFacet.UniV2LikeFacet;
 
   for (const facetName of FACET_NAMES) {
     const args: unknown[] = [];
