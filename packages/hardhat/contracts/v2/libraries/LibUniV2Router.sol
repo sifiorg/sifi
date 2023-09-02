@@ -25,10 +25,6 @@ library LibUniV2Router {
     }
   }
 
-  function applySlippage(uint256 amount, uint16 slippage) internal pure returns (uint256) {
-    return (amount * (10_000 - slippage)) / 10_000;
-  }
-
   // calculates the CREATE2 address for a pair without making any external calls
   // NOTE: Modified to work with newer Solidity
   function pairFor(

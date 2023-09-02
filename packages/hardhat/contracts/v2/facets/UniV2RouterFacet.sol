@@ -8,6 +8,7 @@ import {IUniswapV2Pair} from 'contracts/v2/interfaces/external/IUniswapV2Pair.so
 import {IUniV2Router} from 'contracts/v2/interfaces/IUniV2Router.sol';
 import {LibUniV2Router} from 'contracts/v2/libraries/LibUniV2Router.sol';
 import {LibKitty} from 'contracts/v2/libraries/LibKitty.sol';
+import {LibWarp} from 'contracts/v2/libraries/LibWarp.sol';
 import {Errors} from 'contracts/v2/libraries/Errors.sol';
 import {IUniswapV2Pair} from 'contracts/v2/interfaces/external/IUniswapV2Pair.sol';
 
@@ -50,7 +51,7 @@ contract UniV2RouterFacet is IUniV2Router {
     }
 
     // Enforce minimum amount/max slippage
-    if (amountOut < LibUniV2Router.applySlippage(params.amountOut, params.slippage)) {
+    if (amountOut < LibWarp.applySlippage(params.amountOut, params.slippage)) {
       revert Errors.InsufficientOutputAmount();
     }
 
@@ -133,9 +134,7 @@ contract UniV2RouterFacet is IUniV2Router {
     );
 
     // Enforce minimum amount/max slippage
-    if (
-      amounts[amounts.length - 1] < LibUniV2Router.applySlippage(params.amountOut, params.slippage)
-    ) {
+    if (amounts[amounts.length - 1] < LibWarp.applySlippage(params.amountOut, params.slippage)) {
       revert Errors.InsufficientOutputAmount();
     }
 
