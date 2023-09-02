@@ -2,12 +2,10 @@ import { getNamedAccounts, network } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DiamondCutFacet, DiamondLoupeFacet } from '../../typechain-types';
 import { FacetCutAction } from '../../types/diamond.t';
-import {
-  getFunctionSelectorsFromContract,
-  uniswapV2FactoryAddressForNetwork,
-  uniswapV2Router02AddressForNetwork,
-  verify,
-} from '../helpers';
+import { getFunctionSelectorsFromContract, verify } from '../helpers';
+import { networkAddresses } from '../addresses';
+
+const addresses = networkAddresses[network.name];
 
 type Init = {
   address: string;
@@ -20,6 +18,7 @@ const FACET_NAMES = [
   'OwnershipFacet',
   'UniV2RouterFacet',
   'KittyFacet',
+  'UniV2LikeFacet',
 ];
 
 /**
@@ -35,10 +34,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
 
   const initForFacet: Partial<Record<string, () => Promise<Init>>> = {
     UniV2RouterFacet: async () => {
-      const routerAddress = uniswapV2Router02AddressForNetwork[network.name];
-      const factoryAddress = uniswapV2FactoryAddressForNetwork[network.name];
-
-      if (!routerAddress) {
+      if (!addresses?.uniswapV2Router02) {
         throw new Error(`UniswapV2Router02 address is unknown for network ${network.name}`);
       }
 
@@ -54,9 +50,29 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
       return {
         address: initDeployment.address,
         calldata: initContract.interface.encodeFunctionData('init', [
-          routerAddress,
-          factoryAddress,
+          addresses.uniswapV2Router02,
+          addresses.uniswapV2Factory,
         ]),
+      };
+    },
+    // NOTE: Adding this facet causes LibWarp to be initialized
+    UniV2LikeFacet: async () => {
+      if (!addresses?.weth) {
+        throw new Error(`WETH address is unknown for network ${network.name}`);
+      }
+
+      const initDeployment = await deploy('InitLibWarp', {
+        from: defaultDeployer,
+        args: [],
+        log: true,
+        autoMine: true,
+      });
+
+      const initContract = await ethers.getContractAt('InitLibWarp', initDeployment.address);
+
+      return {
+        address: initDeployment.address,
+        calldata: initContract.interface.encodeFunctionData('init', [addresses.weth]),
       };
     },
   };
