@@ -228,15 +228,31 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
     }
   }
 
-  if (inits.length > 1) {
-    // Note that if multiple of the added/replaced cuts have an init functions
-    // the DiamondCut facet needs to be upgraded to support multiple init functions
-    // This can be as simple as having a map in this file of facet names to a function that
-    // returns either `undefined` or the init function name and an array of arguments
-    throw new Error('Only one init function is supported');
-  }
+  let init: Init | undefined;
 
-  const [init] = inits;
+  if (inits.length > 1) {
+    const multiInitDeployment = await deploy('DiamondMultiInit', {
+      from: defaultDeployer,
+      args: [],
+      log: true,
+      autoMine: true,
+    });
+
+    const multiInitContract = await ethers.getContractAt(
+      'DiamondMultiInit',
+      multiInitDeployment.address
+    );
+
+    init = {
+      address: multiInitDeployment.address,
+      calldata: multiInitContract.interface.encodeFunctionData('multiInit', [
+        inits.map(init => init.address),
+        inits.map(init => init.calldata),
+      ]),
+    };
+  } else {
+    init = inits[0];
+  }
 
   if (init) {
     console.log(`Init: ${init.address} (${init.calldata})`);
