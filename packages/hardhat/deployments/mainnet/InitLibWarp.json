@@ -1,0 +1,53 @@
+{
+  "address": "0xe50ae9d11aa38c7fc48d1277d19c096f40c8bad9",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "weth",
+          "type": "address"
+        }
+      ],
+      "name": "init",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xbfebb3e98ace4547229fcbbda76e00e1217ef9eb00496b1b1f724635d76f1e22",
+  "receipt": {
+    "to": null,
+    "from": "0x67e21394bbc46c010d9b8dcf00172ab7996964be",
+    "contractAddress": "0xe50ae9d11aa38c7fc48d1277d19c096f40c8bad9",
+    "transactionIndex": "0x3e",
+    "gasUsed": "0x1b157",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x5ea0b5bd21a356e203d34c0cf56d39a4c5f8bb7c9be6f179dbc85433dce40188",
+    "transactionHash": "0xbfebb3e98ace4547229fcbbda76e00e1217ef9eb00496b1b1f724635d76f1e22",
+    "logs": [],
+    "blockNumber": "0x1139c42",
+    "cumulativeGasUsed": "0x408ce5",
+    "status": "0x1"
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "a50422372668a179608ea47e5e59713c",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.21+commit.d9974bed\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"weth\",\"type\":\"address\"}],\"name\":\"init\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/v2/init/InitLibWarp.sol\":\"InitLibWarp\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":999999},\"remappings\":[\":@openzeppelin/=@openzeppelin/\",\":@uniswap/=@uniswap/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":forge-std/=lib/forge-std/src/\",\":hardhat-deploy/=hardhat-deploy/\",\":hardhat/=hardhat/\",\":solidity-stringutils/=lib/solidity-stringutils/src/\"]},\"sources\":{\"@uniswap/v2-periphery/contracts/interfaces/IWETH.sol\":{\"content\":\"pragma solidity >=0.5.0;\\n\\ninterface IWETH {\\n    function deposit() external payable;\\n    function transfer(address to, uint value) external returns (bool);\\n    function withdraw(uint) external;\\n}\\n\",\"keccak256\":\"0xfc10758fd8dba790c39468dccd358cb7cef06ae7c4781832cc7aa76f91f167e6\"},\"contracts/v2/init/InitLibWarp.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.21;\\n\\nimport {IWETH} from '@uniswap/v2-periphery/contracts/interfaces/IWETH.sol';\\nimport {LibWarp} from '../libraries/LibWarp.sol';\\n\\ncontract InitLibWarp {\\n  function init(address weth) public {\\n    LibWarp.State storage s = LibWarp.state();\\n\\n    s.weth = IWETH(weth);\\n  }\\n}\\n\",\"keccak256\":\"0x7a2920586ef89d5f999db98d35cb6331e325308d22c9f019c0696843669bb677\",\"license\":\"MIT\"},\"contracts/v2/libraries/LibWarp.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.21;\\n\\nimport {IWETH} from '@uniswap/v2-periphery/contracts/interfaces/IWETH.sol';\\n\\nlibrary LibWarp {\\n  bytes32 constant DIAMOND_STORAGE_SLOT = keccak256('diamond.storage.LibWarp');\\n\\n  struct State {\\n    IWETH weth;\\n  }\\n\\n  function state() internal pure returns (State storage s) {\\n    bytes32 slot = DIAMOND_STORAGE_SLOT;\\n\\n    assembly {\\n      s.slot := slot\\n    }\\n  }\\n\\n  function applySlippage(uint256 amount, uint16 slippage) internal pure returns (uint256) {\\n    return (amount * (10_000 - slippage)) / 10_000;\\n  }\\n}\\n\",\"keccak256\":\"0x707e062da5e54162b0982b09a34bf8454df42259f6666843cfac18e2c0928635\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561000f575f80fd5b5061010b8061001d5f395ff3fe6080604052348015600e575f80fd5b50600436106026575f3560e01c806319ab453c14602a575b5f80fd5b609b6035366004609d565b7f1c1cf3c8827d48db80e17913589584c81d7f8da7f2100c9a87a7bf64829a0e1080547fffffffffffffffffffffffff00000000000000000000000000000000000000001673ffffffffffffffffffffffffffffffffffffffff92909216919091179055565b005b5f6020828403121560ac575f80fd5b813573ffffffffffffffffffffffffffffffffffffffff8116811460ce575f80fd5b939250505056fea2646970667358221220457100d3c8aa6dd7185d5dc8079500196e945db8b0c121ac851681876166246e64736f6c63430008150033",
+  "deployedBytecode": "0x6080604052348015600e575f80fd5b50600436106026575f3560e01c806319ab453c14602a575b5f80fd5b609b6035366004609d565b7f1c1cf3c8827d48db80e17913589584c81d7f8da7f2100c9a87a7bf64829a0e1080547fffffffffffffffffffffffff00000000000000000000000000000000000000001673ffffffffffffffffffffffffffffffffffffffff92909216919091179055565b005b5f6020828403121560ac575f80fd5b813573ffffffffffffffffffffffffffffffffffffffff8116811460ce575f80fd5b939250505056fea2646970667358221220457100d3c8aa6dd7185d5dc8079500196e945db8b0c121ac851681876166246e64736f6c63430008150033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [],
+    "types": null
+  }
+}
