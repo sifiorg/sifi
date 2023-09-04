@@ -6,12 +6,13 @@ import { useTokens } from 'src/hooks/useTokens';
 import { useTokenBalance } from 'src/hooks/useTokenBalance';
 import { useMutation } from '@tanstack/react-query';
 import { useSifi } from 'src/providers/SDKProvider';
-import { formatTokenAmount, getEvmTxUrl, getTokenBySymbol, parseErrorMessage } from 'src/utils';
+import { getEvmTxUrl, getTokenBySymbol, parseErrorMessage } from 'src/utils';
 import { SwapFormKey, SwapFormKeyHelper } from 'src/providers/SwapFormProvider';
 import { useCullQueries } from 'src/hooks/useCullQueries';
 import { useQuote } from 'src/hooks/useQuote';
 import { CreateSwapButtons } from '../CreateSwapButtons/CreateSwapButtons';
 import { TokenSelector, useTokenSelector } from '../TokenSelector';
+import { SwapInformation } from '../SwapInformation';
 
 const CreateSwap = () => {
   useCullQueries('quote');
@@ -25,7 +26,6 @@ const CreateSwap = () => {
   });
   const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
   const toToken = getTokenBySymbol(toTokenSymbol, tokens);
-  const { isConnected } = useAccount();
   const [isLoading, setIsLoading] = useState(false);
   const { quote, isFetching: isFetchingQuote } = useQuote();
   const ShiftInputLabel = { from: 'You pay', to: 'You receive' } as const;
@@ -163,24 +163,7 @@ const CreateSwap = () => {
           </div>
         </form>
       </div>
-      {/* Temorary info section */}
-      {isConnected && quote && (
-        <dl className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
-          {/* TODO: Add this back in */}
-          {/* <div className="sm:col-span-1">
-            <dt className="text-smoke text-sm font-medium">USD Value</dt>
-            <dd className="font-display text-flashbang-white mt-1 text-sm">
-              {route.toAmountUSD} USD
-            </dd>
-          </div> */}
-          <div className="sm:col-span-1">
-            <dt className="text-smoke text-sm font-medium">Estimated Gas Cost</dt>
-            <dd className="font-display text-flashbang-white mt-1 text-sm">
-              {formatTokenAmount(quote.estimatedGas.toString(), 4)} USD
-            </dd>
-          </div>
-        </dl>
-      )}
+      <SwapInformation />
     </div>
   );
 };
