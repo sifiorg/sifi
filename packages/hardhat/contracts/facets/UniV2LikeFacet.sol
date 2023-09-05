@@ -59,12 +59,12 @@ contract UniV2LikeFacet is IUniV2Like {
     }
 
     unchecked {
-      // For 30 bps, multiply by 997
-      uint256 feeFactor = 1_000 - params.poolFeeBps / 10;
+      // For 25 bps, multiply by 9975
+      uint256 feeFactor = 10_000 - params.poolFeeBps;
 
       amountOut =
         ((params.amountIn * feeFactor) * reserveOut) /
-        ((reserveIn * 1000) + (params.amountIn * feeFactor));
+        ((reserveIn * 10_000) + (params.amountIn * feeFactor));
     }
 
     // Enforce minimum amount/max slippage
