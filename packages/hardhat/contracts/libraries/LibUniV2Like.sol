@@ -12,8 +12,8 @@ library LibUniV2Like {
   ) internal view returns (uint256[] memory amounts) {
     uint256 poolLength = pools.length;
 
-    // For 30 bps, multiply by 997
-    uint256 feeFactor = 1_000 - poolFeeBps / 10;
+    // For 30 bps, multiply by 9970
+    uint256 feeFactor = 10_000 - poolFeeBps;
 
     amounts = new uint256[](tokens.length);
     amounts[0] = amountIn;
@@ -31,7 +31,7 @@ library LibUniV2Like {
       unchecked {
         amountIn =
           ((amountIn * feeFactor) * reserveOut) /
-          ((reserveIn * 1000) + (amountIn * feeFactor));
+          ((reserveIn * 10_000) + (amountIn * feeFactor));
       }
 
       // Recycling `amountIn`
