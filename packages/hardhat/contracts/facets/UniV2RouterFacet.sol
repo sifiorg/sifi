@@ -4,13 +4,13 @@ pragma solidity 0.8.21;
 import {Address} from '@openzeppelin/contracts/utils/Address.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
-import {IUniswapV2Pair} from 'contracts/v2/interfaces/external/IUniswapV2Pair.sol';
-import {IUniV2Router} from 'contracts/v2/interfaces/IUniV2Router.sol';
-import {LibUniV2Router} from 'contracts/v2/libraries/LibUniV2Router.sol';
-import {LibKitty} from 'contracts/v2/libraries/LibKitty.sol';
-import {LibWarp} from 'contracts/v2/libraries/LibWarp.sol';
-import {Errors} from 'contracts/v2/libraries/Errors.sol';
-import {IUniswapV2Pair} from 'contracts/v2/interfaces/external/IUniswapV2Pair.sol';
+import {IUniswapV2Pair} from 'contracts/interfaces/external/IUniswapV2Pair.sol';
+import {IUniV2Router} from 'contracts/interfaces/IUniV2Router.sol';
+import {LibUniV2Router} from 'contracts/libraries/LibUniV2Router.sol';
+import {LibKitty} from 'contracts/libraries/LibKitty.sol';
+import {LibWarp} from 'contracts/libraries/LibWarp.sol';
+import {Errors} from 'contracts/libraries/Errors.sol';
+import {IUniswapV2Pair} from 'contracts/interfaces/external/IUniswapV2Pair.sol';
 
 contract UniV2RouterFacet is IUniV2Router {
   using SafeERC20 for IERC20;

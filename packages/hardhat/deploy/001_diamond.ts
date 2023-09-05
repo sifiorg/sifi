@@ -1,6 +1,6 @@
 import { DeployFunction } from 'hardhat-deploy/types';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { verify } from '../helpers';
+import { verify } from './helpers';
 
 type SifiDiamondDeployArgs = [owner: string, diamondCutFacetAddress: string];
 

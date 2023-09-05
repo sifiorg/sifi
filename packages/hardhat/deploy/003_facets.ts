@@ -1,9 +1,9 @@
 import { getNamedAccounts, network } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { DiamondCutFacet, DiamondLoupeFacet } from '../../typechain-types';
-import { FacetCutAction } from '../../types/diamond.t';
-import { getFunctionSelectorsFromContract, verify } from '../helpers';
-import { networkAddresses } from '../addresses';
+import { DiamondCutFacet, DiamondLoupeFacet } from '../typechain-types';
+import { FacetCutAction } from '../types/diamond.t';
+import { getFunctionSelectorsFromContract, verify } from './helpers';
+import { networkAddresses } from './addresses';
 
 const addresses = networkAddresses[network.name];
 

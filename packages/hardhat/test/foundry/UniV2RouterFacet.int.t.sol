@@ -5,14 +5,14 @@ import 'forge-std/Test.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {FacetTest} from './helpers/FacetTest.sol';
 import {Mainnet} from './helpers/Mainnet.sol';
-import {IDiamondCut} from 'contracts/v2/interfaces/IDiamondCut.sol';
-import {IUniV2Router} from 'contracts/v2/interfaces/IUniV2Router.sol';
-import {UniV2RouterFacet} from 'contracts/v2/facets/UniV2RouterFacet.sol';
-import {InitUniV2Router} from 'contracts/v2/init/InitUniV2Router.sol';
-import {IKitty} from 'contracts/v2/interfaces/IKitty.sol';
-import {KittyFacet} from 'contracts/v2/facets/KittyFacet.sol';
-import {LibKitty} from 'contracts/v2/libraries/LibKitty.sol';
-import {Errors} from 'contracts/v2/libraries/Errors.sol';
+import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
+import {IUniV2Router} from 'contracts/interfaces/IUniV2Router.sol';
+import {UniV2RouterFacet} from 'contracts/facets/UniV2RouterFacet.sol';
+import {InitUniV2Router} from 'contracts/init/InitUniV2Router.sol';
+import {IKitty} from 'contracts/interfaces/IKitty.sol';
+import {KittyFacet} from 'contracts/facets/KittyFacet.sol';
+import {LibKitty} from 'contracts/libraries/LibKitty.sol';
+import {Errors} from 'contracts/libraries/Errors.sol';
 
 contract UniV2RouterIntegrationTest is FacetTest {
   event PartnerWithdraw(address indexed partner, address indexed token, uint256 amount);

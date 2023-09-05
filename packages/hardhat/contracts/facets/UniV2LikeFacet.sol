@@ -4,12 +4,12 @@ pragma solidity 0.8.21;
 import {Address} from '@openzeppelin/contracts/utils/Address.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
-import {IUniswapV2Pair} from 'contracts/v2/interfaces/external/IUniswapV2Pair.sol';
-import {IUniV2Like} from 'contracts/v2/interfaces/IUniV2Like.sol';
-import {LibUniV2Like} from 'contracts/v2/libraries/LibUniV2Like.sol';
-import {LibKitty} from 'contracts/v2/libraries/LibKitty.sol';
-import {LibWarp} from 'contracts/v2/libraries/LibWarp.sol';
-import {IUniswapV2Pair} from 'contracts/v2/interfaces/external/IUniswapV2Pair.sol';
+import {IUniswapV2Pair} from 'contracts/interfaces/external/IUniswapV2Pair.sol';
+import {IUniV2Like} from 'contracts/interfaces/IUniV2Like.sol';
+import {LibUniV2Like} from 'contracts/libraries/LibUniV2Like.sol';
+import {LibKitty} from 'contracts/libraries/LibKitty.sol';
+import {LibWarp} from 'contracts/libraries/LibWarp.sol';
+import {IUniswapV2Pair} from 'contracts/interfaces/external/IUniswapV2Pair.sol';
 
 /**
  * A router for any Uniswap V2 fork
