@@ -122,5 +122,32 @@ contract UniV2LikeFacetTest is FacetTest {
     assertEq(Mainnet.WBTC.balanceOf(USER), expectedSwapOut - expectedFee);
   }
 
+  function testFork_uniswapV2LikeExactInputSingle_PancakeV2EthUsdt() public {
+    deal(USER, 0.001 ether);
+
+    address pool = getPair(
+      Mainnet.PANCAKESWAP_V2_FACTORY,
+      address(Mainnet.WETH),
+      address(Mainnet.USDT)
+    );
+
+    vm.prank(USER);
+    facet.uniswapV2LikeExactInputSingle{value: 0.001 ether}(
+      IUniV2Like.ExactInputSingleParams({
+        amountIn: 0.001 ether,
+        amountOut: 0,
+        recipient: USER,
+        slippageBps: 0,
+        feeBps: 0,
+        deadline: deadline,
+        partner: address(0),
+        tokenIn: address(0),
+        tokenOut: address(Mainnet.USDT),
+        pool: pool,
+        poolFeeBps: 25
+      })
+    );
+  }
+
   receive() external payable {}
 }
