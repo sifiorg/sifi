@@ -2,17 +2,17 @@ import { getNamedAccounts } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DiamondCutFacet, DiamondLoupeFacet, IDiamondCut } from '../typechain-types';
 import { FacetCutAction } from '../types/diamond.t';
-import { getFunctionSelectorsFromContract, verify } from './helpers';
+import { deploy, getFunctionSelectorsFromContract, verify } from './helpers';
 
 /**
  * Initial addition of the loupe facet
  */
 const func = async function (hre: HardhatRuntimeEnvironment) {
   const { ethers, deployments } = hre;
-  const { get, deploy } = deployments;
+  const { get } = deployments;
   const { defaultDeployer } = await getNamedAccounts();
 
-  const deployResult = await deploy('DiamondLoupeFacet', {
+  const deployResult = await deploy(hre, 'DiamondLoupeFacet', {
     from: defaultDeployer,
     args: [],
     log: true,
