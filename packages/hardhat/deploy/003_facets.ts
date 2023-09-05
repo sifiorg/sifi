@@ -2,7 +2,7 @@ import { getNamedAccounts, network } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DiamondCutFacet, DiamondLoupeFacet } from '../typechain-types';
 import { FacetCutAction } from '../types/diamond.t';
-import { getFunctionSelectorsFromContract, verify } from './helpers';
+import { deploy, getFunctionSelectorsFromContract, verify } from './helpers';
 import { networkAddresses } from './addresses';
 
 const addresses = networkAddresses[network.name];
@@ -26,7 +26,7 @@ const FACET_NAMES = [
  */
 const func = async function (hre: HardhatRuntimeEnvironment) {
   const { ethers, deployments } = hre;
-  const { get, deploy } = deployments;
+  const { get } = deployments;
 
   const { defaultDeployer } = await getNamedAccounts();
   const diamondDeployment = await get('SifiDiamond');
@@ -38,7 +38,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
         throw new Error(`UniswapV2Router02 address is unknown for network ${network.name}`);
       }
 
-      const initDeployment = await deploy('InitUniV2Router', {
+      const initDeployment = await deploy(hre, 'InitUniV2Router', {
         from: defaultDeployer,
         args: [],
         log: true,
@@ -61,7 +61,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
         throw new Error(`WETH address is unknown for network ${network.name}`);
       }
 
-      const initDeployment = await deploy('InitLibWarp', {
+      const initDeployment = await deploy(hre, 'InitLibWarp', {
         from: defaultDeployer,
         args: [],
         log: true,
@@ -80,7 +80,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
   for (const facetName of FACET_NAMES) {
     const args: unknown[] = [];
 
-    const facet = await deploy(facetName, {
+    const facet = await deploy(hre, facetName, {
       from: defaultDeployer,
       args: [],
       log: true,
@@ -247,7 +247,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
   let init: Init | undefined;
 
   if (inits.length > 1) {
-    const multiInitDeployment = await deploy('DiamondMultiInit', {
+    const multiInitDeployment = await deploy(hre, 'DiamondMultiInit', {
       from: defaultDeployer,
       args: [],
       log: true,
