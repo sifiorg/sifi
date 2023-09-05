@@ -11,6 +11,7 @@ interface IUniV2Like {
   struct ExactInputParams {
     uint256 amountIn;
     uint256 amountOut;
+    uint16[] poolFeesBps;
     address recipient;
     uint16 slippageBps;
     uint16 feeBps;
@@ -18,7 +19,6 @@ interface IUniV2Like {
     address partner;
     address[] tokens;
     address[] pools;
-    uint16 poolFeeBps;
   }
 
   struct ExactInputSingleParams {

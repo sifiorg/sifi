@@ -148,7 +148,7 @@ contract UniV2LikeFacet is IUniV2Like {
       : IERC20(params.tokens[poolLength]).balanceOf(address(this));
 
     uint256[] memory amounts = LibUniV2Like.getAmountsOut(
-      params.poolFeeBps,
+      params.poolFeesBps,
       params.amountIn,
       params.tokens,
       params.pools
