@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import {IUniswapV2Pair} from 'contracts/v2/interfaces/external/IUniswapV2Pair.sol';
+import {IUniswapV2Pair} from 'contracts/interfaces/external/IUniswapV2Pair.sol';
 
 library LibUniV2Like {
   function getAmountsOut(

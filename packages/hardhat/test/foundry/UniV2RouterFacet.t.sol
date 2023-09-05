@@ -4,11 +4,11 @@ pragma solidity ^0.8.21;
 import 'forge-std/Test.sol';
 import {FacetTest} from './helpers/FacetTest.sol';
 import {Mainnet} from './helpers/Mainnet.sol';
-import {IDiamondCut} from 'contracts/v2/interfaces/IDiamondCut.sol';
-import {IUniV2Router} from 'contracts/v2/interfaces/IUniV2Router.sol';
-import {UniV2RouterFacet} from 'contracts/v2/facets/UniV2RouterFacet.sol';
-import {InitUniV2Router} from 'contracts/v2/init/InitUniV2Router.sol';
-import {Errors} from 'contracts/v2/libraries/Errors.sol';
+import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
+import {IUniV2Router} from 'contracts/interfaces/IUniV2Router.sol';
+import {UniV2RouterFacet} from 'contracts/facets/UniV2RouterFacet.sol';
+import {InitUniV2Router} from 'contracts/init/InitUniV2Router.sol';
+import {Errors} from 'contracts/libraries/Errors.sol';
 
 /**
  * @notice assertApproxRelEq is used in this test with a tolerance of 0.05 ether which equals to 5%

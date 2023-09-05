@@ -5,7 +5,7 @@ pragma solidity ^0.8.21;
 
 import 'forge-std/Test.sol';
 import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
-import {LibKitty} from 'contracts/v2/libraries/LibKitty.sol';
+import {LibKitty} from 'contracts/libraries/LibKitty.sol';
 import {Mainnet} from './helpers/Mainnet.sol';
 
 contract LibKittyTest is Test {

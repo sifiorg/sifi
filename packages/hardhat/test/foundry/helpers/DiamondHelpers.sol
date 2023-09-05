@@ -10,8 +10,8 @@ pragma solidity ^0.8.0;
 /******************************************************************************/
 import 'forge-std/Test.sol';
 import 'solidity-stringutils/strings.sol';
-import 'contracts/v2/interfaces/IDiamondLoupe.sol';
-import 'contracts/v2/interfaces/IDiamondCut.sol';
+import 'contracts/interfaces/IDiamondLoupe.sol';
+import 'contracts/interfaces/IDiamondCut.sol';
 
 abstract contract DiamondHelpers is Test {
   using strings for *;

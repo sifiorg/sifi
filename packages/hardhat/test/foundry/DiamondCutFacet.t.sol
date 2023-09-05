@@ -2,8 +2,8 @@
 pragma solidity ^0.8.21;
 
 import {FacetTest} from './helpers/FacetTest.sol';
-import {IDiamondCut} from 'contracts/v2/interfaces/IDiamondCut.sol';
-import {DiamondMultiInit} from 'contracts/v2/init/DiamondMultiInit.sol';
+import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
+import {DiamondMultiInit} from 'contracts/init/DiamondMultiInit.sol';
 
 interface IMultiplyFacet {
   function multiply(uint256 factor) external returns (uint256);
