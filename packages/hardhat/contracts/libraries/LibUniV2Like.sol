@@ -5,15 +5,12 @@ import {IUniswapV2Pair} from 'contracts/interfaces/external/IUniswapV2Pair.sol';
 
 library LibUniV2Like {
   function getAmountsOut(
-    uint24 poolFeeBps,
+    uint16[] memory poolFeesBps,
     uint256 amountIn,
     address[] memory tokens,
     address[] memory pools
   ) internal view returns (uint256[] memory amounts) {
     uint256 poolLength = pools.length;
-
-    // For 30 bps, multiply by 9970
-    uint256 feeFactor = 10_000 - poolFeeBps;
 
     amounts = new uint256[](tokens.length);
     amounts[0] = amountIn;
@@ -21,6 +18,9 @@ library LibUniV2Like {
     for (uint256 index; index < poolLength; ) {
       address token0 = tokens[index];
       address token1 = tokens[index + 1];
+
+      // For 30 bps, multiply by 9970
+      uint256 feeFactor = 10_000 - poolFeesBps[index];
 
       (uint256 reserveIn, uint256 reserveOut, ) = IUniswapV2Pair(pools[index]).getReserves();
 

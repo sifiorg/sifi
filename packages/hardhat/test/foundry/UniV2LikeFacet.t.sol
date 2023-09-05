@@ -95,6 +95,10 @@ contract UniV2LikeFacetTest is FacetTest {
     pools[0] = getPair(Mainnet.SUSHISWAP_V2_FACTORY, address(Mainnet.DAI), address(Mainnet.WETH));
     pools[1] = getPair(Mainnet.SUSHISWAP_V2_FACTORY, address(Mainnet.WETH), address(Mainnet.WBTC));
 
+    uint16[] memory poolFeesBps = new uint16[](2);
+    poolFeesBps[0] = 30;
+    poolFeesBps[1] = 30;
+
     deal(address(Mainnet.DAI), USER, 2000 ether);
 
     vm.startPrank(USER);
@@ -115,7 +119,7 @@ contract UniV2LikeFacetTest is FacetTest {
         partner: address(0),
         tokens: tokens,
         pools: pools,
-        poolFeeBps: 30
+        poolFeesBps: poolFeesBps
       })
     );
 
@@ -147,6 +151,51 @@ contract UniV2LikeFacetTest is FacetTest {
         poolFeeBps: 25
       })
     );
+  }
+
+  function testFork_uniswapV2LikeExactInput_DifferentPoolFees() public {
+    address[] memory tokens = new address[](3);
+    tokens[0] = address(Mainnet.DAI);
+    tokens[1] = address(Mainnet.WETH);
+    tokens[2] = address(Mainnet.WBTC);
+
+    address[] memory pools = new address[](2);
+    pools[0] = getPair(Mainnet.SUSHISWAP_V2_FACTORY, address(Mainnet.DAI), address(Mainnet.WETH));
+    pools[1] = getPair(
+      Mainnet.PANCAKESWAP_V2_FACTORY,
+      address(Mainnet.WETH),
+      address(Mainnet.WBTC)
+    );
+
+    uint16[] memory poolFeesBps = new uint16[](2);
+    poolFeesBps[0] = 30;
+    poolFeesBps[1] = 25;
+
+    deal(address(Mainnet.DAI), USER, 2000 ether);
+
+    vm.startPrank(USER);
+
+    uint256 expectedSwapOut = 6737074;
+    uint256 expectedFee = 0;
+
+    Mainnet.DAI.approve(address(facet), 2000 ether);
+
+    facet.uniswapV2LikeExactInput(
+      IUniV2Like.ExactInputParams({
+        amountIn: 2000 ether,
+        amountOut: expectedSwapOut,
+        recipient: USER,
+        slippageBps: 0,
+        feeBps: 0,
+        deadline: deadline,
+        partner: address(0),
+        tokens: tokens,
+        pools: pools,
+        poolFeesBps: poolFeesBps
+      })
+    );
+
+    assertEq(Mainnet.WBTC.balanceOf(USER), expectedSwapOut - expectedFee);
   }
 
   receive() external payable {}
