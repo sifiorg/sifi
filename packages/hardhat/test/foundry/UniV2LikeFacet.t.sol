@@ -4,12 +4,12 @@ pragma solidity ^0.8.21;
 import 'forge-std/Test.sol';
 import {FacetTest} from './helpers/FacetTest.sol';
 import {Mainnet} from './helpers/Mainnet.sol';
-import {IDiamondCut} from 'contracts/v2/interfaces/IDiamondCut.sol';
-import {IUniV2Like} from 'contracts/v2/interfaces/IUniV2Like.sol';
-import {UniV2LikeFacet} from 'contracts/v2/facets/UniV2LikeFacet.sol';
-import {InitLibWarp} from 'contracts/v2/init/InitLibWarp.sol';
-import {Errors} from 'contracts/v2/libraries/Errors.sol';
-import {IUniswapV2Factory} from 'contracts/v2/interfaces/external/IUniswapV2Factory.sol';
+import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
+import {IUniV2Like} from 'contracts/interfaces/IUniV2Like.sol';
+import {UniV2LikeFacet} from 'contracts/facets/UniV2LikeFacet.sol';
+import {InitLibWarp} from 'contracts/init/InitLibWarp.sol';
+import {Errors} from 'contracts/libraries/Errors.sol';
+import {IUniswapV2Factory} from 'contracts/interfaces/external/IUniswapV2Factory.sol';
 
 contract UniV2LikeFacetTest is FacetTest {
   event CollectedFee(

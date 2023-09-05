@@ -3,12 +3,12 @@ pragma solidity ^0.8.21;
 
 import 'forge-std/Test.sol';
 import {DiamondHelpers} from './DiamondHelpers.sol';
-import {SifiDiamond} from 'contracts/v2/SifiDiamond.sol';
-import {DiamondCutFacet} from 'contracts/v2/facets/DiamondCutFacet.sol';
-import {IDiamondCut} from 'contracts/v2/interfaces/IDiamondCut.sol';
-import {DiamondLoupeFacet} from 'contracts/v2/facets/DiamondLoupeFacet.sol';
-import {OwnershipFacet} from 'contracts/v2/facets/OwnershipFacet.sol';
-import {LibDiamond} from 'contracts/v2/libraries/LibDiamond.sol';
+import {SifiDiamond} from 'contracts/SifiDiamond.sol';
+import {DiamondCutFacet} from 'contracts/facets/DiamondCutFacet.sol';
+import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
+import {DiamondLoupeFacet} from 'contracts/facets/DiamondLoupeFacet.sol';
+import {OwnershipFacet} from 'contracts/facets/OwnershipFacet.sol';
+import {LibDiamond} from 'contracts/libraries/LibDiamond.sol';
 import {Mainnet} from './Mainnet.sol';
 
 abstract contract FacetTest is DiamondHelpers {

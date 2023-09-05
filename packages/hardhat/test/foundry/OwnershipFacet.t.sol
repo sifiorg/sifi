@@ -2,7 +2,7 @@
 pragma solidity ^0.8.21;
 
 import {FacetTest} from './helpers/FacetTest.sol';
-import {IERC173} from 'contracts/v2/interfaces/IERC173.sol';
+import {IERC173} from 'contracts/interfaces/IERC173.sol';
 
 contract OwnershipFacetTest is FacetTest {
   function test_Owner() public {
