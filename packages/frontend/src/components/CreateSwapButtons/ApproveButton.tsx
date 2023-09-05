@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { showToast } from '@sifi/shared-ui';
 import { useWatch } from 'react-hook-form';
 import { useApprove } from 'src/hooks/useApprove';
@@ -8,9 +7,12 @@ import { ApprovalModal } from 'src/modals';
 import { Button } from '../Button';
 
 const ApproveButton = () => {
-  const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
-  const closeModal = () => setIsApprovalModalOpen(false);
-  const { mutateAsync: requestApproval, isLoading } = useApprove({ closeModal });
+  const {
+    mutateAsync: requestApproval,
+    isLoading,
+    isApprovalModalOpen,
+    setIsApprovalModalOpen,
+  } = useApprove();
   const { refetch: refetchAllowance } = useAllowance();
   const [fromTokenSymbol] = useWatch({
     name: [SwapFormKey.FromToken],
@@ -22,7 +24,7 @@ const ApproveButton = () => {
       await requestApproval();
       await refetchAllowance();
     } catch (error) {
-      closeModal();
+      setIsApprovalModalOpen(false);
       if (error instanceof Error) {
         showToast({ type: 'error', text: error.message });
       } else {

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { erc20ABI, mainnet, usePublicClient, useWalletClient } from 'wagmi';
 import { useWatch } from 'react-hook-form';
@@ -7,11 +8,8 @@ import { getTokenBySymbol } from 'src/utils';
 import { useQuote } from './useQuote';
 import { useTokens } from './useTokens';
 
-type UseApproveOptions = {
-  closeModal?: () => void;
-};
-
-const useApprove = (options?: UseApproveOptions) => {
+const useApprove = () => {
+  const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
   const { quote } = useQuote();
@@ -39,14 +37,14 @@ const useApprove = (options?: UseApproveOptions) => {
       args: [approveAddress, BigInt(MAX_ALLOWANCE)],
     });
 
-    if (options?.closeModal) {
-      options.closeModal();
-    }
+    setIsApprovalModalOpen(false);
 
     await publicClient.waitForTransactionReceipt({ hash });
   };
 
-  return useMutation(['requestApproval'], requestApproval, { retry: 0 });
+  const mutation = useMutation(['requestApproval'], requestApproval, { retry: 0 });
+
+  return { ...mutation, isApprovalModalOpen, setIsApprovalModalOpen };
 };
 
 export { useApprove };
