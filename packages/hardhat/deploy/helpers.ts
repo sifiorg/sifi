@@ -45,7 +45,11 @@ export async function deploy(
   options: DeployOptions
 ): Promise<Pick<DeployResult, 'address'>> {
   if (process.env.DRY_RUN !== '1') {
-    return hre.deployments.deploy(name, options);
+    return await hre.deployments.deploy(name, {
+      log: true,
+      autoMine: true,
+      ...options,
+    });
   }
 
   const current = await hre.deployments.getOrNull(name);
@@ -66,5 +70,5 @@ export async function deploy(
     console.warn(`Deployment for ${name} is unchanged`);
   }
 
-  return hre.deployments.get(name);
+  return await hre.deployments.get(name);
 }
