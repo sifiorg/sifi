@@ -1,5 +1,6 @@
 import { getNamedAccounts, network } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import pMap from 'p-map';
 import { DiamondCutFacet, DiamondLoupeFacet } from '../typechain-types';
 import { FacetCutAction } from '../types/diamond.t';
 import { deploy, getFunctionSelectorsFromContract, verify } from './helpers';
@@ -100,19 +101,20 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
     diamondDeployment.address
   );
 
-  const nextFacets = await Promise.all(
-    FACET_NAMES.map((facetName: string) =>
-      Promise.resolve().then(async () => {
-        const facetDeployment = await get(facetName);
-        const facet = await ethers.getContractAt(facetName, facetDeployment.address);
+  // NOTE: Run in serial because of inner deployments
+  const nextFacets = await pMap(
+    FACET_NAMES,
+    async (facetName: string) => {
+      const facetDeployment = await get(facetName);
+      const facet = await ethers.getContractAt(facetName, facetDeployment.address);
 
-        return {
-          address: facetDeployment.address,
-          selectors: getFunctionSelectorsFromContract(facet),
-          init: await initForFacet[facetName]?.(),
-        };
-      })
-    )
+      return {
+        address: facetDeployment.address,
+        selectors: getFunctionSelectorsFromContract(facet),
+        init: await initForFacet[facetName]?.(),
+      };
+    },
+    { concurrency: 1 }
   );
 
   const nextSelectorToAddress = nextFacets.reduce<Record<string, string>>(
