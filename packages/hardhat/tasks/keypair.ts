@@ -12,6 +12,7 @@ task('keypair', 'Print deployer keypair').setAction(
 
     const wallet = hre.ethers.Wallet.fromPhrase(mnemonic);
 
+    console.log(`Network: ${network}`);
     console.log(`Address: ${wallet.address}`);
     console.log(`Private key: ${wallet.privateKey}`);
   }
