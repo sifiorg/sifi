@@ -42,8 +42,6 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
       const initDeployment = await deploy(hre, 'InitUniV2Router', {
         from: defaultDeployer,
         args: [],
-        log: true,
-        autoMine: true,
       });
 
       const initContract = await ethers.getContractAt('InitUniV2Router', initDeployment.address);
@@ -65,8 +63,6 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
       const initDeployment = await deploy(hre, 'InitLibWarp', {
         from: defaultDeployer,
         args: [],
-        log: true,
-        autoMine: true,
       });
 
       const initContract = await ethers.getContractAt('InitLibWarp', initDeployment.address);
@@ -84,8 +80,6 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
     const facet = await deploy(hre, facetName, {
       from: defaultDeployer,
       args: [],
-      log: true,
-      autoMine: true,
     });
 
     await verify(facet.address, args);
@@ -252,8 +246,6 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
     const multiInitDeployment = await deploy(hre, 'DiamondMultiInit', {
       from: defaultDeployer,
       args: [],
-      log: true,
-      autoMine: true,
     });
 
     const multiInitContract = await ethers.getContractAt(
