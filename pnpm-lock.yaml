@@ -207,6 +207,9 @@ importers:
       hardhat-deploy:
         specifier: ^0.11.34
         version: 0.11.34
+      p-map:
+        specifier: ^4.0.0
+        version: 4.0.0
       solhint:
         specifier: ^3.6.2
         version: 3.6.2
