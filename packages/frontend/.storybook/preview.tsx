@@ -6,12 +6,17 @@ import { baseUrl } from '../src/utils';
 import '@sifi/shared-ui/dist/index.css';
 import '../src/index.css';
 import { initialize, mswDecorator } from 'msw-storybook-addon';
+import { withThemeFromJSXProvider } from '@storybook/addon-styling';
+import { ThemeProvider, themes } from '@sifi/shared-ui';
 
 // https://github.com/mswjs/msw-storybook-addon#configuring-msw
 initialize();
 
 export const parameters = {
   actions: { argTypesRegex: '^on[A-Z].*' },
+  backgrounds: {
+    disable: true,
+  },
   controls: {
     matchers: {
       color: /(background|color)$/i,
@@ -39,5 +44,18 @@ export const decorators = [
       <Story />
     </AppProvider>
   ),
+  withThemeFromJSXProvider({
+    Provider: ({ children, theme }) => (
+      <ThemeProvider forcedTheme={theme}>{children}</ThemeProvider>
+    ),
+    defaultTheme: themes.DARK,
+    themes: {
+      // TypeScript thinks the types of this are wrong, but it's actually correct
+      // @ts-ignore
+      dark: themes.DARK,
+      // @ts-ignore
+      light: themes.LIGHT,
+    },
+  }),
   mswDecorator,
 ];
