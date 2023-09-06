@@ -1,6 +1,6 @@
 import { useWatch } from 'react-hook-form';
 import { useAccount, useNetwork } from 'wagmi';
-import { ethers } from 'ethers';
+import { parseUnits } from 'viem';
 import { useCullQueries } from 'src/hooks/useCullQueries';
 import { useAllowance } from 'src/hooks/useAllowance';
 import { useApprove } from 'src/hooks/useApprove';
