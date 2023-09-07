@@ -11,6 +11,7 @@ import {LibKitty} from 'contracts/libraries/LibKitty.sol';
 import {InitLibWarp} from 'contracts/init/InitLibWarp.sol';
 import {IUniswapV2Factory} from 'contracts/interfaces/external/IUniswapV2Factory.sol';
 import {FacetTest} from './helpers/FacetTest.sol';
+import {UniV3Callback} from 'contracts/facets/UniV3Callback.sol';
 import {Mainnet} from './helpers/Mainnet.sol';
 import {WarpLinkEncoder} from './helpers/WarpLinkEncoder.sol';
 
@@ -35,12 +36,16 @@ contract WarpLinkTestBase is FacetTest {
 
     super.setUp();
 
-    IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](1);
-
-    WarpLink kitty = new WarpLink();
+    IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](2);
 
     facetCuts[0] = IDiamondCut.FacetCut(
-      address(kitty),
+      address(new UniV3Callback()),
+      IDiamondCut.FacetCutAction.Add,
+      generateSelectors('UniV3Callback')
+    );
+
+    facetCuts[1] = IDiamondCut.FacetCut(
+      address(new WarpLink()),
       IDiamondCut.FacetCutAction.Add,
       generateSelectors('WarpLink')
     );
@@ -586,6 +591,87 @@ contract WarpLinkTest is WarpLinkTestBase {
         deadline: (uint48)(deadline - 2)
       })
     );
+  }
+
+  function testFork_swapSingleUniV3() public {
+    // Swap USDC to USDT on Uniswap V3
+    bytes memory commands = bytes.concat(
+      abi.encodePacked(
+        (uint8)(1) // Command count
+      ),
+      encoder.encodeWarpUniV3LikeExactInputSingle({
+        tokenOut: address(Mainnet.USDT),
+        pool: 0x7858E59e0C01EA06Df3aF3D20aC7B0003275D4Bf
+      })
+    );
+
+    uint256 amountIn = 1000 * (10 ** 6);
+    uint256 expectedSwapOut = 1000967411;
+    uint256 expectedFee = 0;
+
+    deal(address(Mainnet.USDC), USER, amountIn);
+
+    vm.prank(USER);
+    Mainnet.USDC.approve(address(diamond), amountIn);
+
+    vm.prank(USER);
+    facet.warpLinkEngage(
+      IWarpLink.Params({
+        tokenIn: address(Mainnet.USDC),
+        tokenOut: address(Mainnet.USDT),
+        commands: commands,
+        amountIn: amountIn,
+        amountOut: expectedSwapOut,
+        recipient: USER,
+        partner: address(0),
+        feeBps: 0,
+        slippageBps: 0,
+        deadline: deadline
+      })
+    );
+
+    assertEq(Mainnet.USDT.balanceOf(USER), expectedSwapOut - expectedFee, 'usdt balance after');
+  }
+
+  function testFork_univ3LikeMulti() public {
+    // Swap USDC through USDT to WETH on Uniswap V3
+    bytes memory commands = bytes.concat(
+      abi.encodePacked(
+        (uint8)(1), // Command count
+        (uint8)(facet.COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT()),
+        (uint8)(2), // Pool count
+        (address)(Mainnet.USDT), // token 0
+        (address)(Mainnet.WETH), // token 1
+        (address)(0x7858E59e0C01EA06Df3aF3D20aC7B0003275D4Bf), // pair 0
+        (address)(0x4e68Ccd3E89f51C3074ca5072bbAC773960dFa36) // pair 1
+      )
+    );
+
+    uint256 expectedSwapOut = 544005533891390927;
+    uint256 expectedFee = 0;
+
+    deal(address(Mainnet.USDC), USER, 1000 * (10 ** 6));
+
+    vm.prank(USER);
+    Mainnet.USDC.approve(address(facet), 1000 * (10 ** 6));
+
+    vm.prank(USER);
+    facet.warpLinkEngage(
+      IWarpLink.Params({
+        tokenIn: address(Mainnet.USDC),
+        tokenOut: address(Mainnet.WETH),
+        commands: commands,
+        amountIn: 1000 * (10 ** 6),
+        amountOut: expectedSwapOut,
+        recipient: USER,
+        partner: address(0),
+        feeBps: 0,
+        slippageBps: 0,
+        deadline: deadline
+      })
+    );
+
+    assertEq(Mainnet.WETH.balanceOf(USER), expectedSwapOut - expectedFee, 'weth balance after');
   }
 }
 

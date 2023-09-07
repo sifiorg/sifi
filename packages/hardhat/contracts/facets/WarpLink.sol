@@ -9,6 +9,9 @@ import {Stream} from '../libraries/Stream.sol';
 import {LibUniV2Like} from '../libraries/LibUniV2Like.sol';
 import {IUniswapV2Pair} from '../interfaces/external/IUniswapV2Pair.sol';
 import {IWarpLink} from '../interfaces/IWarpLink.sol';
+import {LibUniV3Like} from '../libraries/LibUniV3Like.sol';
+import {IUniV3Callback} from '../interfaces/IUniV3Callback.sol';
+import {IUniswapV3Pool} from '../interfaces/external/IUniswapV3Pool.sol';
 
 contract WarpLink is IWarpLink {
   using SafeERC20 for IERC20;
@@ -28,6 +31,13 @@ contract WarpLink is IWarpLink {
     uint16[] poolFeesBps;
   }
 
+  struct WarpUniV3LikeExactInputSingleParams {
+    address tokenOut;
+    address pool;
+    bool zeroForOne; // tokenIn < tokenOut
+    uint16 poolFeeBps;
+  }
+
   struct TransientState {
     uint256 amount;
     address payer;
@@ -39,6 +49,8 @@ contract WarpLink is IWarpLink {
   uint256 public constant COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE = 3;
   uint256 public constant COMMAND_TYPE_SPLIT = 4;
   uint256 public constant COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT = 5;
+  uint256 public constant COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT_SINGLE = 6;
+  uint256 public constant COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT = 7;
 
   function commandTypeWrap() external pure returns (uint256) {
     return COMMAND_TYPE_WRAP;
@@ -58,6 +70,14 @@ contract WarpLink is IWarpLink {
 
   function commandTypeWarpUniV2LikeExactInput() external pure returns (uint256) {
     return COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT;
+  }
+
+  function commandTypeWarpUniV3LikeExactInputSingle() external pure returns (uint256) {
+    return COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT_SINGLE;
+  }
+
+  function commandTypeWarpUniV3LikeExactInput() external pure returns (uint256) {
+    return COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT;
   }
 
   function processSplit(
@@ -363,6 +383,180 @@ contract WarpLink is IWarpLink {
     return t;
   }
 
+  /**
+   * Warp a single token in a Uniswap V3-like pool
+   *
+   * Since the pool is not trusted, the amount out is checked before
+   * and after the swap to ensure the correct amount was delivered.
+   *
+   * The payer can be the sender or this contract. The token must not be ETH (0).
+   *
+   * After this operation, the token will be `params.tokenOut` and the amount will
+   * be the output of the swap. The next payer will be this contract.
+   *
+   * Params are read from the stream as:
+   *  - tokenOut (address)
+   *  - pool (address)
+   */
+  function processWarpUniV3LikeExactInputSingle(
+    uint256 stream,
+    TransientState memory t
+  ) internal returns (TransientState memory) {
+    WarpUniV3LikeExactInputSingleParams memory params;
+
+    params.tokenOut = stream.readAddress();
+    params.pool = stream.readAddress();
+
+    if (t.token == address(0)) {
+      revert EthNotSupportedForWarp();
+    }
+
+    // NOTE: The pool is untrusted
+    uint256 balancePrev = IERC20(params.tokenOut).balanceOf(address(this));
+
+    bool zeroForOne = t.token < params.tokenOut;
+
+    IUniV3Callback.SwapCallbackData memory callbackData = IUniV3Callback.SwapCallbackData({
+      payer: t.payer,
+      tokenIn: t.token
+    });
+
+    t.payer = address(this);
+
+    LibUniV3Like.state().callbackPool = params.pool;
+
+    if (zeroForOne) {
+      (, int256 amountOutSigned) = IUniswapV3Pool(params.pool).swap(
+        address(this),
+        zeroForOne,
+        int256(t.amount),
+        LibUniV3Like.MIN_SQRT_RATIO,
+        abi.encode(callbackData)
+      );
+
+      t.amount = uint256(-amountOutSigned);
+    } else {
+      (int256 amountOutSigned, ) = IUniswapV3Pool(params.pool).swap(
+        address(this),
+        zeroForOne,
+        int256(t.amount),
+        LibUniV3Like.MAX_SQRT_RATIO,
+        abi.encode(callbackData)
+      );
+
+      t.amount = uint256(-amountOutSigned);
+    }
+
+    // TODO: Remove for production?
+    require(LibUniV3Like.state().callbackPool == address(0), 'CALLBACK_POOL_NOT_RESET');
+
+    uint256 balanceNext = IERC20(params.tokenOut).balanceOf(address(this));
+
+    if (balanceNext < balancePrev || balanceNext < balancePrev + t.amount) {
+      revert InsufficientTokensDelivered();
+    }
+
+    t.token = params.tokenOut;
+
+    return t;
+  }
+
+  /**
+   * Warp multiple tokens in a series of Uniswap V3-like pools
+   *
+   * Since the pools are not trusted, the balance of `params.tokenOut` is checked
+   * before the first swap and after the last swap to ensure the correct amount
+   * was delivered.
+   *
+   * The payer can be the sender or this contract. The token must not be ETH (0).
+   *
+   * After this operation, the token will be `params.tokenOut` and the amount will
+   * be the output of the last swap. The next payer will be this contract.
+   *
+   * Params are read from the stream as:
+   *  - pool length (uint8)
+   *  - tokens (address 0, address 1, address pool length - 1) excluding the first
+   *  - pools (address 0, address 1, address pool length - 1)
+   */
+  function processWarpUniV3LikeExactInput(
+    uint256 stream,
+    TransientState memory t
+  ) internal returns (TransientState memory) {
+    WarpUniV2LikeExactInputParams memory params;
+
+    uint256 poolLength = stream.readUint8();
+
+    // The first token is not included
+    params.tokens = stream.readAddresses(poolLength);
+    params.pools = stream.readAddresses(poolLength);
+
+    address lastToken = params.tokens[poolLength - 1];
+
+    uint256 tokenOutBalancePrev = IERC20(lastToken).balanceOf(address(this));
+
+    for (uint index; index < poolLength; ) {
+      address tokenIn = index == 0 ? t.token : params.tokens[index - 1]; // TOOD: unchecked
+      t.token = params.tokens[index];
+      bool zeroForOne = tokenIn < t.token;
+
+      IUniV3Callback.SwapCallbackData memory callbackData = IUniV3Callback.SwapCallbackData({
+        payer: t.payer,
+        tokenIn: tokenIn
+      });
+
+      if (index == 0) {
+        // Update the payer to this contract
+        // TODO: Compare check-and-set vs set
+        t.payer = address(this);
+      }
+
+      address pool = params.pools[index];
+
+      LibUniV3Like.state().callbackPool = pool;
+
+      if (zeroForOne) {
+        (, int256 amountOutSigned) = IUniswapV3Pool(pool).swap(
+          address(this),
+          zeroForOne,
+          int256(t.amount),
+          LibUniV3Like.MIN_SQRT_RATIO,
+          abi.encode(callbackData)
+        );
+
+        t.amount = uint256(-amountOutSigned);
+      } else {
+        (int256 amountOutSigned, ) = IUniswapV3Pool(pool).swap(
+          address(this),
+          zeroForOne,
+          int256(t.amount),
+          LibUniV3Like.MAX_SQRT_RATIO,
+          abi.encode(callbackData)
+        );
+
+        t.amount = uint256(-amountOutSigned);
+      }
+
+      // TODO: Remove for production?
+      require(LibUniV3Like.state().callbackPool == address(0), 'CALLBACK_POOL_NOT_RESET');
+
+      unchecked {
+        index++;
+      }
+    }
+
+    uint256 nextTokenOutBalance = IERC20(t.token).balanceOf(address(this));
+
+    if (
+      // TOOD: Is this overflow check necessary?
+      nextTokenOutBalance < tokenOutBalancePrev ||
+      nextTokenOutBalance < tokenOutBalancePrev + t.amount
+    ) {
+      revert InsufficientTokensDelivered();
+    }
+
+    return t;
+  }
+
   function engageInternal(
     uint256 stream,
     TransientState memory t
@@ -384,6 +578,10 @@ contract WarpLink is IWarpLink {
         t = processSplit(stream, t);
       } else if (commandType == COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT) {
         t = processWarpUniV2LikeExactInput(stream, t);
+      } else if (commandType == COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT_SINGLE) {
+        t = processWarpUniV3LikeExactInputSingle(stream, t);
+      } else if (commandType == COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT) {
+        t = processWarpUniV3LikeExactInput(stream, t);
       } else {
         revert UnhandledCommand();
       }
