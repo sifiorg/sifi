@@ -20,6 +20,9 @@ const FACET_NAMES = [
   'UniV2RouterFacet',
   'KittyFacet',
   'UniV2LikeFacet',
+  // NOTE: Used by UniV3Like and WarpLink
+  'UniV3Callback',
+  'UniV3Like',
   'WarpLink',
 ];
 
@@ -76,6 +79,8 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
   };
 
   // TODO: Make this more pretty with a declarative approach to inits
+  // TODO: Prevent duplicate inits
+  initForFacet.UniV3Like = initForFacet.UniV2LikeFacet;
   initForFacet.WarpLink = initForFacet.UniV2LikeFacet;
 
   for (const facetName of FACET_NAMES) {

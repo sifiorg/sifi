@@ -65,4 +65,15 @@ contract WarpLinkEncoder {
       result = abi.encodePacked(result, (uint16)(poolFeesBps[index]));
     }
   }
+
+  function encodeWarpUniV3LikeExactInputSingle(
+    address tokenOut,
+    address pool
+  ) public view returns (bytes memory result) {
+    result = abi.encodePacked(
+      (uint8)(warpLink.commandTypeWarpUniV3LikeExactInputSingle()),
+      (address)(tokenOut),
+      (address)(pool)
+    );
+  }
 }

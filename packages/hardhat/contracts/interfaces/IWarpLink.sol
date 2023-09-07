@@ -48,4 +48,8 @@ interface IWarpLink {
   function commandTypeSplit() external pure returns (uint256);
 
   function commandTypeWarpUniV2LikeExactInput() external pure returns (uint256);
+
+  function commandTypeWarpUniV3LikeExactInputSingle() external pure returns (uint256);
+
+  function commandTypeWarpUniV3LikeExactInput() external pure returns (uint256);
 }
