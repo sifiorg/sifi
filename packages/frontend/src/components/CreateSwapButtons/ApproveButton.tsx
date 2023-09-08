@@ -11,7 +11,8 @@ const ApproveButton = () => {
     mutateAsync: requestApproval,
     isLoading,
     isApprovalModalOpen,
-    setIsApprovalModalOpen,
+    closeModal,
+    openModal,
   } = useApprove();
   const { refetch: refetchAllowance } = useAllowance();
   const [fromTokenSymbol] = useWatch({
@@ -20,11 +21,11 @@ const ApproveButton = () => {
 
   const handleClick = async () => {
     try {
-      setIsApprovalModalOpen(true);
+      openModal();
       await requestApproval();
       await refetchAllowance();
     } catch (error) {
-      setIsApprovalModalOpen(false);
+      closeModal();
       if (error instanceof Error) {
         showToast({ type: 'error', text: error.message });
       } else {
@@ -44,7 +45,7 @@ const ApproveButton = () => {
       <ApprovalModal
         tokenName={fromTokenSymbol}
         isOpen={isApprovalModalOpen}
-        closeModal={() => setIsApprovalModalOpen(false)}
+        closeModal={closeModal}
       />
     </>
   );

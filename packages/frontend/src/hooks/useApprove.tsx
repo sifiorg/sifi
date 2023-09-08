@@ -12,6 +12,7 @@ const useApprove = () => {
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
+  const [isLoading, setIsLoading] = useState(false);
   const { quote } = useQuote();
   const { tokens } = useTokens();
   const approveAddress = quote?.approveAddress as `0x${string}`;
@@ -22,10 +23,19 @@ const useApprove = () => {
 
   const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
 
+  const closeModal = () => {
+    setIsApprovalModalOpen(false);
+    setIsLoading(false);
+  };
+
+  const openModal = () => setIsApprovalModalOpen(true);
+
   const requestApproval = async (): Promise<void> => {
     if (!approveAddress) throw new Error('Approval address is missing');
     if (!fromToken) throw new Error('From token is missing');
     if (!walletClient) throw new Error('WalletClient not initialised, is the user connected?');
+
+    setIsLoading(true);
 
     // TODO: Handle case when account already has allowance but it's not sufficient
 
@@ -44,7 +54,7 @@ const useApprove = () => {
 
   const mutation = useMutation(['requestApproval'], requestApproval, { retry: 0 });
 
-  return { ...mutation, isApprovalModalOpen, setIsApprovalModalOpen };
+  return { ...mutation, isApprovalModalOpen, closeModal, openModal, isLoading };
 };
 
 export { useApprove };
