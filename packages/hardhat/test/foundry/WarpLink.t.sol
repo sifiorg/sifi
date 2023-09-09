@@ -2,6 +2,7 @@
 pragma solidity ^0.8.21;
 
 import 'forge-std/Test.sol';
+import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
 import {IUniV2Router} from 'contracts/interfaces/IUniV2Router.sol';
@@ -791,6 +792,121 @@ contract WarpLinkBlock18069811Test is WarpLinkTestBase {
     );
 
     assertEq(Mainnet.USDC.balanceOf(USER), expectedSwapOut - expectedFee, 'usdc balance after');
+  }
+}
+
+// Solved test case:
+// Approving USDT requires a non-standard approve function
+contract WarpLinkBlock18096564Test is WarpLinkTestBase {
+  function setUp() public override {
+    setUpOnMainnetBlockNumber(18096564);
+  }
+
+  function testFork_paraswapVector_18096564() public {
+    address user = 0x0C4BEf84b07dc0D84ebC414b24cF7Acce24261BA;
+    uint256 amountIn = 11000000;
+    address tokenIn = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
+    uint256 prevBalance = IERC20(0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9).balanceOf(user);
+
+    // NOTE: Use force approve for USDT since it's non-standard
+    vm.prank(user);
+    SafeERC20.forceApprove(IERC20(tokenIn), address(facet), amountIn);
+
+    // TODO: Uncomment to use real diamond
+    // IWarpLink facet = IWarpLink(address(0x65c49E9996A877d062085B71E1460fFBe3C4c5Aa));
+
+    bytes memory commands = abi.encodePacked(
+      (uint8)(2), // Command count
+      (uint8)(3), // COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE
+      (address)(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2), // tokenOut
+      (address)(0x17C1Ae82D99379240059940093762c5e4539aba5), // pool
+      (uint8)(0), // zeroForOne
+      (uint16)(25), // poolFeeBps
+      (uint8)(6), // COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT_SINGLE
+      (address)(0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9), // tokenOut
+      (address)(0x5aB53EE1d50eeF2C1DD3d5402789cd27bB52c1bB) // pool
+    );
+
+    vm.prank(user);
+    facet.warpLinkEngage(
+      IWarpLink.Params({
+        tokenIn: tokenIn,
+        tokenOut: address(0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9),
+        commands: commands,
+        amountIn: amountIn,
+        amountOut: 193636330905686627,
+        recipient: address(0x0C4BEf84b07dc0D84ebC414b24cF7Acce24261BA),
+        partner: address(0x0000000000000000000000000000000000000000),
+        feeBps: 0,
+        slippageBps: 100,
+        deadline: 1694239307
+      })
+    );
+
+    assertEq(
+      IERC20(0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9).balanceOf(user),
+      prevBalance + 193636330905686627,
+      'balance after'
+    );
+  }
+
+  receive() external payable {}
+}
+
+// Solved test case:
+// The caller was encoding COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT_SINGLE as the wrong command type
+contract WarpLinkBlock18096673Test is WarpLinkTestBase {
+  function setUp() public override {
+    setUpOnMainnetBlockNumber(18096673);
+  }
+
+  function testFork_paraswapVector_18096673() public {
+    address user = 0x0C4BEf84b07dc0D84ebC414b24cF7Acce24261BA;
+    uint256 amountIn = 10000000;
+    address tokenIn = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+    uint256 prevBalance = IERC20(0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9).balanceOf(user);
+
+    vm.prank(user);
+    IERC20(tokenIn).approve(address(facet), amountIn);
+
+    // TODO: Uncomment to use real diamond
+    // IWarpLink facet = IWarpLink(address(0x65c49E9996A877d062085B71E1460fFBe3C4c5Aa));
+
+    bytes memory commands = abi.encodePacked(
+      (uint8)(2), // Command count
+      (uint8)(3), // COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE
+      (address)(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2), // tokenOut
+      (address)(0x2E8135bE71230c6B1B4045696d41C09Db0414226), // pool (pancake usdc/weth)
+      (uint8)(1), // zeroForOne
+      (uint16)(25), // poolFeeBps
+      (uint8)(6), // COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT_SINGLE
+      (address)(0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9), // tokenOut
+      (address)(0x5aB53EE1d50eeF2C1DD3d5402789cd27bB52c1bB) // pool (uniswap aave/weth 0.3%)
+    );
+
+    // NOTES: Pancake delivers 6102473035501250 (0.00610247303550125 WETH)
+
+    vm.prank(user);
+    facet.warpLinkEngage(
+      IWarpLink.Params({
+        tokenIn: tokenIn,
+        tokenOut: address(0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9),
+        commands: commands,
+        amountIn: amountIn,
+        amountOut: 176218179853289815,
+        recipient: address(0x0C4BEf84b07dc0D84ebC414b24cF7Acce24261BA),
+        partner: address(0x0000000000000000000000000000000000000000),
+        feeBps: 0,
+        slippageBps: 100,
+        deadline: 1694239967
+      })
+    );
+
+    assertEq(
+      IERC20(0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9).balanceOf(user),
+      prevBalance + 176218179853289815,
+      'balance after'
+    );
   }
 
   receive() external payable {}
