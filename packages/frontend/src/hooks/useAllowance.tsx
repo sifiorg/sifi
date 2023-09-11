@@ -1,5 +1,5 @@
-import { ethers } from 'ethers';
 import { erc20ABI, useAccount, useContractRead } from 'wagmi';
+import { parseUnits } from 'viem';
 import { getTokenBySymbol } from 'src/utils';
 import { SwapFormKey } from 'src/providers/SwapFormProvider';
 import { ETH_CONTRACT_ADDRESS, MIN_ALLOWANCE } from 'src/constants';
@@ -39,11 +39,11 @@ const useAllowance = () => {
 
   // TODO: Display errors in a toast
 
-  const fromAmountInWei = ethers.utils.parseUnits(fromAmount || '0', fromToken?.decimals);
-  const isAllowanceAboveFromAmount = allowance?.gt(fromAmountInWei);
-  const isAllowanceAboveMinimum = allowance?.gt(ethers.BigNumber.from(MIN_ALLOWANCE));
+  const fromAmountInWei = fromToken ? parseUnits(fromAmount || '0', fromToken.decimals) : BigInt(0);
+  const isAllowanceAboveFromAmount =
+    allowance !== undefined && allowance >= fromAmountInWei;
 
-  return { allowance, isAllowanceAboveMinimum, isAllowanceAboveFromAmount, ...rest };
+  return { allowance, isAllowanceAboveFromAmount, ...rest };
 };
 
 export { useAllowance };

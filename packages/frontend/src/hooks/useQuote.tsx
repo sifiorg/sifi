@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import type { Quote } from '@sifi/sdk';
+import { parseUnits } from 'viem';
 import { useQuery } from '@tanstack/react-query';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { ethers } from 'ethers';
 import { useSifi } from 'src/providers/SDKProvider';
 import { SwapFormKey } from 'src/providers/SwapFormProvider';
 import { formatTokenAmount, getQueryKey, getTokenBySymbol, isValidTokenAmount } from 'src/utils';
@@ -24,8 +24,7 @@ const useQuote = () => {
   const quoteRequest = {
     fromToken: fromToken?.address || ETH_CONTRACT_ADDRESS,
     toToken: toToken?.address || ETH_CONTRACT_ADDRESS,
-    fromAmount: ethers.utils
-      .parseUnits(
+    fromAmount: parseUnits(
         fromAmount?.endsWith('.') ? `${fromAmount}0` : fromAmount || '0',
         fromToken?.decimals || 0
       )

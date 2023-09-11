@@ -1,20 +1,23 @@
 import type { FC, PropsWithChildren } from 'react';
-import { WagmiConfig, createClient, configureChains } from 'wagmi';
-import { mainnet, polygon } from 'wagmi/chains';
+import { WagmiConfig, configureChains, createConfig } from 'wagmi';
+import { mainnet } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
 import { connectors } from 'src/connectors';
 
-const { provider, webSocketProvider } = configureChains([mainnet, polygon], [publicProvider()]);
+const { publicClient, webSocketPublicClient } = configureChains(
+  [mainnet],
+  [publicProvider()]
+);
 
-const client = createClient({
+const config = createConfig({
   autoConnect: true,
   connectors: Object.values(connectors),
-  provider,
-  webSocketProvider,
+  publicClient,
+  webSocketPublicClient,
 });
 
 const WagmiProvider: FC<PropsWithChildren> = ({ children }) => (
-  <WagmiConfig client={client}>{children}</WagmiConfig>
+  <WagmiConfig config={config}>{children}</WagmiConfig>
 );
 
 export { WagmiProvider };

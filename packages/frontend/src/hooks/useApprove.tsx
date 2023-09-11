@@ -1,6 +1,6 @@
+import type { Token } from '@sifi/sdk';
 import { useQuery } from '@tanstack/react-query';
-import { BigNumber, ContractTransaction } from 'ethers';
-import { erc20ABI, useSigner, useContract } from 'wagmi';
+import { erc20ABI, mainnet, usePublicClient, useWalletClient } from 'wagmi';
 import { useWatch } from 'react-hook-form';
 import { MAX_ALLOWANCE } from 'src/constants';
 import { SwapFormKey } from 'src/providers/SwapFormProvider';
@@ -9,7 +9,8 @@ import { useQuote } from './useQuote';
 import { useTokens } from './useTokens';
 
 const useApprove = () => {
-  const { data: signer } = useSigner();
+  const publicClient = usePublicClient();
+  const { data: walletClient } = useWalletClient();
   const { quote } = useQuote();
   const { tokens } = useTokens();
   const approveAddress = quote?.approveAddress as `0x${string}`;
@@ -17,25 +18,25 @@ const useApprove = () => {
   const [fromTokenSymbol] = useWatch({
     name: [SwapFormKey.FromToken],
   });
-  const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
 
-  const tokenContract = useContract({
-    address: fromToken?.address,
-    abi: erc20ABI,
-    signerOrProvider: signer,
-  });
+  const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
 
   const requestApproval = async (): Promise<void> => {
     if (!approveAddress) throw new Error('Approval address is missing');
-    if (!tokenContract) throw new Error('Token contract is missing');
+    if (!fromToken) throw new Error('From token is missing');
+    if (!walletClient) throw new Error('WalletClient not initialised, is the user connected?');
 
     // TODO: Handle case when account already has allowance but it's not sufficient
 
-    const tx = await tokenContract.functions.approve(approveAddress, BigNumber.from(MAX_ALLOWANCE));
+    const hash = await walletClient.writeContract({
+      chain: mainnet,
+      address: fromToken.address as `0x${string}`,
+      abi: erc20ABI,
+      functionName: 'approve',
+      args: [approveAddress, BigInt(MAX_ALLOWANCE)],
+    })
 
-    // Wagmi's contract expects to return [ContractTransaction],
-    // but it is actually a ContractTransaction
-    await (tx as unknown as ContractTransaction).wait();
+    await publicClient.waitForTransactionReceipt({ hash });
   };
 
   return useQuery(
