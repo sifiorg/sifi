@@ -1,6 +1,6 @@
 import { useWatch } from 'react-hook-form';
 import { useAccount, useNetwork } from 'wagmi';
-import { ethers } from 'ethers';
+import { parseUnits } from 'viem';
 import { useCullQueries } from 'src/hooks/useCullQueries';
 import { useAllowance } from 'src/hooks/useAllowance';
 import { useApprove } from 'src/hooks/useApprove';
@@ -34,18 +34,18 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
     chain?.id && fromToken?.chainId && chain.id !== fromToken.chainId
   );
   const { data: fromBalance } = useTokenBalance(fromToken);
-  const fromAmountInWei = ethers.utils.parseUnits(fromAmount || '0', fromToken?.decimals);
-  const hasSufficientBalance = quote && fromBalance?.value.gt(fromAmountInWei);
+  const fromAmountInWei =  fromToken ? parseUnits(fromAmount || '0', fromToken.decimals) : BigInt(0);
+  const hasSufficientBalance = quote && fromBalance && fromBalance.value >= fromAmountInWei;
 
   const isShiftButtonLoading = isLoading || isFetchingAllowance || isFetchingQuote;
 
   const showApproveButton =
     Boolean(
       !!quote &&
-        !!allowance &&
-        !isAllowanceAboveFromAmount &&
-        !isFromEthereum &&
-        hasSufficientBalance
+      allowance !== undefined &&
+      !isAllowanceAboveFromAmount &&
+      !isFromEthereum &&
+      hasSufficientBalance
     ) || isApproving;
 
   const isShiftButtonDisabled =

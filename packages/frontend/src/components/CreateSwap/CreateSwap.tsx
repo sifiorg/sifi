@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useWatch, useForm, useFormContext } from 'react-hook-form';
-import { useAccount, useSigner } from 'wagmi';
+import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
+import { mainnet } from 'viem/chains';
 import { showToast, ShiftInput } from '@sifi/shared-ui';
 import { useTokens } from 'src/hooks/useTokens';
 import { useTokenBalance } from 'src/hooks/useTokenBalance';
@@ -18,7 +19,8 @@ const CreateSwap = () => {
   useCullQueries('quote');
   const { address } = useAccount();
   const sifi = useSifi();
-  const { data: signer } = useSigner();
+  const publicClient = usePublicClient({ chainId: 1 });
+  const { data: walletClient } = useWalletClient();
   const { handleSubmit } = useForm();
   const { tokens } = useTokens();
   const [fromTokenSymbol, toTokenSymbol] = useWatch({
@@ -37,21 +39,22 @@ const CreateSwap = () => {
 
   const mutation = useMutation(
     async () => {
-      if (!quote) {
+    if (!quote) {
         throw new Error('Quote is missing');
       }
-      if (!signer) throw new Error('Signer is missing');
+      if (!walletClient) throw new Error('WalletClient not initialised');
       if (!address) throw new Error('fromAddress is missing');
 
       const { tx } = await sifi.getSwap({ fromAddress: address, quote });
-      const res = await signer.sendTransaction({
-        chainId: tx.chainId,
-        data: tx.data,
-        from: tx.from,
-        gasLimit: tx.gasLimit,
-        to: tx.to,
-        value: tx.value,
+      const res = await walletClient.sendTransaction({
+        chain: mainnet,
+        data: tx.data as `0x${string}`,
+        account: tx.from as `0x${string}`,
+        to: tx.to as `0x${string}`,
+        gas: BigInt(tx.gasLimit),
+        value: tx.value !== undefined ? BigInt(tx.value) : undefined,
       });
+
       return res;
     },
     {
@@ -65,16 +68,15 @@ const CreateSwap = () => {
       onSettled: () => {
         setIsLoading(false);
       },
-      onSuccess: async tx => {
-        const txHash = tx.hash;
-        const explorerLink = getEvmTxUrl('ethereum', txHash);
+      onSuccess: async hash => {
+        const explorerLink = getEvmTxUrl('ethereum', hash);
 
         showToast({
           text: 'Your swap has been confirmed. Please stand by.',
           type: 'info',
         });
 
-        await tx.wait();
+        await publicClient.waitForTransactionReceipt({ hash });
 
         showToast({
           type: 'success',
