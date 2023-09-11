@@ -12,6 +12,7 @@ import {IWarpLink} from '../interfaces/IWarpLink.sol';
 import {LibUniV3Like} from '../libraries/LibUniV3Like.sol';
 import {IUniV3Callback} from '../interfaces/IUniV3Callback.sol';
 import {IUniswapV3Pool} from '../interfaces/external/IUniswapV3Pool.sol';
+import {LibCurve} from '../libraries/LibCurve.sol';
 
 contract WarpLink is IWarpLink {
   using SafeERC20 for IERC20;
@@ -38,6 +39,15 @@ contract WarpLink is IWarpLink {
     uint16 poolFeeBps;
   }
 
+  struct WarpCurveExactInputSingleParams {
+    address tokenOut;
+    address pool;
+    uint8 tokenIndexIn;
+    uint8 tokenIndexOut;
+    uint8 kind;
+    bool underlying;
+  }
+
   struct TransientState {
     uint256 amount;
     address payer;
@@ -51,6 +61,7 @@ contract WarpLink is IWarpLink {
   uint256 public constant COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT = 5;
   uint256 public constant COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT_SINGLE = 6;
   uint256 public constant COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT = 7;
+  uint256 public constant COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE = 8;
 
   function commandTypeWrap() external pure returns (uint256) {
     return COMMAND_TYPE_WRAP;
@@ -78,6 +89,10 @@ contract WarpLink is IWarpLink {
 
   function commandTypeWarpUniV3LikeExactInput() external pure returns (uint256) {
     return COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT;
+  }
+
+  function commandTypeWarpCurveExactInputSingle() external pure returns (uint256) {
+    return COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE;
   }
 
   function processSplit(
@@ -557,6 +572,77 @@ contract WarpLink is IWarpLink {
     return t;
   }
 
+  /**
+   * Warp a single token in a Curve-like pool
+   *
+   * Since the pool is not trusted, the amount out is checked before
+   * and after the swap to ensure the correct amount was delivered.
+   *
+   * The payer can be the sender or this contract. The token may be ETH (0)
+   *
+   * After this operation, the token will be `params.tokenOut` and the amount will
+   * be the output of the swap. The next payer will be this contract.
+   *
+   * Params are read from the stream as:
+   *  - tokenOut (address)
+   *  - pool (address)
+   */
+  function processWarpCurveExactInputSingle(
+    uint256 stream,
+    TransientState memory t
+  ) internal returns (TransientState memory) {
+    WarpCurveExactInputSingleParams memory params;
+
+    params.tokenOut = stream.readAddress();
+    params.pool = stream.readAddress();
+    params.tokenIndexIn = stream.readUint8();
+    params.tokenIndexOut = stream.readUint8();
+    params.kind = stream.readUint8();
+    params.underlying = stream.readUint8() == 1;
+
+    // NOTE: The pool is untrusted
+    bool isFromEth = t.token == address(0);
+    bool isToEth = params.tokenOut == address(0);
+
+    if (t.payer != address(this)) {
+      // Transfer tokens from the sender to this contract
+      IERC20(t.token).safeTransferFrom(t.payer, address(this), t.amount);
+
+      // Update the payer to this contract
+      t.payer = address(this);
+    }
+
+    uint256 balancePrev = isToEth
+      ? address(this).balance
+      : IERC20(params.tokenOut).balanceOf(address(this));
+
+    if (!isFromEth) {
+      // TODO: Is this necessary to support USDT?
+      IERC20(t.token).forceApprove(params.pool, t.amount);
+    }
+
+    LibCurve.exchange({
+      kind: params.kind,
+      underlying: params.underlying,
+      pool: params.pool,
+      eth: isFromEth ? t.amount : 0,
+      i: params.tokenIndexIn,
+      j: params.tokenIndexOut,
+      dx: t.amount,
+      // NOTE: There is no need to set a min out since the balance will be verified
+      min_dy: 0
+    });
+
+    uint256 balanceNext = isToEth
+      ? address(this).balance
+      : IERC20(params.tokenOut).balanceOf(address(this));
+
+    t.token = params.tokenOut;
+    t.amount = balanceNext - balancePrev;
+
+    return t;
+  }
+
   function engageInternal(
     uint256 stream,
     TransientState memory t
@@ -582,6 +668,8 @@ contract WarpLink is IWarpLink {
         t = processWarpUniV3LikeExactInputSingle(stream, t);
       } else if (commandType == COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT) {
         t = processWarpUniV3LikeExactInput(stream, t);
+      } else if (commandType == COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE) {
+        t = processWarpCurveExactInputSingle(stream, t);
       } else {
         revert UnhandledCommand();
       }

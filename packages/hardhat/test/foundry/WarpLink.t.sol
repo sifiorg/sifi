@@ -2,6 +2,7 @@
 pragma solidity ^0.8.21;
 
 import 'forge-std/Test.sol';
+import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
 import {IUniV2Router} from 'contracts/interfaces/IUniV2Router.sol';
@@ -672,6 +673,220 @@ contract WarpLinkTest is WarpLinkTestBase {
     );
 
     assertEq(Mainnet.WETH.balanceOf(USER), expectedSwapOut - expectedFee, 'weth balance after');
+  }
+
+  function testFork_warpCurve_EthToSteth() public {
+    bytes memory commands = abi.encodePacked(
+      (uint8)(1), // Command count
+      (uint8)(facet.COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE()),
+      (address)(Mainnet.STETH), // tokenOut
+      (address)(0xDC24316b9AE028F1497c275EB9192a3Ea0f67022), // pool
+      (uint8)(0), // i (eth)
+      (uint8)(1), // j (steth)
+      (uint8)(1), // kind
+      (uint8)(0) // underlying
+    );
+
+    uint256 expectedSwapOut = 1 ether;
+    uint256 expectedFee = 0;
+
+    vm.deal(USER, 1 ether);
+
+    facet.warpLinkEngage{value: 1 ether}(
+      IWarpLink.Params({
+        tokenIn: address(0),
+        tokenOut: address(Mainnet.STETH),
+        commands: commands,
+        amountIn: 1 ether,
+        amountOut: expectedSwapOut,
+        recipient: USER,
+        partner: address(0),
+        feeBps: 0,
+        slippageBps: 0,
+        deadline: deadline
+      })
+    );
+
+    assertApproxEqRel(Mainnet.STETH.balanceOf(USER), expectedSwapOut - expectedFee, 0.001 ether);
+  }
+
+  function testFork_warpCurve_StethToEth() public {
+    bytes memory commands = abi.encodePacked(
+      (uint8)(1), // Command count
+      (uint8)(facet.COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE()),
+      (address)(0), // tokenOut
+      (address)(0xDC24316b9AE028F1497c275EB9192a3Ea0f67022), // pool
+      (uint8)(1), // i (steth)
+      (uint8)(0), // j (eth)
+      (uint8)(1), // kind
+      (uint8)(0) // underlying
+    );
+
+    uint256 expectedSwapOut = 1 ether;
+    uint256 expectedFee = 0;
+
+    // NOTE: deal doesn't work for this token, borrow some coins from a whale istead
+    vm.prank(0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0);
+    Mainnet.STETH.transfer(USER, 2 ether);
+
+    vm.prank(USER);
+    SafeERC20.forceApprove(Mainnet.STETH, address(facet), 2 ether);
+
+    console2.log('allowance %s', Mainnet.STETH.allowance(USER, address(facet)));
+
+    vm.prank(USER);
+    facet.warpLinkEngage(
+      IWarpLink.Params({
+        tokenIn: address(Mainnet.STETH),
+        tokenOut: address(0),
+        commands: commands,
+        amountIn: 1 ether,
+        amountOut: expectedSwapOut,
+        recipient: USER,
+        partner: address(0),
+        feeBps: 0,
+        slippageBps: 5,
+        deadline: deadline
+      })
+    );
+
+    assertApproxEqRel(USER.balance, expectedSwapOut - expectedFee, 0.001 ether);
+  }
+
+  function testFork_warpCurveDaiToGusd() public {
+    uint256 amountIn = 100 * (10 ** 18);
+    uint256 amountOut = 99.89 * (10 ** 2);
+    address tokenIn = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+    address tokenOut = address(0x056Fd409E1d7A124BD7017459dFEa2F387b6d5Cd);
+
+    deal(tokenIn, USER, amountIn);
+
+    bytes memory commands = abi.encodePacked(
+      (uint8)(1), // Command count
+      (uint8)(8), // COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE
+      (address)(0x056Fd409E1d7A124BD7017459dFEa2F387b6d5Cd), // tokenOut
+      (address)(0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956), // pool
+      (uint8)(1), // tokenIndexIn
+      (uint8)(0), // tokenIndexOut
+      (uint8)(1), // kind
+      (uint8)(1) // underlying
+    );
+
+    vm.prank(USER);
+    IERC20(tokenIn).approve(address(facet), amountIn);
+
+    vm.prank(USER);
+    facet.warpLinkEngage(
+      IWarpLink.Params({
+        tokenIn: tokenIn,
+        tokenOut: tokenOut,
+        commands: commands,
+        amountIn: amountIn,
+        amountOut: amountOut,
+        recipient: USER,
+        partner: address(0x0000000000000000000000000000000000000000),
+        feeBps: 0,
+        slippageBps: 100,
+        deadline: 1694336027
+      })
+    );
+
+    assertEq(IERC20(tokenOut).balanceOf(USER), amountOut, 'gusd balance');
+  }
+
+  function testFork_warpCurveV2Twice() public {
+    deal(0x6B175474E89094C44Da98b954EedeAC495271d0F, USER, 100000000000000000000);
+
+    // Log the network
+    vm.prank(USER);
+    IERC20(address(0x6B175474E89094C44Da98b954EedeAC495271d0F)).approve(
+      address(facet),
+      100000000000000000000
+    );
+
+    bytes memory commands = bytes.concat(
+      abi.encodePacked(
+        (uint8)(2), // Command count
+        (uint8)(8), // COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE
+        (address)(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48), // tokenOut
+        (address)(0x5D0F47B32fDd343BfA74cE221808e2abE4A53827), // pool
+        (uint8)(1), // tokenIndexIn
+        (uint8)(2), // tokenIndexOut
+        (uint8)(3), // kind
+        (uint8)(1) // underlying
+      ),
+      abi.encodePacked(
+        (uint8)(8), // COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE
+        (address)(0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599), // tokenOut
+        (address)(0x7F86Bf177Dd4F3494b841a37e810A34dD56c829B), // pool
+        (uint8)(0), // tokenIndexIn
+        (uint8)(1), // tokenIndexOut
+        (uint8)(3), // kind
+        (uint8)(0) // underlying
+      )
+    );
+
+    vm.prank(USER);
+    facet.warpLinkEngage(
+      IWarpLink.Params({
+        tokenIn: address(0x6B175474E89094C44Da98b954EedeAC495271d0F),
+        tokenOut: address(0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599),
+        commands: commands,
+        amountIn: 100000000000000000000,
+        amountOut: 344657,
+        recipient: USER,
+        partner: address(0x0000000000000000000000000000000000000000),
+        feeBps: 0,
+        slippageBps: 100,
+        deadline: 1694337947
+      })
+    );
+
+    assertEq(Mainnet.WBTC.balanceOf(USER), 344657, 'wbtc balance');
+  }
+
+  function testFork_warpCurveV1AndFactory() public {
+    deal(USER, 1 ether);
+
+    bytes memory commands = bytes.concat(
+      abi.encodePacked(
+        (uint8)(2), // Command count
+        (uint8)(8), // COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE
+        (address)(0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84), // tokenOut
+        (address)(0xDC24316b9AE028F1497c275EB9192a3Ea0f67022), // pool
+        (uint8)(0), // tokenIndexIn
+        (uint8)(1), // tokenIndexOut
+        (uint8)(2), // kind
+        (uint8)(0), // underlying
+        (uint8)(8), // COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE
+        (address)(Mainnet.FRXETH) // tokenOut
+      ),
+      abi.encodePacked(
+        (address)(0x4d9f9D15101EEC665F77210cB999639f760F831E), // pool
+        (uint8)(0), // tokenIndexIn
+        (uint8)(1), // tokenIndexOut
+        (uint8)(2), // kind
+        (uint8)(0) // underlying
+      )
+    );
+
+    vm.prank(USER);
+    facet.warpLinkEngage{value: 1000000000000000000}(
+      IWarpLink.Params({
+        tokenIn: address(0),
+        tokenOut: address(Mainnet.FRXETH),
+        commands: commands,
+        amountIn: 1000000000000000000,
+        amountOut: 1000867499582465464,
+        recipient: USER,
+        partner: address(0x0000000000000000000000000000000000000000),
+        feeBps: 0,
+        slippageBps: 100,
+        deadline: 1694420123
+      })
+    );
+
+    assertEq(Mainnet.FRXETH.balanceOf(USER), 1000867499582465464, 'balance');
   }
 }
 
