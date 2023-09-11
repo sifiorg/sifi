@@ -1,4 +1,5 @@
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {IPermit2} from '../../../contracts/interfaces/external/IPermit2.sol';
 
 library Mainnet {
   uint256 public constant CHAIN_ID = 1;
@@ -39,6 +40,8 @@ library Optimism {
 }
 
 library Addresses {
+  IPermit2 public constant PERMIT2 = IPermit2(0x000000000022D473030F116dDEE9F6B43aC78BA3);
+
   function weth(uint256 chainId) internal pure returns (IERC20) {
     if (chainId == Mainnet.CHAIN_ID) {
       return Mainnet.WETH;
