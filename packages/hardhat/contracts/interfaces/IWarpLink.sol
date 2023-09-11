@@ -52,4 +52,6 @@ interface IWarpLink {
   function commandTypeWarpUniV3LikeExactInputSingle() external pure returns (uint256);
 
   function commandTypeWarpUniV3LikeExactInput() external pure returns (uint256);
+
+  function commandTypeWarpCurveExactInputSingle() external pure returns (uint256);
 }
