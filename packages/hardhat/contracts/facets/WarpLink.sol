@@ -431,14 +431,9 @@ contract WarpLink is IWarpLink {
 
     bool zeroForOne = t.token < params.tokenOut;
 
-    IUniV3Callback.SwapCallbackData memory callbackData = IUniV3Callback.SwapCallbackData({
-      payer: t.payer,
-      tokenIn: t.token
-    });
-
-    t.payer = address(this);
-
-    LibUniV3Like.state().callbackPool = params.pool;
+    LibUniV3Like.beforeCallback(
+      LibUniV3Like.CallbackState({payer: t.payer, token: t.token, amount: t.amount})
+    );
 
     if (zeroForOne) {
       (, int256 amountOutSigned) = IUniswapV3Pool(params.pool).swap(
@@ -446,7 +441,7 @@ contract WarpLink is IWarpLink {
         zeroForOne,
         int256(t.amount),
         LibUniV3Like.MIN_SQRT_RATIO,
-        abi.encode(callbackData)
+        ''
       );
 
       t.amount = uint256(-amountOutSigned);
@@ -456,14 +451,13 @@ contract WarpLink is IWarpLink {
         zeroForOne,
         int256(t.amount),
         LibUniV3Like.MAX_SQRT_RATIO,
-        abi.encode(callbackData)
+        ''
       );
 
       t.amount = uint256(-amountOutSigned);
     }
 
-    // TODO: Remove for production?
-    require(LibUniV3Like.state().callbackPool == address(0), 'CALLBACK_POOL_NOT_RESET');
+    LibUniV3Like.afterCallback();
 
     uint256 balanceNext = IERC20(params.tokenOut).balanceOf(address(this));
 
@@ -472,6 +466,9 @@ contract WarpLink is IWarpLink {
     }
 
     t.token = params.tokenOut;
+
+    // TODO: Compare check-and-set vs set
+    t.payer = address(this);
 
     return t;
   }
@@ -514,10 +511,9 @@ contract WarpLink is IWarpLink {
       t.token = params.tokens[index];
       bool zeroForOne = tokenIn < t.token;
 
-      IUniV3Callback.SwapCallbackData memory callbackData = IUniV3Callback.SwapCallbackData({
-        payer: t.payer,
-        tokenIn: tokenIn
-      });
+      LibUniV3Like.beforeCallback(
+        LibUniV3Like.CallbackState({payer: t.payer, token: tokenIn, amount: t.amount})
+      );
 
       if (index == 0) {
         // Update the payer to this contract
@@ -527,15 +523,13 @@ contract WarpLink is IWarpLink {
 
       address pool = params.pools[index];
 
-      LibUniV3Like.state().callbackPool = pool;
-
       if (zeroForOne) {
         (, int256 amountOutSigned) = IUniswapV3Pool(pool).swap(
           address(this),
           zeroForOne,
           int256(t.amount),
           LibUniV3Like.MIN_SQRT_RATIO,
-          abi.encode(callbackData)
+          ''
         );
 
         t.amount = uint256(-amountOutSigned);
@@ -545,14 +539,13 @@ contract WarpLink is IWarpLink {
           zeroForOne,
           int256(t.amount),
           LibUniV3Like.MAX_SQRT_RATIO,
-          abi.encode(callbackData)
+          ''
         );
 
         t.amount = uint256(-amountOutSigned);
       }
 
-      // TODO: Remove for production?
-      require(LibUniV3Like.state().callbackPool == address(0), 'CALLBACK_POOL_NOT_RESET');
+      LibUniV3Like.afterCallback();
 
       unchecked {
         index++;
