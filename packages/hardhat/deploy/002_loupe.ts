@@ -19,7 +19,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
     autoMine: true,
   });
 
-  await verify(deployResult.address, []);
+  // await verify(deployResult.address, []);
 
   const diamondDeployment = await get('SifiDiamond');
 
