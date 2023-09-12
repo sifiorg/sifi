@@ -21,29 +21,6 @@ const ApprovalModal: FunctionComponent<ApprovalModalProps> = ({
         SideShift.fi only withdraws funds for signed open orders.
       </p>
       <div className="grid sm:grid-cols-2 gap-8 mb-12">
-        <div className="border-b dark:border-darker-gray border-smoke px-4 py-6 flex flex-col items-center">
-          <h2 className="text-center text-2xl mb-6 dark:text-flashbang-white text-new-black">
-            Max
-          </h2>
-          <div className="inline-block">
-            <div className="flex items-center mb-2">
-              <div className="bg-warning-yellow rounded-full w-5 h-5 mr-2 flex items-center justify-center text-new-black">
-                <InfoIcon />
-              </div>
-              <span className="text-sm font-light dark:text-smoke text-dark-gray">
-                Approval on Each Order
-              </span>
-            </div>
-            <div className="flex items-center">
-              <div className="bg-warning-yellow rounded-full w-5 h-5 mr-2 flex items-center justify-center text-new-black">
-                <InfoIcon />
-              </div>
-              <span className="text-sm font-light dark:text-smoke text-dark-gray">
-                Pay gas on every trade
-              </span>
-            </div>
-          </div>
-        </div>
         <div className="dark:bg-code-blue bg-light-smoke px-4 py-6 flex items-center flex-col">
           <h2 className="text-center text-2xl mb-6 dark:text-flashbang-white text-new-black">
             Use Default
@@ -63,6 +40,29 @@ const ApprovalModal: FunctionComponent<ApprovalModalProps> = ({
               </div>
               <span className="text-sm font-light text-new-black dark:text-flashbang-white">
                 Save on future gas fees
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="border-b dark:border-darker-gray border-smoke px-4 py-6 flex flex-col items-center">
+          <h2 className="text-center text-2xl mb-6 dark:text-flashbang-white text-new-black">
+            Max
+          </h2>
+          <div className="inline-block">
+            <div className="flex items-center mb-2">
+              <div className="bg-warning-yellow rounded-full w-5 h-5 mr-2 flex items-center justify-center text-new-black">
+                <InfoIcon />
+              </div>
+              <span className="text-sm font-light dark:text-smoke text-dark-gray">
+                Approval on Each Order
+              </span>
+            </div>
+            <div className="flex items-center">
+              <div className="bg-warning-yellow rounded-full w-5 h-5 mr-2 flex items-center justify-center text-new-black">
+                <InfoIcon />
+              </div>
+              <span className="text-sm font-light dark:text-smoke text-dark-gray">
+                Pay gas on every trade
               </span>
             </div>
           </div>
