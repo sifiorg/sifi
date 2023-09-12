@@ -8,8 +8,14 @@ import './tasks/keypair';
 
 dotenv.config({ path: '../../.env' });
 
-const { MAINNET_RPC_URL, ETHERSCAN_API_KEY, EVM_MNEMONIC, DEV_MNEMONIC, POLYGON_SCAN_API_KEY } =
-  process.env;
+const {
+  MAINNET_RPC_URL,
+  ETHERSCAN_API_KEY,
+  EVM_MNEMONIC,
+  DEV_MNEMONIC,
+  POLYGON_SCAN_API_KEY,
+  ARBITRUM_SCAN_API_KEY,
+} = process.env;
 
 function getNetworkUrl(name: string): string {
   if (name === 'mainnet') {
@@ -48,6 +54,10 @@ const config = {
       url: getNetworkUrl('polygon'),
       accounts: { mnemonic: '' },
     },
+    arbitrum: {
+      url: getNetworkUrl('arbitrum'),
+      accounts: { mnemonic: '' },
+    },
     hardhat: {},
     sepolia: {
       url: getNetworkUrl('sepolia'),
@@ -78,6 +88,7 @@ if (ETHERSCAN_API_KEY) {
       mainnet: ETHERSCAN_API_KEY,
       sepolia: ETHERSCAN_API_KEY,
       polygon: POLYGON_SCAN_API_KEY,
+      arbitrumOne: ARBITRUM_SCAN_API_KEY,
     },
   };
 }
@@ -96,6 +107,8 @@ if (EVM_MNEMONIC) {
   config.networks.mainnet = { ...config.networks.mainnet, accounts: { mnemonic: EVM_MNEMONIC } };
 
   config.networks.polygon = { ...config.networks.polygon, accounts: { mnemonic: EVM_MNEMONIC } };
+
+  config.networks.arbitrum = { ...config.networks.arbitrum, accounts: { mnemonic: EVM_MNEMONIC } };
 }
 
 if (DEV_MNEMONIC) {
