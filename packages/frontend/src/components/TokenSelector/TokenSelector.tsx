@@ -42,7 +42,7 @@ const TokenSelector: FunctionComponent<{
           networkLogoURI: null,
           balance,
         }}),
-    [tokens, walletBalanceData, address]
+    [tokens, balanceMap, address]
   );
 
   if (!formattedTokens) return null;
