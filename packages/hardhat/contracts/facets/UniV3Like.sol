@@ -54,14 +54,15 @@ contract UniV3Like is IUniV3Like {
 
     uint256 tokenOutBalancePrev = IERC20(params.tokenOut).balanceOf(address(this));
 
-    LibUniV3Like.state().callbackPool = params.pool;
-
     bool zeroForOne = params.tokenIn < params.tokenOut;
 
-    IUniV3Callback.SwapCallbackData memory callbackData = IUniV3Callback.SwapCallbackData({
-      payer: isFromEth ? address(this) : msg.sender,
-      tokenIn: params.tokenIn
-    });
+    LibUniV3Like.beforeCallback(
+      LibUniV3Like.CallbackState({
+        payer: isFromEth ? address(this) : msg.sender,
+        token: params.tokenIn,
+        amount: params.amountIn
+      })
+    );
 
     if (zeroForOne) {
       (, int256 amountOutSigned) = IUniswapV3Pool(params.pool).swap(
@@ -69,7 +70,7 @@ contract UniV3Like is IUniV3Like {
         zeroForOne,
         int256(params.amountIn),
         LibUniV3Like.MIN_SQRT_RATIO,
-        abi.encode(callbackData)
+        ''
       );
 
       amountOut = uint256(-amountOutSigned);
@@ -79,14 +80,13 @@ contract UniV3Like is IUniV3Like {
         zeroForOne,
         int256(params.amountIn),
         LibUniV3Like.MAX_SQRT_RATIO,
-        abi.encode(callbackData)
+        ''
       );
 
       amountOut = uint256(-amountOutSigned);
     }
 
-    // TODO: Remove for production?
-    require(LibUniV3Like.state().callbackPool == address(0), 'CALLBACK_POOL_NOT_RESET');
+    LibUniV3Like.afterCallback();
 
     // Enforce minimum amount/max slippage
     if (amountOut < LibWarp.applySlippage(params.amountOut, params.slippageBps)) {
@@ -157,8 +157,6 @@ contract UniV3Like is IUniV3Like {
 
     uint256 tokenOutBalancePrev = IERC20(params.tokens[poolLength]).balanceOf(address(this));
 
-    IUniV3Callback.SwapCallbackData memory callbackData;
-
     amountOut = params.amountIn;
 
     for (uint index; index < poolLength; ) {
@@ -170,10 +168,9 @@ contract UniV3Like is IUniV3Like {
 
       bool zeroForOne = params.tokens[index] < params.tokens[indexPlusOne];
 
-      LibUniV3Like.state().callbackPool = params.pools[index];
-
-      callbackData.payer = payer;
-      callbackData.tokenIn = params.tokens[index];
+      LibUniV3Like.beforeCallback(
+        LibUniV3Like.CallbackState({payer: payer, token: params.tokens[index], amount: amountOut})
+      );
 
       if (zeroForOne) {
         (, int256 amountOutSigned) = IUniswapV3Pool(params.pools[index]).swap(
@@ -181,7 +178,7 @@ contract UniV3Like is IUniV3Like {
           zeroForOne,
           int256(amountOut),
           LibUniV3Like.MIN_SQRT_RATIO,
-          abi.encode(callbackData)
+          ''
         );
 
         amountOut = uint256(-amountOutSigned);
@@ -191,14 +188,13 @@ contract UniV3Like is IUniV3Like {
           zeroForOne,
           int256(amountOut),
           LibUniV3Like.MAX_SQRT_RATIO,
-          abi.encode(callbackData)
+          ''
         );
 
         amountOut = uint256(-amountOutSigned);
       }
 
-      // TODO: Remove for production?
-      require(LibUniV3Like.state().callbackPool == address(0), 'CALLBACK_POOL_NOT_RESET');
+      LibUniV3Like.afterCallback();
 
       // TODO: Compare check-and-set with set
       payer = address(this);
