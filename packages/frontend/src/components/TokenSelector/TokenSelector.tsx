@@ -6,6 +6,8 @@ import { SwapFormKeyHelper, SwapFormType } from 'src/providers/SwapFormProvider'
 import { useTokens } from 'src/hooks/useTokens';
 import { formatTokenAmount, getTokenBySymbol } from 'src/utils';
 import { useWalletBalance } from 'src/hooks/useWalletBalance';
+import { useMultiCallTokenBalance } from 'src/hooks/useMulticallTokenBalance';
+import type { MulticallToken } from 'src/types';
 
 const TokenSelector: FunctionComponent<{
   close: () => void;
@@ -18,6 +20,7 @@ const TokenSelector: FunctionComponent<{
   const { setValue, watch } = useFormContext();
   const selectedToken = getTokenBySymbol(watch(selectId), tokens);
   const { data: walletBalanceData } = useWalletBalance();
+  const balanceMap = useMultiCallTokenBalance(tokens as MulticallToken[]);
 
   const handleSelectToken = (newTokenAddress: `0x${string}`) => {
     const newToken = tokens?.find(token => token.address === newTokenAddress);
@@ -29,21 +32,16 @@ const TokenSelector: FunctionComponent<{
   const formattedTokens = useMemo(
     () =>
       tokens?.map(token => {
-        const walletToken = walletBalanceData?.find(
-          walletToken => walletToken.tokenAddress.toLowerCase() === token.address.toLowerCase()
-        );
-
+        const balance = balanceMap?.get(token.address.toLowerCase() as `0x${string}`)?.toString() || undefined;
         return {
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           id: token.address as `0x${string}`,
           logoURI: token.logoURI,
           name: token.name,
           networkDisplayName: null,
           symbol: token.symbol,
           networkLogoURI: null,
-          balance: Boolean(address) ? formatTokenAmount(walletToken?.balance ?? '0') : undefined,
-        };
-      }),
+          balance,
+        }}),
     [tokens, walletBalanceData, address]
   );
 
