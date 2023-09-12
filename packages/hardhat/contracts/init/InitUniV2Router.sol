@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.19;
+
 import {IWETH} from '@uniswap/v2-periphery/contracts/interfaces/IWETH.sol';
 import {IUniswapV2Router02} from '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol';
 import {LibDiamond} from '../libraries/LibDiamond.sol';

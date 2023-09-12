@@ -13,7 +13,7 @@ const { MAINNET_RPC_URL, ETHERSCAN_API_KEY, EVM_MNEMONIC, SEPOLIA_RPC_URL, DEV_M
 
 const config = {
   solidity: {
-    version: '0.8.21',
+    version: '0.8.19',
     settings: {
       optimizer: {
         enabled: true,
