@@ -14,6 +14,7 @@ import {IUniswapV2Factory} from 'contracts/interfaces/external/IUniswapV2Factory
 import {FacetTest} from './helpers/FacetTest.sol';
 import {UniV3Callback} from 'contracts/facets/UniV3Callback.sol';
 import {Mainnet} from './helpers/Mainnet.sol';
+import {Polygon} from './helpers/Polygon.sol';
 import {WarpLinkEncoder} from './helpers/WarpLinkEncoder.sol';
 
 contract WarpLinkTestBase is FacetTest {
@@ -29,8 +30,8 @@ contract WarpLinkTestBase is FacetTest {
   uint48 internal deadline;
   WarpLinkEncoder internal encoder;
 
-  function setUpOnMainnetBlockNumber(uint256 blockNumber) public {
-    vm.createSelectFork(StdChains.getChain(1).rpcUrl, blockNumber);
+  function setUpOnBlockNumber(uint256 chainId, uint256 blockNumber) public {
+    vm.createSelectFork(StdChains.getChain(chainId).rpcUrl, blockNumber);
 
     encoder = new WarpLinkEncoder();
     deadline = (uint48)(block.timestamp + 1);
@@ -51,12 +52,22 @@ contract WarpLinkTestBase is FacetTest {
       generateSelectors('WarpLink')
     );
 
+    address weth;
+
+    if (chainId == 1) {
+      weth = address(Mainnet.WETH);
+    } else if (chainId == 137) {
+      weth = address(Polygon.WMATIC);
+    } else {
+      revert('Unsupported chain');
+    }
+
     InitLibWarp initLibWarp = new InitLibWarp();
 
     IDiamondCut(address(diamond)).diamondCut(
       facetCuts,
       address(initLibWarp),
-      abi.encodeWithSelector(initLibWarp.init.selector, Mainnet.WETH)
+      abi.encodeWithSelector(initLibWarp.init.selector, weth)
     );
 
     facet = WarpLink(address(diamond));
@@ -77,7 +88,7 @@ contract WarpLinkTestBase is FacetTest {
 
 contract WarpLinkTest is WarpLinkTestBase {
   function setUp() public override {
-    setUpOnMainnetBlockNumber(17853419);
+    setUpOnBlockNumber(1, 17853419);
   }
 
   function testFork_Wrap() public {
@@ -892,7 +903,7 @@ contract WarpLinkTest is WarpLinkTestBase {
 
 contract WarpLinkBlock18069811Test is WarpLinkTestBase {
   function setUp() public override {
-    setUpOnMainnetBlockNumber(18069811);
+    setUpOnBlockNumber(1, 18069811);
   }
 
   function testFork_paraswapVector() public {
@@ -1009,4 +1020,72 @@ contract WarpLinkBlock18069811Test is WarpLinkTestBase {
   }
 
   receive() external payable {}
+}
+
+contract WarpLinkPolygonTest is WarpLinkTestBase {
+  function setUp() public override {
+    setUpOnBlockNumber(137, 47436715);
+  }
+
+  function testFork_Wrap() public {
+    bytes memory commands = abi.encodePacked(
+      (uint8)(1), // Command count
+      (uint8)(facet.COMMAND_TYPE_WRAP())
+    );
+
+    vm.deal(USER, 1 ether);
+
+    vm.prank(USER);
+    facet.warpLinkEngage{value: 1 ether}(
+      IWarpLink.Params({
+        tokenIn: address(0),
+        tokenOut: address(Polygon.WMATIC),
+        commands: commands,
+        amountIn: 1 ether,
+        amountOut: 1 ether,
+        recipient: USER,
+        partner: address(0),
+        feeBps: 0,
+        slippageBps: 0,
+        deadline: deadline
+      })
+    );
+  }
+
+  function testFork_swapSingleUniV3() public {
+    uint256 amountIn = 1 ether;
+    uint256 expectedSwapOut = 506478;
+    uint256 expectedFee = 0;
+
+    vm.deal(USER, amountIn);
+
+    bytes memory commands = bytes.concat(
+      abi.encodePacked(
+        (uint8)(2), // Command count
+        (uint8)(facet.COMMAND_TYPE_WRAP())
+      ),
+      encoder.encodeWarpUniV3LikeExactInputSingle({
+        tokenOut: address(Polygon.USDC),
+        pool: 0xA374094527e1673A86dE625aa59517c5dE346d32 // MATIC/USDC 0.05%
+      })
+    );
+
+    vm.prank(USER);
+    facet.warpLinkEngage{value: amountIn}(
+      IWarpLink.Params({
+        tokenIn: address(0),
+        tokenOut: address(Polygon.USDC),
+        commands: commands,
+        amountIn: amountIn,
+        amountOut: expectedSwapOut,
+        recipient: USER,
+        partner: address(0),
+        feeBps: 0,
+        slippageBps: 0,
+        deadline: deadline
+      })
+    );
+
+    assertEq(Polygon.USDC.balanceOf(USER), expectedSwapOut - expectedFee, 'after');
+  }
 }
