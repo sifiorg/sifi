@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
+pragma solidity 0.8.19;
+
 // From https://github.com/mudgen/diamond-1-hardhat/blob/main/contracts/upgradeInitializers/DiamondMultiInit.sol
-pragma solidity ^0.8.0;
 
 /******************************************************************************\
 * Author: Nick Mudge <nick@perfectabstractions.com> (https://twitter.com/mudgen)
