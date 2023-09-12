@@ -8,8 +8,25 @@ import './tasks/keypair';
 
 dotenv.config({ path: '../../.env' });
 
-const { MAINNET_RPC_URL, ETHERSCAN_API_KEY, EVM_MNEMONIC, SEPOLIA_RPC_URL, DEV_MNEMONIC } =
+const { MAINNET_RPC_URL, ETHERSCAN_API_KEY, EVM_MNEMONIC, DEV_MNEMONIC, POLYGON_SCAN_API_KEY } =
   process.env;
+
+function getNetworkUrl(name: string): string {
+  if (name === 'mainnet') {
+    return MAINNET_RPC_URL ?? 'https://mainnet.infura.io/v3/';
+  }
+
+  const envKey = `${name.toUpperCase()}_RPC_URL`;
+
+  if (process.env[envKey]) {
+    return process.env[envKey]!;
+  }
+
+  // Testnet sepolia is named sepolia. EVM forks are named fork-mainnet
+  const infuraNetworkName = name === 'sepolia' ? name : `${name}-mainnet`;
+
+  return getNetworkUrl('mainnet').replace('mainnet', infuraNetworkName);
+}
 
 const config = {
   solidity: {
@@ -24,12 +41,16 @@ const config = {
   },
   networks: {
     mainnet: {
-      url: MAINNET_RPC_URL ?? 'https://mainnet.infura.io/v3/',
+      url: getNetworkUrl('mainnet'),
+      accounts: { mnemonic: '' },
+    },
+    polygon: {
+      url: getNetworkUrl('polygon'),
       accounts: { mnemonic: '' },
     },
     hardhat: {},
     sepolia: {
-      url: SEPOLIA_RPC_URL || '',
+      url: getNetworkUrl('sepolia'),
       accounts: { mnemonic: '' },
       chainId: 11155111,
       gasMultiplier: 2,
@@ -56,6 +77,7 @@ if (ETHERSCAN_API_KEY) {
     apiKey: {
       mainnet: ETHERSCAN_API_KEY,
       sepolia: ETHERSCAN_API_KEY,
+      polygon: POLYGON_SCAN_API_KEY,
     },
   };
 }
@@ -72,6 +94,8 @@ if (MAINNET_RPC_URL) {
 
 if (EVM_MNEMONIC) {
   config.networks.mainnet = { ...config.networks.mainnet, accounts: { mnemonic: EVM_MNEMONIC } };
+
+  config.networks.polygon = { ...config.networks.polygon, accounts: { mnemonic: EVM_MNEMONIC } };
 }
 
 if (DEV_MNEMONIC) {

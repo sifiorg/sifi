@@ -13,11 +13,10 @@ type Init = {
   calldata: string;
 };
 
-const FACET_NAMES = [
+let FACET_NAMES = [
   'DiamondCutFacet',
   'DiamondLoupeFacet',
   'OwnershipFacet',
-  'UniV2RouterFacet',
   'KittyFacet',
   'UniV2LikeFacet',
   // NOTE: Used by UniV3Like and WarpLink
@@ -26,6 +25,11 @@ const FACET_NAMES = [
   'WarpLink',
   'Curve',
 ];
+
+if (addresses?.uniswapV2Router02 && addresses?.uniswapV2Factory) {
+  // Uniswap V2 only has an official router on Ethereum
+  FACET_NAMES = [...FACET_NAMES, 'UniV2RouterFacet'];
+}
 
 /**
  * Add, replace, or remove facets in the diamond
