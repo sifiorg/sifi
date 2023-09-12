@@ -15,6 +15,7 @@ import {FacetTest} from './helpers/FacetTest.sol';
 import {UniV3Callback} from 'contracts/facets/UniV3Callback.sol';
 import {Mainnet} from './helpers/Mainnet.sol';
 import {Polygon} from './helpers/Polygon.sol';
+import {Arbitrum} from './helpers/Arbitrum.sol';
 import {WarpLinkEncoder} from './helpers/WarpLinkEncoder.sol';
 
 contract WarpLinkTestBase is FacetTest {
@@ -58,6 +59,8 @@ contract WarpLinkTestBase is FacetTest {
       weth = address(Mainnet.WETH);
     } else if (chainId == 137) {
       weth = address(Polygon.WMATIC);
+    } else if (chainId == 42161) {
+      weth = address(Arbitrum.WETH);
     } else {
       revert('Unsupported chain');
     }
@@ -1087,5 +1090,73 @@ contract WarpLinkPolygonTest is WarpLinkTestBase {
     );
 
     assertEq(Polygon.USDC.balanceOf(USER), expectedSwapOut - expectedFee, 'after');
+  }
+}
+
+contract WarpLinkArbitrumTest is WarpLinkTestBase {
+  function setUp() public override {
+    setUpOnBlockNumber(42161, 130346515);
+  }
+
+  function testFork_Wrap() public {
+    bytes memory commands = abi.encodePacked(
+      (uint8)(1), // Command count
+      (uint8)(facet.COMMAND_TYPE_WRAP())
+    );
+
+    vm.deal(USER, 1 ether);
+
+    vm.prank(USER);
+    facet.warpLinkEngage{value: 1 ether}(
+      IWarpLink.Params({
+        tokenIn: address(0),
+        tokenOut: address(Arbitrum.WETH),
+        commands: commands,
+        amountIn: 1 ether,
+        amountOut: 1 ether,
+        recipient: USER,
+        partner: address(0),
+        feeBps: 0,
+        slippageBps: 0,
+        deadline: deadline
+      })
+    );
+  }
+
+  function testFork_swapSingleUniV3() public {
+    uint256 amountIn = 1 ether;
+    uint256 expectedSwapOut = 1578436830;
+    uint256 expectedFee = 0;
+
+    vm.deal(USER, amountIn);
+
+    bytes memory commands = bytes.concat(
+      abi.encodePacked(
+        (uint8)(2), // Command count
+        (uint8)(facet.COMMAND_TYPE_WRAP())
+      ),
+      encoder.encodeWarpUniV3LikeExactInputSingle({
+        tokenOut: address(Arbitrum.USDC),
+        pool: 0xC6962004f452bE9203591991D15f6b388e09E8D0 // WETH/USDC 0.05%
+      })
+    );
+
+    vm.prank(USER);
+    facet.warpLinkEngage{value: amountIn}(
+      IWarpLink.Params({
+        tokenIn: address(0),
+        tokenOut: address(Arbitrum.USDC),
+        commands: commands,
+        amountIn: amountIn,
+        amountOut: expectedSwapOut,
+        recipient: USER,
+        partner: address(0),
+        feeBps: 0,
+        slippageBps: 0,
+        deadline: deadline
+      })
+    );
+
+    assertEq(Arbitrum.USDC.balanceOf(USER), expectedSwapOut - expectedFee, 'after');
   }
 }
