@@ -2,8 +2,10 @@ import { configureChains } from 'wagmi';
 import { mainnet, polygon } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
 import { InjectedConnector } from 'wagmi/connectors/injected';
-import { WalletConnectLegacyConnector } from 'wagmi/connectors/walletConnectLegacy';
+import { WalletConnectConnector } from 'wagmi/connectors/walletConnect';
 import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet';
+import { walletConnectProjectId } from './config';
+
 
 type SupportedWallet = 'injected' | 'coinbase' | 'walletconnect';
 
@@ -19,10 +21,11 @@ const coinbaseWalletConnector = new CoinbaseWalletConnector({
   },
 });
 
-const walletConnectConnector = new WalletConnectLegacyConnector({
+const walletConnectConnector = new WalletConnectConnector({
   chains,
   options: {
-    qrcode: true,
+    showQrModal: true,
+    projectId: walletConnectProjectId,
   },
 });
 
