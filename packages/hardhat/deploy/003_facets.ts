@@ -24,6 +24,7 @@ const FACET_NAMES = [
   'UniV3Callback',
   'UniV3Like',
   'WarpLink',
+  'Curve',
 ];
 
 /**
@@ -82,6 +83,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
   // TODO: Prevent duplicate inits
   initForFacet.UniV3Like = initForFacet.UniV2LikeFacet;
   initForFacet.WarpLink = initForFacet.UniV2LikeFacet;
+  initForFacet.Curve = initForFacet.UniV2LikeFacet;
 
   for (const facetName of FACET_NAMES) {
     const args: unknown[] = [];
