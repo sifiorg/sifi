@@ -23,7 +23,8 @@
 
 @font-face {
   font-family: 'Vectrex';
-  src: local('Vectrex'), local('Vectrex'), url('./fonts/VectrexWeb-Bold.woff2') format('woff2'),
+  src:
+    url('./fonts/VectrexWeb-Bold.woff2') format('woff2'),
     url('./fonts/VectrexWeb-Bold.woff') format('woff');
   font-weight: 700;
   font-style: bold;
@@ -31,7 +32,8 @@
 
 @font-face {
   font-family: 'GT Pressura Mono';
-  src: local('GT Pressura Mono'), url('./fonts/GT-Pressura-Mono-Light.woff2') format('woff2'),
+  src:
+    url('./fonts/GT-Pressura-Mono-Light.woff2') format('woff2'),
     url('./fonts/GT-Pressura-Mono-Light.woff') format('woff');
   font-weight: 300;
   font-style: regular;
@@ -39,7 +41,8 @@
 
 @font-face {
   font-family: 'GT Pressura Mono';
-  src: local('GT Pressura Mono'), url('./fonts/GT-Pressura-Mono-Regular.woff2') format('woff2'),
+  src:
+    url('./fonts/GT-Pressura-Mono-Regular.woff2') format('woff2'),
     url('./fonts/GT-Pressura-Mono-Regular.woff') format('woff');
   font-weight: 500;
   font-style: regular;
@@ -47,7 +50,8 @@
 
 @font-face {
   font-family: 'GT Pressura Mono';
-  src: local('GT Pressura Mono'), url('./fonts/GT-Pressura-Mono-Bold.woff2') format('woff2'),
+  src:
+    url('./fonts/GT-Pressura-Mono-Bold.woff2') format('woff2'),
     url('./fonts/GT-Pressura-Mono-Bold.woff') format('woff');
   font-weight: 700;
   font-style: bold;
