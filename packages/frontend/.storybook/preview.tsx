@@ -6,7 +6,7 @@ import { baseUrl } from '../src/utils';
 import '@sifi/shared-ui/dist/index.css';
 import '../src/index.css';
 import { initialize, mswDecorator } from 'msw-storybook-addon';
-import { withThemeFromJSXProvider } from '@storybook/addon-styling';
+import { withThemeFromJSXProvider } from '@storybook/addon-themes';
 import { ThemeProvider, themes } from '@sifi/shared-ui';
 
 // https://github.com/mswjs/msw-storybook-addon#configuring-msw
