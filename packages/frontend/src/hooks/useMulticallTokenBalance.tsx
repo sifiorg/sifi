@@ -1,8 +1,8 @@
+import { fetchBalance } from '@wagmi/core'
 import { useAccount, usePublicClient } from "wagmi"
 import { useEffect, useState } from "react";
-import { ERC20_ABI } from "src/constants";
+import { ERC20_ABI, ETH_CONTRACT_ADDRESS } from "src/constants";
 import type { BalanceMap, MulticallToken } from 'src/types';
-import { formatUnits } from "viem";
 import { formatTokenAmount } from "src/utils";
 
 const useMultiCallTokenBalance = (tokens: MulticallToken[]): BalanceMap | null => {
@@ -23,32 +23,52 @@ const useMultiCallTokenBalance = (tokens: MulticallToken[]): BalanceMap | null =
     functionName: 'decimals',
   }));
 
+  const fetchEtherBalance = async () => {
+    if (!address?.startsWith('0x')) return;
+
+    const balance = await publicClient.getBalance({ address });
+
+    return balance;
+  }
+
   const fetchBalances = async () => {
-    const balanceData = await publicClient.multicall({ contracts: balanceReadContracts });
-    const decimalData = await publicClient.multicall({ contracts: decimalReadContracts });
-
-    const balanceMap: BalanceMap = new Map();
+      const balanceData = await publicClient.multicall({ contracts: balanceReadContracts });
+      const decimalData = await publicClient.multicall({ contracts: decimalReadContracts });
+      const etherBalance = await fetchEtherBalance();
   
-    for(let i=0; i<balanceReadContracts.length; i++) {
-      const { status: balanceStatus, ...balanceArgs } = balanceData[i];
-      const { status: decimalStatus, ...decimalArgs } = decimalData[i];
-
-      const tokenAddress = balanceReadContracts[i].address.toLowerCase() as `0x${string}`;
-
-      if (balanceStatus === 'success' && decimalStatus === 'success') {
-        const { result: rawBalance } = balanceArgs as { result: bigint };
-        const { result: decimals } = decimalArgs as { result: number };
-
-        const formattedTokenBalance = formatTokenAmount(formatUnits(rawBalance, decimals));
+      const balanceMap: BalanceMap = new Map();
+    
+      for(let i=0; i<balanceReadContracts.length; i++) {
+        try {
+          const { status: balanceStatus, ...balanceArgs } = balanceData[i];
+          const { status: decimalStatus, ...decimalArgs } = decimalData[i];
   
-        balanceMap.set(tokenAddress, formattedTokenBalance);
-        continue;
+          const tokenAddress = balanceReadContracts[i].address.toLowerCase() as `0x${string}`;
+          const isNativeToken = tokenAddress === ETH_CONTRACT_ADDRESS.toLowerCase();
+
+          if (isNativeToken && etherBalance) {
+            balanceMap.set(tokenAddress, formatTokenAmount(etherBalance.toString(), 18));
+            continue;
+          }
+
+          if (balanceStatus === 'success' && decimalStatus === 'success') {
+            const { result: rawBalance } = balanceArgs as { result: bigint };
+            const { result: decimals } = decimalArgs as { result: number };
+
+            const formattedTokenBalance = formatTokenAmount(rawBalance.toString(), decimals);
+      
+            balanceMap.set(tokenAddress, formattedTokenBalance);
+            continue;
+          }
+
+          balanceMap.set(tokenAddress, '0');
+                  
+        } catch (error) {
+          console.error(error);
+        }
       }
-
-      balanceMap.set(tokenAddress, '0');
-    }
-
-    setAddressBalanceMap(balanceMap);
+  
+      setAddressBalanceMap(balanceMap);
   }
 
   useEffect(() => {
