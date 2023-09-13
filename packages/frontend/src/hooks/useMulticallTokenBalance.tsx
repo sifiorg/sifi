@@ -21,12 +21,6 @@ const useMultiCallTokenBalance = (tokens: MulticallToken[]): UseMultiCallTokenBa
     args: [address],
   })) : [];
 
-  const decimalReadContracts = tokens.map(token => ({
-    address: token.address,
-    abi: ERC20_ABI,
-    functionName: 'decimals',
-  }));
-
   const fetchEtherBalance = async () => {
     if (!address?.startsWith('0x')) return;
 
@@ -37,7 +31,6 @@ const useMultiCallTokenBalance = (tokens: MulticallToken[]): UseMultiCallTokenBa
 
   const fetchBalances = async () => {
       const balanceData = await publicClient.multicall({ contracts: balanceReadContracts });
-      const decimalData = await publicClient.multicall({ contracts: decimalReadContracts });
       const etherBalance = await fetchEtherBalance();
   
       const balanceMap: BalanceMap = new Map();
@@ -45,9 +38,9 @@ const useMultiCallTokenBalance = (tokens: MulticallToken[]): UseMultiCallTokenBa
       for(let i=0; i<balanceReadContracts.length; i++) {
         try {
           const { status: balanceStatus, ...balanceArgs } = balanceData[i];
-          const { status: decimalStatus, ...decimalArgs } = decimalData[i];
   
-          const tokenAddress = balanceReadContracts[i].address.toLowerCase() as `0x${string}`;
+          const { address, decimals } = tokens[i];
+          const tokenAddress = address.toLowerCase() as `0x${string}`;
           const isNativeToken = tokenAddress === ETH_CONTRACT_ADDRESS.toLowerCase();
 
           if (isNativeToken && etherBalance) {
@@ -55,9 +48,8 @@ const useMultiCallTokenBalance = (tokens: MulticallToken[]): UseMultiCallTokenBa
             continue;
           }
 
-          if (balanceStatus === 'success' && decimalStatus === 'success') {
+          if (balanceStatus === 'success') {
             const { result: rawBalance } = balanceArgs as { result: bigint };
-            const { result: decimals } = decimalArgs as { result: number };
 
             const formattedTokenBalance = formatTokenAmount(rawBalance.toString(), decimals);
       
