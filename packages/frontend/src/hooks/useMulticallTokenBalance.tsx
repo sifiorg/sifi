@@ -1,11 +1,15 @@
-import { fetchBalance } from '@wagmi/core'
 import { useAccount, usePublicClient } from "wagmi"
 import { useEffect, useState } from "react";
 import { ERC20_ABI, ETH_CONTRACT_ADDRESS } from "src/constants";
 import type { BalanceMap, MulticallToken } from 'src/types';
 import { formatTokenAmount } from "src/utils";
 
-const useMultiCallTokenBalance = (tokens: MulticallToken[]): BalanceMap | null => {
+type UseMultiCallTokenBalance = {
+  balanceMap: BalanceMap | null;
+  refetch: () => void;
+}
+
+const useMultiCallTokenBalance = (tokens: MulticallToken[]): UseMultiCallTokenBalance => {
   const { address } = useAccount();
   const [addressBalanceMap, setAddressBalanceMap] = useState<BalanceMap | null>(null)
   const publicClient = usePublicClient();
@@ -72,12 +76,11 @@ const useMultiCallTokenBalance = (tokens: MulticallToken[]): BalanceMap | null =
   }
 
   useEffect(() => {
-    if (!address) return;
+    if (!address || !(tokens.length > 0)) return;
     fetchBalances();
-  }, [address]);
+  }, [address, tokens]);
 
-  return addressBalanceMap;
+  return { balanceMap: addressBalanceMap, refetch: fetchBalances };
 };
 
 export { useMultiCallTokenBalance };
-export type { MulticallToken };

@@ -14,6 +14,8 @@ import { useQuote } from 'src/hooks/useQuote';
 import { CreateSwapButtons } from '../CreateSwapButtons/CreateSwapButtons';
 import { TokenSelector, useTokenSelector } from '../TokenSelector';
 import { SwapInformation } from '../SwapInformation';
+import { MulticallToken } from 'src/types';
+import { useMultiCallTokenBalance } from 'src/hooks/useMulticallTokenBalance';
 
 const CreateSwap = () => {
   useCullQueries('quote');
@@ -23,6 +25,7 @@ const CreateSwap = () => {
   const { data: walletClient } = useWalletClient();
   const { handleSubmit } = useForm();
   const { tokens } = useTokens();
+  const { balanceMap, refetch: refetchTokenBalances } = useMultiCallTokenBalance(tokens as MulticallToken[]);
   const [fromTokenSymbol, toTokenSymbol] = useWatch({
     name: [SwapFormKey.FromToken, SwapFormKey.ToToken, SwapFormKey.FromAmount],
   });
@@ -86,6 +89,7 @@ const CreateSwap = () => {
 
         refetchFromBalance();
         refetchToBalance();
+        refetchTokenBalances();
         setValue(SwapFormKey.FromAmount, '');
       },
     }
@@ -154,6 +158,7 @@ const CreateSwap = () => {
                 formMethods={methods}
               />
               <TokenSelector
+                balanceMap={balanceMap}
                 close={closeTokenSelector}
                 isOpen={isTokenSelectorOpen}
                 type={tokenSelectorType}
