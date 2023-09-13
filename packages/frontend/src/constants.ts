@@ -15,4 +15,14 @@ const ERC20_ABI = [
   },
 ] as const;
 
-export { ETH_CONTRACT_ADDRESS, MIN_ALLOWANCE, MAX_ALLOWANCE, POPULAR_TOKEN_SYMBOLS, ERC20_ABI };
+// Based on various interactions with the SideShift.fi Smart Contract
+const SWAP_MAX_GAS_UNITS = 150000;
+
+export {
+  ETH_CONTRACT_ADDRESS,
+  MIN_ALLOWANCE,
+  MAX_ALLOWANCE,
+  POPULAR_TOKEN_SYMBOLS,
+  SWAP_MAX_GAS_UNITS,
+  ERC20_ABI,
+};
