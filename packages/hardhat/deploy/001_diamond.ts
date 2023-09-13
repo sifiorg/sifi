@@ -17,7 +17,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     skipIfAlreadyDeployed: process.env.DRY_RUN === '1',
   });
 
-  // await verify(diamondCutFacet.address, []);
+  await verify(diamondCutFacet.address, []);
 
   const diamondArgs: SifiDiamondDeployArgs = [defaultDeployer, diamondCutFacet.address];
 
@@ -29,7 +29,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     skipIfAlreadyDeployed: true,
   });
 
-  // await verify(sifiDiamond.address, diamondArgs);
+  await verify(sifiDiamond.address, diamondArgs);
 };
 
 export default func;

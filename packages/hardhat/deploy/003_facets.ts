@@ -103,7 +103,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
       args: [],
     });
 
-    // await verify(facet.address, args);
+    await verify(facet.address, args);
   }
 
   const diamondCutFacet: DiamondCutFacet = await ethers.getContractAt(
