@@ -75,8 +75,16 @@ const useMultiCallTokenBalance = (tokens: MulticallToken[]): UseMultiCallTokenBa
       setAddressBalanceMap(balanceMap);
   }
 
+  const clearBalances = () => {
+    setAddressBalanceMap(null);
+  }
+
   useEffect(() => {
-    if (!address || !(tokens.length > 0)) return;
+    if (!address || !(tokens.length > 0)) {
+      clearBalances();
+      return;
+    };
+
     fetchBalances();
   }, [address, tokens]);
 
