@@ -15,6 +15,15 @@ abstract contract FacetTest is DiamondHelpers {
   SifiDiamond internal diamond;
 
   function setUp() public virtual {
+    setUpOn(1, 17853419);
+  }
+
+  function setUpOn(uint256 chainId, uint256 blockNumber) internal virtual {
+    console2.log('Setting up VM on %s (%s)', chainId, blockNumber);
+    console2.log('RPC URL: %s', StdChains.getChain(chainId).rpcUrl);
+
+    vm.createSelectFork(StdChains.getChain(chainId).rpcUrl, blockNumber);
+
     diamond = new SifiDiamond(address(this), address(new DiamondCutFacet()));
 
     IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](2);

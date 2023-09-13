@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity ^0.8.19;
 
 import 'forge-std/Test.sol';
 import {FacetTest} from './helpers/FacetTest.sol';
@@ -11,7 +11,7 @@ import {InitLibWarp} from 'contracts/init/InitLibWarp.sol';
 import {Errors} from 'contracts/libraries/Errors.sol';
 import {IUniswapV2Factory} from 'contracts/interfaces/external/IUniswapV2Factory.sol';
 
-contract UniV2LikeFacetTest is FacetTest {
+contract UniV2LikeFacetTestBase is FacetTest {
   event CollectedFee(
     address indexed partner,
     address indexed token,
@@ -20,14 +20,12 @@ contract UniV2LikeFacetTest is FacetTest {
   );
 
   IUniV2Like internal facet;
-  uint48 private deadline;
-  address USER = makeAddr('User');
-  address PARTNER = makeAddr('Partner');
+  uint48 internal deadline;
+  address internal USER = makeAddr('User');
+  address internal PARTNER = makeAddr('Partner');
 
-  function setUp() public override {
-    vm.createSelectFork(StdChains.getChain(1).rpcUrl, 17853419);
-
-    super.setUp();
+  function setUpOn(uint256 chainId, uint256 blockNumber) internal override {
+    super.setUpOn(chainId, blockNumber);
 
     IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](1);
 
@@ -50,12 +48,22 @@ contract UniV2LikeFacetTest is FacetTest {
     deadline = (uint48)(block.timestamp + 1000);
   }
 
-  function getPair(address factory, address tokenA, address tokenB) private view returns (address) {
+  function getPair(
+    address factory,
+    address tokenA,
+    address tokenB
+  ) internal view returns (address) {
     if (tokenA > tokenB) {
       (tokenA, tokenB) = (tokenB, tokenA);
     }
 
     return IUniswapV2Factory(factory).getPair(tokenA, tokenB);
+  }
+}
+
+contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
+  function setUp() public override {
+    super.setUpOn(1, 17853419);
   }
 
   function testFork_uniswapV2LikeExactInputSingle() public {
@@ -196,6 +204,37 @@ contract UniV2LikeFacetTest is FacetTest {
     );
 
     assertEq(Mainnet.WBTC.balanceOf(USER), expectedSwapOut - expectedFee);
+  }
+
+  receive() external payable {}
+}
+
+contract UniV2LikeFacetArbitrumTest is UniV2LikeFacetTestBase {
+  function setUp() public override {
+    super.setUpOn(42161, 130346515);
+  }
+
+  function testFork_uniswapV2LikeExactInputSingle() public {
+    // deal(USER, 1 ether);
+
+    address pool = 0x57b85FEf094e10b5eeCDF350Af688299E9553378;
+
+    vm.prank(0x0C4BEf84b07dc0D84ebC414b24cF7Acce24261BA);
+    facet.uniswapV2LikeExactInputSingle{value: 1 ether}(
+      IUniV2Like.ExactInputSingleParams({
+        amountIn: 1 ether,
+        amountOut: 1830 * (10 ** 6),
+        recipient: USER,
+        slippageBps: 50,
+        feeBps: 0,
+        deadline: deadline,
+        partner: address(0),
+        tokenIn: address(0),
+        tokenOut: 0xaf88d065e77c8cC2239327C5EDb3A432268e5831,
+        pool: pool,
+        poolFeeBps: 0x1e
+      })
+    );
   }
 
   receive() external payable {}
