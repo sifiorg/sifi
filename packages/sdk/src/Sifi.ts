@@ -1,5 +1,13 @@
 export type GetQuoteOptions = {
+  /**
+   * The Chain ID of the chain to swap from. Defaults to 1 (Ethereum mainnet).
+   */
+  fromChain?: number;
   fromToken: string;
+  /**
+   * The Chain ID of the chain to swap to. Defaults to `fromChain`.
+   */
+  toChain?: number;
   toToken: string;
   fromAmount: bigint | string;
 };
@@ -123,11 +131,21 @@ export class Sifi {
   constructor(private readonly baseUrl = 'https://api.sideshift.fi/v1/') {}
 
   async getQuote(options: GetQuoteOptions): Promise<Quote> {
-    const query = new URLSearchParams({
+    const params: Record<string, string> = {
       fromToken: options.fromToken,
       toToken: options.toToken,
       fromAmount: options.fromAmount.toString(),
-    }).toString();
+    };
+
+    if (options.fromChain !== undefined) {
+      params.fromChain = options.fromChain.toString();
+    }
+
+    if (options.toChain !== undefined) {
+      params.toChain = options.toChain.toString();
+    }
+
+    const query = new URLSearchParams(params).toString();
 
     const response = (await fetch(`${this.baseUrl}quote?${query}`).then(handleResponse)) as any;
 
