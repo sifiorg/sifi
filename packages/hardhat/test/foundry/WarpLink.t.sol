@@ -31,13 +31,11 @@ contract WarpLinkTestBase is FacetTest {
   uint48 internal deadline;
   WarpLinkEncoder internal encoder;
 
-  function setUpOnBlockNumber(uint256 chainId, uint256 blockNumber) public {
-    vm.createSelectFork(StdChains.getChain(chainId).rpcUrl, blockNumber);
+  function setUpOn(uint256 chainId, uint256 blockNumber) internal override {
+    super.setUpOn(chainId, blockNumber);
 
     encoder = new WarpLinkEncoder();
     deadline = (uint48)(block.timestamp + 1);
-
-    super.setUp();
 
     IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](2);
 
@@ -91,7 +89,7 @@ contract WarpLinkTestBase is FacetTest {
 
 contract WarpLinkTest is WarpLinkTestBase {
   function setUp() public override {
-    setUpOnBlockNumber(1, 17853419);
+    setUpOn(1, 17853419);
   }
 
   function testFork_Wrap() public {
@@ -809,6 +807,10 @@ contract WarpLinkTest is WarpLinkTestBase {
   }
 
   function testFork_warpCurveV2Twice() public {
+    // NOTE: This test is skipped since it's incompatible with EVM v0.8.19,
+    // likely using v0.8.21's PUSH0 opcode
+    vm.skip(true);
+
     deal(0x6B175474E89094C44Da98b954EedeAC495271d0F, USER, 100000000000000000000);
 
     // Log the network
@@ -906,7 +908,7 @@ contract WarpLinkTest is WarpLinkTestBase {
 
 contract WarpLinkBlock18069811Test is WarpLinkTestBase {
   function setUp() public override {
-    setUpOnBlockNumber(1, 18069811);
+    setUpOn(1, 18069811);
   }
 
   function testFork_paraswapVector() public {
@@ -1027,7 +1029,7 @@ contract WarpLinkBlock18069811Test is WarpLinkTestBase {
 
 contract WarpLinkPolygonTest is WarpLinkTestBase {
   function setUp() public override {
-    setUpOnBlockNumber(137, 47436715);
+    setUpOn(137, 47436715);
   }
 
   function testFork_Wrap() public {
@@ -1095,7 +1097,7 @@ contract WarpLinkPolygonTest is WarpLinkTestBase {
 
 contract WarpLinkArbitrumTest is WarpLinkTestBase {
   function setUp() public override {
-    setUpOnBlockNumber(42161, 130346515);
+    setUpOn(42161, 130346515);
   }
 
   function testFork_Wrap() public {
