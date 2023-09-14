@@ -11,6 +11,8 @@ import { SwapFormKey, SwapFormKeyHelper } from 'src/providers/SwapFormProvider';
 import { useCullQueries } from 'src/hooks/useCullQueries';
 import { useSpendableBalance } from 'src/hooks/useSpendableBalance';
 import { useQuote } from 'src/hooks/useQuote';
+import { useReferrer } from 'src/hooks/useReferrer';
+import { localStorageKeys } from 'src/utils/localStorageKeys';
 import { CreateSwapButtons } from '../CreateSwapButtons/CreateSwapButtons';
 import { TokenSelector, useTokenSelector } from '../TokenSelector';
 import { SwapInformation } from '../SwapInformation';
@@ -29,7 +31,9 @@ const CreateSwap = () => {
   const { data: walletClient } = useWalletClient();
   const { handleSubmit } = useForm();
   const { tokens } = useTokens();
-  const { balanceMap, refetch: refetchTokenBalances } = useMultiCallTokenBalance(tokens as MulticallToken[]);
+  const { balanceMap, refetch: refetchTokenBalances } = useMultiCallTokenBalance(
+    tokens as MulticallToken[]
+  );
   const [fromTokenSymbol, toTokenSymbol, fromAmount] = useWatch({
     name: [SwapFormKey.FromToken, SwapFormKey.ToToken, SwapFormKey.FromAmount],
   });
@@ -45,6 +49,8 @@ const CreateSwap = () => {
 
   const isToSwapInputLoading = isFetchingQuote;
 
+  useReferrer();
+
   const mutation = useMutation(
     async () => {
       if (!quote) {
@@ -54,15 +60,27 @@ const CreateSwap = () => {
       if (!address) throw new Error('fromAddress is missing');
       if (!fromToken) throw new Error('fromToken is missing');
 
-      const permit = (quote.approveAddress && quote.permit2Address) ? await getPermit2Params({
-        tokenAddress: fromToken.address,
-        userAddress: address,
-        spenderAddress: quote.approveAddress,
-        permit2Address: quote.permit2Address,
-        amount: parseUnits(fromAmount, fromToken.decimals),
-      }) : undefined;
+      const partnerAddress = localStorage.getItem(localStorageKeys.REFFERRER_ADDRESS);
+      const partnerFeeBps = localStorage.getItem(localStorageKeys.REFERRER_FEE_BPS);
 
-      const { tx } = await sifi.getSwap({ fromAddress: address, quote, permit });
+      const permit =
+        quote.approveAddress && quote.permit2Address
+          ? await getPermit2Params({
+              tokenAddress: fromToken.address,
+              userAddress: address,
+              spenderAddress: quote.approveAddress,
+              permit2Address: quote.permit2Address,
+              amount: parseUnits(fromAmount, fromToken.decimals),
+            })
+          : undefined;
+
+      const { tx } = await sifi.getSwap({
+        fromAddress: address,
+        quote,
+        permit,
+        partner: partnerAddress || undefined,
+        feeBps: partnerFeeBps && partnerAddress ? Number(partnerFeeBps) : undefined,
+      });
       const res = await walletClient.sendTransaction({
         chain: selectedChain,
         data: tx.data as `0x${string}`,
