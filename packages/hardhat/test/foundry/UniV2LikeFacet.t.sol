@@ -4,6 +4,8 @@ pragma solidity ^0.8.19;
 import 'forge-std/Test.sol';
 import {FacetTest} from './helpers/FacetTest.sol';
 import {Mainnet} from './helpers/Mainnet.sol';
+import {Arbitrum} from './helpers/Arbitrum.sol';
+import {Polygon} from './helpers/Polygon.sol';
 import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
 import {IUniV2Like} from 'contracts/interfaces/IUniV2Like.sol';
 import {UniV2LikeFacet} from 'contracts/facets/UniV2LikeFacet.sol';
@@ -37,10 +39,22 @@ contract UniV2LikeFacetTestBase is FacetTest {
       generateSelectors('UniV2LikeFacet')
     );
 
+    address weth;
+
+    if (chainId == 1) {
+      weth = address(Mainnet.WETH);
+    } else if (chainId == 137) {
+      weth = address(Polygon.WMATIC);
+    } else if (chainId == 42161) {
+      weth = address(Arbitrum.WETH);
+    } else {
+      revert('Unsupported chain');
+    }
+
     IDiamondCut(address(diamond)).diamondCut(
       facetCuts,
       address(new InitLibWarp()),
-      abi.encodeWithSelector(InitLibWarp.init.selector, Mainnet.WETH)
+      abi.encodeWithSelector(InitLibWarp.init.selector, weth)
     );
 
     facet = IUniV2Like(address(diamond));
@@ -219,11 +233,11 @@ contract UniV2LikeFacetArbitrumTest is UniV2LikeFacetTestBase {
 
     address pool = 0x57b85FEf094e10b5eeCDF350Af688299E9553378;
 
-    vm.prank(0x0C4BEf84b07dc0D84ebC414b24cF7Acce24261BA);
+    vm.prank(0x0938C63109801Ee4243a487aB84DFfA2Bba4589e);
     facet.uniswapV2LikeExactInputSingle{value: 1 ether}(
       IUniV2Like.ExactInputSingleParams({
         amountIn: 1 ether,
-        amountOut: 1830 * (10 ** 6),
+        amountOut: 130346515,
         recipient: USER,
         slippageBps: 50,
         feeBps: 0,
@@ -235,6 +249,8 @@ contract UniV2LikeFacetArbitrumTest is UniV2LikeFacetTestBase {
         poolFeeBps: 0x1e
       })
     );
+
+    assertApproxEqRel(Arbitrum.USDC.balanceOf(USER), 130346515, 0.05 ether);
   }
 
   receive() external payable {}
