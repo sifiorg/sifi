@@ -88,7 +88,7 @@ const NetworkSwitch: React.FC = () => {
                           </div>
                           {selected && (
                             <div>
-                              <div className="w-4 h-4 bg-emerald-green rounded-full relative drop-shadow-xs-strong" />
+                              <div className="w-3 h-3 bg-emerald-green rounded-full relative drop-shadow-xs-strong" />
                             </div>
                           )}
                         </div>
