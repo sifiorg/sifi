@@ -4,20 +4,20 @@ import { useFormContext } from 'react-hook-form';
 import { CoinSelector } from '@sifi/shared-ui';
 import { SwapFormKeyHelper, SwapFormType } from 'src/providers/SwapFormProvider';
 import { useTokens } from 'src/hooks/useTokens';
-import { formatTokenAmount, getTokenBySymbol } from 'src/utils';
-import { useWalletBalance } from 'src/hooks/useWalletBalance';
+import { getTokenBySymbol } from 'src/utils';
+import type { BalanceMap } from 'src/types';
 
 const TokenSelector: FunctionComponent<{
   close: () => void;
   isOpen: boolean;
   type: SwapFormType;
-}> = ({ isOpen, close, type }) => {
+  balanceMap: BalanceMap | null;
+}> = ({ isOpen, close, type, balanceMap }) => {
   const selectId = SwapFormKeyHelper.getTokenKey(type);
   const { address } = useAccount();
   const { tokens, fetchTokenByAddress } = useTokens();
   const { setValue, watch } = useFormContext();
   const selectedToken = getTokenBySymbol(watch(selectId), tokens);
-  const { data: walletBalanceData } = useWalletBalance();
 
   const handleSelectToken = (newTokenAddress: `0x${string}`) => {
     const newToken = tokens?.find(token => token.address === newTokenAddress);
@@ -27,24 +27,19 @@ const TokenSelector: FunctionComponent<{
   };
 
   const formattedTokens = useMemo(
-    () =>
-      tokens?.map(token => {
-        const walletToken = walletBalanceData?.find(
-          walletToken => walletToken.tokenAddress.toLowerCase() === token.address.toLowerCase()
-        );
-
+    () =>{
+      return tokens?.map(token => {
+        const balance = balanceMap?.get(token.address.toLowerCase() as `0x${string}`)?.toString() || undefined;
         return {
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           id: token.address as `0x${string}`,
           logoURI: token.logoURI,
           name: token.name,
           networkDisplayName: null,
           symbol: token.symbol,
           networkLogoURI: null,
-          balance: Boolean(address) ? formatTokenAmount(walletToken?.balance ?? '0') : undefined,
-        };
-      }),
-    [tokens, walletBalanceData, address]
+          balance,
+        }})},
+    [tokens, balanceMap, address]
   );
 
   if (!formattedTokens) return null;
