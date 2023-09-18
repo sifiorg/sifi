@@ -2,15 +2,16 @@
 pragma solidity 0.8.19;
 
 import 'forge-std/Test.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {FacetTest} from './helpers/FacetTest.sol';
-import {Mainnet} from './helpers/Networks.sol';
+import {Addresses, Mainnet, Polygon} from './helpers/Networks.sol';
 import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
 import {IUniV3Like} from 'contracts/interfaces/IUniV3Like.sol';
 import {UniV3Like} from 'contracts/facets/UniV3Like.sol';
 import {InitLibWarp} from 'contracts/init/InitLibWarp.sol';
 import {UniV3Callback} from 'contracts/facets/UniV3Callback.sol';
 
-contract UniV3LikeTest is FacetTest {
+abstract contract UniV3LikeTestBase is FacetTest {
   event CollectedFee(
     address indexed partner,
     address indexed token,
@@ -19,14 +20,12 @@ contract UniV3LikeTest is FacetTest {
   );
 
   IUniV3Like internal facet;
-  uint48 private deadline;
-  address USER = makeAddr('User');
-  address PARTNER = makeAddr('Partner');
+  uint48 internal deadline;
+  address internal USER = makeAddr('User');
+  address internal PARTNER = makeAddr('Partner');
 
-  function setUp() public override {
-    vm.createSelectFork(StdChains.getChain(1).rpcUrl, 17853419);
-
-    super.setUp();
+  function setUpOn(uint256 chainId, uint256 blockNumber) internal override {
+    super.setUpOn(chainId, blockNumber);
 
     IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](2);
 
@@ -45,12 +44,18 @@ contract UniV3LikeTest is FacetTest {
     IDiamondCut(address(diamond)).diamondCut(
       facetCuts,
       address(new InitLibWarp()),
-      abi.encodeWithSelector(InitLibWarp.init.selector, Mainnet.WETH)
+      abi.encodeWithSelector(InitLibWarp.init.selector, Addresses.weth(chainId))
     );
 
     facet = IUniV3Like(address(diamond));
 
     deadline = (uint48)(block.timestamp + 1000);
+  }
+}
+
+contract UniV3LikeMainnetTest is UniV3LikeTestBase {
+  function setUp() public override {
+    super.setUpOn(1, 17853419);
   }
 
   function testFork_uniswapV3LikeExactInputSingle_UsdcToUsdt() public {
@@ -171,4 +176,39 @@ contract UniV3LikeTest is FacetTest {
   }
 
   receive() external payable {}
+}
+
+contract UniV3LikePolygonTest is UniV3LikeTestBase {
+  function setUp() public override {
+    super.setUpOn(Polygon.CHAIN_ID, 47680788);
+  }
+
+  function testFork_uniswapV3LikeExactInputSingle_QuickswapV3UsdcToUsdt() public {
+    address pool = 0x7B925e617aefd7FB3a93Abe3a701135D7a1Ba710;
+    address tokenIn = 0xc2132D05D31c914a87C6611C10748AEb04B58e8F;
+    address tokenOut = 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174;
+
+    deal(address(tokenIn), USER, 1000 * (10 ** 6));
+
+    vm.prank(USER);
+    IERC20(tokenIn).approve(address(facet), 1000 * (10 ** 6));
+
+    vm.prank(USER);
+    facet.uniswapV3LikeExactInputSingle(
+      IUniV3Like.ExactInputSingleParams({
+        amountIn: 1000 * (10 ** 6),
+        amountOut: 999 * (10 ** 6),
+        recipient: USER,
+        slippageBps: 50,
+        feeBps: 0,
+        deadline: deadline,
+        partner: address(0),
+        tokenIn: tokenIn,
+        tokenOut: tokenOut,
+        pool: pool
+      })
+    );
+
+    assertEq(IERC20(tokenOut).balanceOf(USER), 999 * (10 ** 6));
+  }
 }
