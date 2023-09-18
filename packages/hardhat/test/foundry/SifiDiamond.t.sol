@@ -8,7 +8,6 @@ import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
 import {DiamondLoupeFacet} from 'contracts/facets/DiamondLoupeFacet.sol';
 import {OwnershipFacet} from 'contracts/facets/OwnershipFacet.sol';
 import {LibDiamond} from 'contracts/libraries/LibDiamond.sol';
-import {Mainnet} from './helpers/Mainnet.sol';
 
 contract SifiDiamondHarness is SifiDiamond {
   constructor(
