@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 import 'forge-std/Test.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {FacetTest} from './helpers/FacetTest.sol';
-import {Mainnet} from './helpers/Mainnet.sol';
+import {Mainnet} from './helpers/Networks.sol';
 import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
 import {IUniV2Router} from 'contracts/interfaces/IUniV2Router.sol';
 import {KittyFacet} from 'contracts/facets/KittyFacet.sol';

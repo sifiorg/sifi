@@ -13,9 +13,7 @@ import {InitLibWarp} from 'contracts/init/InitLibWarp.sol';
 import {IUniswapV2Factory} from 'contracts/interfaces/external/IUniswapV2Factory.sol';
 import {FacetTest} from './helpers/FacetTest.sol';
 import {UniV3Callback} from 'contracts/facets/UniV3Callback.sol';
-import {Mainnet} from './helpers/Mainnet.sol';
-import {Polygon} from './helpers/Polygon.sol';
-import {Arbitrum} from './helpers/Arbitrum.sol';
+import {Addresses, Mainnet, Polygon, Arbitrum} from './helpers/Networks.sol';
 import {WarpLinkEncoder} from './helpers/WarpLinkEncoder.sol';
 
 contract WarpLinkTestBase is FacetTest {
@@ -51,24 +49,12 @@ contract WarpLinkTestBase is FacetTest {
       generateSelectors('WarpLink')
     );
 
-    address weth;
-
-    if (chainId == 1) {
-      weth = address(Mainnet.WETH);
-    } else if (chainId == 137) {
-      weth = address(Polygon.WMATIC);
-    } else if (chainId == 42161) {
-      weth = address(Arbitrum.WETH);
-    } else {
-      revert('Unsupported chain');
-    }
-
     InitLibWarp initLibWarp = new InitLibWarp();
 
     IDiamondCut(address(diamond)).diamondCut(
       facetCuts,
       address(initLibWarp),
-      abi.encodeWithSelector(initLibWarp.init.selector, weth)
+      abi.encodeWithSelector(initLibWarp.init.selector, Addresses.weth(chainId))
     );
 
     facet = WarpLink(address(diamond));

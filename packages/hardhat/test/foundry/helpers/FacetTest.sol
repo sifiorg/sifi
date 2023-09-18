@@ -9,13 +9,13 @@ import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
 import {DiamondLoupeFacet} from 'contracts/facets/DiamondLoupeFacet.sol';
 import {OwnershipFacet} from 'contracts/facets/OwnershipFacet.sol';
 import {LibDiamond} from 'contracts/libraries/LibDiamond.sol';
-import {Mainnet} from './Mainnet.sol';
+import {Mainnet} from './Networks.sol';
 
 abstract contract FacetTest is DiamondHelpers {
   SifiDiamond internal diamond;
 
   function setUp() public virtual {
-    setUpOn(1, 17853419);
+    setUpOn(Mainnet.CHAIN_ID, 17853419);
   }
 
   function setUpOn(uint256 chainId, uint256 blockNumber) internal virtual {

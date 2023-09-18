@@ -3,7 +3,7 @@ pragma solidity 0.8.19;
 
 import 'forge-std/Test.sol';
 import {FacetTest} from './helpers/FacetTest.sol';
-import {Mainnet} from './helpers/Mainnet.sol';
+import {Mainnet} from './helpers/Networks.sol';
 import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
 import {IUniV3Like} from 'contracts/interfaces/IUniV3Like.sol';
 import {UniV3Like} from 'contracts/facets/UniV3Like.sol';
