@@ -5,6 +5,8 @@ import EthereumIcon from '../../assets/chain-icons/ethereum.svg';
 import ArbitrumIcon from '../../assets/chain-icons/arbitrum.svg';
 import PolygonIcon from '../../assets/chain-icons/polygon.svg';
 
+// Networks are temporarily hadrcoded
+
 const NETWORK_ICONS = {
   ethereum: EthereumIcon,
   arbitrum: ArbitrumIcon,
@@ -13,7 +15,6 @@ const NETWORK_ICONS = {
 
 enum SUPPORTED_NETWORKS {
   ethereum = 'ethereum',
-  // TODO: Uncomment when networks are enabled
   // polygon = 'polygon',
   // arbitrum = 'arbitrum',
 }
@@ -28,7 +29,7 @@ const getChainIcon = (network: NetworkType) => {
   return iconSrc ? <img src={iconSrc} alt={network} className="w-6" /> : null;
 };
 
-const NetworkSwitch: React.FC = () => {
+const NetworkSelector: React.FC = () => {
   const [selectedNetwork, setSelectedNetwork] = useState<NetworkType>(DEFAULT_NETWORK);
 
   return (
@@ -105,4 +106,4 @@ const NetworkSwitch: React.FC = () => {
   );
 };
 
-export { NetworkSwitch };
+export { NetworkSelector };
