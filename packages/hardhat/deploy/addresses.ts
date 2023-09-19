@@ -17,4 +17,7 @@ export const networkAddresses: Partial<Record<string, Partial<Record<AddressKey,
   arbitrum: {
     weth: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
   },
+  optimism: {
+    weth: '0x4200000000000000000000000000000000000006',
+  },
 };

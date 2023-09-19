@@ -15,6 +15,7 @@ const {
   DEV_MNEMONIC,
   POLYGON_SCAN_API_KEY,
   ARBITRUM_SCAN_API_KEY,
+  OPTIMISM_SCAN_API_KEY,
 } = process.env;
 
 function getNetworkUrl(name: string): string {
@@ -58,6 +59,10 @@ const config = {
       url: getNetworkUrl('arbitrum'),
       accounts: { mnemonic: '' },
     },
+    optimism: {
+      url: getNetworkUrl('optimism'),
+      accounts: { mnemonic: '' },
+    },
     hardhat: {},
     sepolia: {
       url: getNetworkUrl('sepolia'),
@@ -89,6 +94,7 @@ if (ETHERSCAN_API_KEY) {
       sepolia: ETHERSCAN_API_KEY,
       polygon: POLYGON_SCAN_API_KEY,
       arbitrumOne: ARBITRUM_SCAN_API_KEY,
+      optimism: OPTIMISM_SCAN_API_KEY,
     },
   };
 }
@@ -109,6 +115,8 @@ if (EVM_MNEMONIC) {
   config.networks.polygon = { ...config.networks.polygon, accounts: { mnemonic: EVM_MNEMONIC } };
 
   config.networks.arbitrum = { ...config.networks.arbitrum, accounts: { mnemonic: EVM_MNEMONIC } };
+
+  config.networks.optimism = { ...config.networks.optimism, accounts: { mnemonic: EVM_MNEMONIC } };
 }
 
 if (DEV_MNEMONIC) {
