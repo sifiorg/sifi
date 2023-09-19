@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-new-black font-text text-flashbang-white m-0 min-h-screen min-w-min;
+    @apply dark:bg-new-black bg-cyber-gray font-text text-flashbang-white m-0 min-h-screen min-w-min;
   }
 
   h1,
