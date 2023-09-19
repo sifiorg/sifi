@@ -66,7 +66,7 @@ const NetworkSelector: React.FC = () => {
               aria-busy="true"
             >
               {SUPPORTED_NETWORKS && (
-                <div className="font-display bg-flashbang-white flex flex-col gap-y-2 p-6 text-sm dark:bg-darkest-gray mr-3  rounded-xl">
+                <div className="font-display bg-flashbang-white flex flex-col gap-y-2 p-6 text-sm dark:bg-darkest-gray mr-3  rounded-sm">
                   {Object.values(SUPPORTED_NETWORKS).map(network => (
                     <Listbox.Option
                       key={network}
