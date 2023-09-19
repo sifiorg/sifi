@@ -7,7 +7,7 @@ import { useTokens } from 'src/hooks/useTokens';
 import { useTokenBalance } from 'src/hooks/useTokenBalance';
 import { useMutation } from '@tanstack/react-query';
 import { useSifi } from 'src/providers/SDKProvider';
-import { getEvmTxUrl, getTokenBySymbol, parseErrorMessage } from 'src/utils';
+import { getEvmTxUrl, getTokenBySymbol, getViemErrorMessage, parseErrorMessage } from 'src/utils';
 import { SwapFormKey, SwapFormKeyHelper } from 'src/providers/SwapFormProvider';
 import { useCullQueries } from 'src/hooks/useCullQueries';
 import { useSpendableBalance } from 'src/hooks/useSpendableBalance';
@@ -64,7 +64,7 @@ const CreateSwap = () => {
     {
       onError: error => {
         if (error instanceof Error) {
-          showToast({ text: parseErrorMessage(error.message), type: 'error' });
+          showToast({ text: getViemErrorMessage(error), type: 'error' });
         } else {
           console.error(error);
         }

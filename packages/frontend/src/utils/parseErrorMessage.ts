@@ -1,5 +1,5 @@
 const parseErrorMessage = (message: string) => {
-  if (message.includes('user rejected transaction')) {
+  if (message.toLowerCase().includes('user rejected the request')) {
     return 'You rejected the transaction';
   }
 

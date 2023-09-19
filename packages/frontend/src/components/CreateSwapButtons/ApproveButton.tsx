@@ -5,6 +5,7 @@ import { useAllowance } from 'src/hooks/useAllowance';
 import { SwapFormKey } from 'src/providers/SwapFormProvider';
 import { ApprovalModal } from 'src/modals';
 import { Button } from '../Button';
+import { getViemErrorMessage } from 'src/utils';
 
 const ApproveButton = () => {
   const {
@@ -27,7 +28,7 @@ const ApproveButton = () => {
     } catch (error) {
       closeModal();
       if (error instanceof Error) {
-        showToast({ type: 'error', text: error.message });
+        showToast({ type: 'error', text: getViemErrorMessage(error) });
       } else {
         console.error(error);
       }
