@@ -2,16 +2,10 @@ import { Fragment, useState } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import { ReactComponent as DownCaret } from 'src/assets/down-caret.svg';
 import EthereumIcon from '../../assets/chain-icons/ethereum.svg';
-import ArbitrumIcon from '../../assets/chain-icons/arbitrum.svg';
-import PolygonIcon from '../../assets/chain-icons/polygon.svg';
+// import ArbitrumIcon from '../../assets/chain-icons/arbitrum.svg';
+// import PolygonIcon from '../../assets/chain-icons/polygon.svg';
 
 // Networks are temporarily hadrcoded
-
-const NETWORK_ICONS = {
-  ethereum: EthereumIcon,
-  arbitrum: ArbitrumIcon,
-  polygon: PolygonIcon,
-};
 
 enum SUPPORTED_NETWORKS {
   ethereum = 'ethereum',
@@ -19,9 +13,15 @@ enum SUPPORTED_NETWORKS {
   // arbitrum = 'arbitrum',
 }
 
-const DEFAULT_NETWORK = SUPPORTED_NETWORKS.ethereum;
+type NetworkType = keyof typeof SUPPORTED_NETWORKS;
 
-type NetworkType = 'ethereum' | 'polygon' | 'arbitrum';
+const NETWORK_ICONS: Record<NetworkType, any> = {
+  ethereum: EthereumIcon,
+  // arbitrum: ArbitrumIcon,
+  // polygon: PolygonIcon,
+};
+
+const DEFAULT_NETWORK = SUPPORTED_NETWORKS.ethereum;
 
 const getChainIcon = (network: NetworkType) => {
   const iconSrc = NETWORK_ICONS[network];
