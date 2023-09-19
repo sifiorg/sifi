@@ -5,6 +5,7 @@ import useConnectWallet from 'src/hooks/useConnectWallet';
 import closeIcon from 'src/assets/icons/close.svg';
 import { type SupportedWallet } from 'src/connectors';
 import { Button } from '../Button';
+import { getViemErrorMessage } from 'src/utils';
 
 const supportedWallets: SupportedWallet[] = ['injected', 'coinbase', 'walletconnect'];
 
@@ -21,7 +22,7 @@ const ConnectWalletModal: FunctionComponent<ConnectWalletModalProps> = ({
 
   useEffect(() => {
     if (error) {
-      showToast({ text: error.message, type: 'error' });
+      showToast({ text: getViemErrorMessage(error), type: 'error' });
     }
   }, [error]);
 

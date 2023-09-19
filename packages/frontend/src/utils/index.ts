@@ -6,3 +6,4 @@ export * from './api';
 export * from './parseErrorMessage';
 export * from './evm';
 export * from './isValidTokenAmount';
+export * from './getViemErrorMessage';
