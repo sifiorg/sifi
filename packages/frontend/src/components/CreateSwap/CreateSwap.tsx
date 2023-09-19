@@ -10,6 +10,7 @@ import { useSifi } from 'src/providers/SDKProvider';
 import { getEvmTxUrl, getTokenBySymbol, parseErrorMessage } from 'src/utils';
 import { SwapFormKey, SwapFormKeyHelper } from 'src/providers/SwapFormProvider';
 import { useCullQueries } from 'src/hooks/useCullQueries';
+import { useSpendableBalance } from 'src/hooks/useSpendableBalance';
 import { useQuote } from 'src/hooks/useQuote';
 import { CreateSwapButtons } from '../CreateSwapButtons/CreateSwapButtons';
 import { TokenSelector, useTokenSelector } from '../TokenSelector';
@@ -19,7 +20,7 @@ import { useMultiCallTokenBalance } from 'src/hooks/useMulticallTokenBalance';
 
 const CreateSwap = () => {
   useCullQueries('quote');
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   const sifi = useSifi();
   const publicClient = usePublicClient({ chainId: 1 });
   const { data: walletClient } = useWalletClient();
@@ -42,7 +43,7 @@ const CreateSwap = () => {
 
   const mutation = useMutation(
     async () => {
-    if (!quote) {
+      if (!quote) {
         throw new Error('Quote is missing');
       }
       if (!walletClient) throw new Error('WalletClient not initialised');
@@ -115,6 +116,8 @@ const CreateSwap = () => {
   const selectedToToken = getTokenBySymbol(watch(toTokenKey), tokens) || undefined;
   const fromId = SwapFormKeyHelper.getAmountKey('from');
   const toId = SwapFormKeyHelper.getAmountKey('to');
+  const spendableBalance = useSpendableBalance({ token: fromToken });
+  const depositMax = isConnected ? spendableBalance : undefined;
 
   useEffect(() => {
     if (tokens.length > 1) {
@@ -145,6 +148,7 @@ const CreateSwap = () => {
                   openSelector={() => openTokenSelector('from')}
                   formMethods={methods}
                   disabled={Boolean(isSameTokenPair)}
+                  max={depositMax}
                 />
               </div>
               <ShiftInput
