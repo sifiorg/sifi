@@ -25,7 +25,7 @@ export type SwapFormValues = {
 export type SwapFormType = 'from' | 'to';
 
 export const formDefaultValues = {
-  [SwapFormKey.FromAmount]: '1',
+  [SwapFormKey.FromAmount]: '',
   [SwapFormKey.FromChain]: 1, // Temporarily restricted ot ETH chain
   [SwapFormKey.FromToken]: null,
   [SwapFormKey.ToAmount]: '',
