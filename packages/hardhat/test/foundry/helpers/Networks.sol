@@ -31,6 +31,13 @@ library Polygon {
   IERC20 public constant USDT = IERC20(0xc2132D05D31c914a87C6611C10748AEb04B58e8F);
 }
 
+library Optimism {
+  uint256 public constant CHAIN_ID = 10;
+  IERC20 public constant WETH = IERC20(0x4200000000000000000000000000000000000006);
+  IERC20 public constant USDC = IERC20(0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85);
+  IERC20 public constant USDT = IERC20(0x94b008aA00579c1307B0EF2c499aD98a8ce58e58);
+}
+
 library Addresses {
   function weth(uint256 chainId) internal pure returns (IERC20) {
     if (chainId == Mainnet.CHAIN_ID) {
@@ -39,6 +46,8 @@ library Addresses {
       return Arbitrum.WETH;
     } else if (chainId == Polygon.CHAIN_ID) {
       return Polygon.WMATIC;
+    } else if (chainId == Optimism.CHAIN_ID) {
+      return Optimism.WETH;
     } else {
       revert('Unsupported chain');
     }
