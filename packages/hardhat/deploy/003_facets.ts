@@ -6,6 +6,8 @@ import { FacetCutAction } from '../types/diamond.t';
 import { deploy, getFunctionSelectorsFromContract, verify } from './helpers';
 import { networkAddresses } from './addresses';
 
+const actionNames = Object.keys(FacetCutAction);
+
 const addresses = networkAddresses[network.name];
 
 type Init = {
@@ -118,6 +120,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
       const facet = await ethers.getContractAt(facetName, facetDeployment.address);
 
       return {
+        name: facetName,
         address: facetDeployment.address,
         selectors: getFunctionSelectorsFromContract(facet),
         init: await initForFacet[facetName]?.(),
@@ -248,7 +251,11 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
   console.log('Cuts:');
 
   for (const cut of cuts) {
-    console.log(`\t${cut.action} ${cut.facetAddress}`);
+    const facetName = nextFacets.find(facet => facet.address === cut.facetAddress)?.name;
+
+    console.log(
+      `\t${actionNames[cut.action]} ${cut.facetAddress}${facetName ? ` (${facetName})` : ''}`
+    );
 
     for (const selector of cut.functionSelectors) {
       console.log(`\t\t${selector}`);
