@@ -4,12 +4,15 @@ pragma solidity 0.8.19;
 import {Address} from '@openzeppelin/contracts/utils/Address.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
-import {IUniswapV2Pair} from 'contracts/interfaces/external/IUniswapV2Pair.sol';
-import {IUniV2Like} from 'contracts/interfaces/IUniV2Like.sol';
-import {LibUniV2Like} from 'contracts/libraries/LibUniV2Like.sol';
-import {LibKitty} from 'contracts/libraries/LibKitty.sol';
-import {LibWarp} from 'contracts/libraries/LibWarp.sol';
-import {IUniswapV2Pair} from 'contracts/interfaces/external/IUniswapV2Pair.sol';
+import {IUniswapV2Pair} from '../interfaces/external/IUniswapV2Pair.sol';
+import {IUniV2Like} from '../interfaces/IUniV2Like.sol';
+import {LibUniV2Like} from '../libraries/LibUniV2Like.sol';
+import {LibKitty} from '../libraries/LibKitty.sol';
+import {LibWarp} from '../libraries/LibWarp.sol';
+import {IUniswapV2Pair} from '../interfaces/external/IUniswapV2Pair.sol';
+import {IPermit2} from '../interfaces/external/IPermit2.sol';
+import {IAllowanceTransfer} from '../interfaces/external/IAllowanceTransfer.sol';
+import {PermitParams} from '../libraries/PermitParams.sol';
 
 /**
  * A router for any Uniswap V2 fork
@@ -29,7 +32,8 @@ contract UniV2LikeFacet is IUniV2Like {
   using Address for address;
 
   function uniswapV2LikeExactInputSingle(
-    ExactInputSingleParams memory params
+    ExactInputSingleParams memory params,
+    PermitParams calldata permit
   ) external payable returns (uint256 amountOut) {
     if (block.timestamp > params.deadline) {
       revert DeadlineExpired();
@@ -83,8 +87,24 @@ contract UniV2LikeFacet is IUniV2Like {
       // Transfer tokens to the pool
       IERC20(params.tokenIn).safeTransfer(params.pool, params.amountIn);
     } else {
-      // Transfer tokens from the sender to the pool
-      IERC20(params.tokenIn).safeTransferFrom(msg.sender, params.pool, params.amountIn);
+      // Permit tokens / set allowance
+      s.permit2.permit(
+        msg.sender,
+        IAllowanceTransfer.PermitSingle({
+          details: IAllowanceTransfer.PermitDetails({
+            token: params.tokenIn,
+            amount: (uint160)(params.amountIn),
+            expiration: (uint48)(params.deadline),
+            nonce: (uint48)(permit.nonce)
+          }),
+          spender: address(this),
+          sigDeadline: (uint256)(params.deadline)
+        }),
+        permit.signature
+      );
+
+      // Transfer tokens from msg.sender to the pool
+      s.permit2.transferFrom(msg.sender, params.pool, (uint160)(params.amountIn), params.tokenIn);
     }
 
     bool zeroForOne = params.tokenIn < params.tokenOut ? true : false;
@@ -131,7 +151,8 @@ contract UniV2LikeFacet is IUniV2Like {
   }
 
   function uniswapV2LikeExactInput(
-    ExactInputParams memory params
+    ExactInputParams memory params,
+    PermitParams calldata permit
   ) external payable returns (uint256 amountOut) {
     if (block.timestamp > params.deadline) {
       revert DeadlineExpired();
@@ -170,8 +191,29 @@ contract UniV2LikeFacet is IUniV2Like {
       // Transfer tokens to the first pool
       IERC20(params.tokens[0]).safeTransfer(params.pools[0], params.amountIn);
     } else {
-      // Transfer tokens from the sender to the first pool
-      IERC20(params.tokens[0]).safeTransferFrom(msg.sender, params.pools[0], params.amountIn);
+      // Permit tokens / set allowance
+      s.permit2.permit(
+        msg.sender,
+        IAllowanceTransfer.PermitSingle({
+          details: IAllowanceTransfer.PermitDetails({
+            token: params.tokens[0],
+            amount: (uint160)(params.amountIn),
+            expiration: (uint48)(params.deadline),
+            nonce: (uint48)(permit.nonce)
+          }),
+          spender: address(this),
+          sigDeadline: (uint256)(params.deadline)
+        }),
+        permit.signature
+      );
+
+      // Transfer tokens from msg.sender to the first pool
+      s.permit2.transferFrom(
+        msg.sender,
+        params.pools[0],
+        (uint160)(params.amountIn),
+        params.tokens[0]
+      );
     }
 
     // From https://github.com/Uniswap/v2-periphery/blob/master/contracts/UniswapV2Router02.sol

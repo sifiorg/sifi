@@ -19,9 +19,6 @@ abstract contract FacetTest is DiamondHelpers {
   }
 
   function setUpOn(uint256 chainId, uint256 blockNumber) internal virtual {
-    console2.log('Setting up VM on %s (%s)', chainId, blockNumber);
-    console2.log('RPC URL: %s', StdChains.getChain(chainId).rpcUrl);
-
     vm.createSelectFork(StdChains.getChain(chainId).rpcUrl, blockNumber);
 
     diamond = new SifiDiamond(address(this), address(new DiamondCutFacet()));
