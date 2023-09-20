@@ -1,40 +1,15 @@
-import { Fragment, useState } from 'react';
+import { Fragment } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import { ReactComponent as DownCaret } from 'src/assets/down-caret.svg';
-import EthereumIcon from '../../assets/chain-icons/ethereum.svg';
-// import ArbitrumIcon from '../../assets/chain-icons/arbitrum.svg';
-// import PolygonIcon from '../../assets/chain-icons/polygon.svg';
-
-// Networks are temporarily hadrcoded
-
-enum SUPPORTED_NETWORKS {
-  ethereum = 'ethereum',
-  // polygon = 'polygon',
-  // arbitrum = 'arbitrum',
-}
-
-type NetworkType = keyof typeof SUPPORTED_NETWORKS;
-
-const NETWORK_ICONS: Record<NetworkType, any> = {
-  ethereum: EthereumIcon,
-  // arbitrum: ArbitrumIcon,
-  // polygon: PolygonIcon,
-};
-
-const DEFAULT_NETWORK = SUPPORTED_NETWORKS.ethereum;
-
-const getChainIcon = (network: NetworkType) => {
-  const iconSrc = NETWORK_ICONS[network];
-
-  return iconSrc ? <img src={iconSrc} alt={network} className="w-6" /> : null;
-};
+import { useSelectedChain } from 'src/providers/SelectedChainProvider';
+import { SUPPORTED_CHAINS } from 'src/utils';
 
 const NetworkSelector: React.FC = () => {
-  const [selectedNetwork, setSelectedNetwork] = useState<NetworkType>(DEFAULT_NETWORK);
+  const { selectedChain, setSelectedChain } = useSelectedChain();
 
   return (
     <div className="font-text relative inline-block">
-      <Listbox value={selectedNetwork} onChange={setSelectedNetwork}>
+      <Listbox value={selectedChain} onChange={setSelectedChain}>
         <div className="relative pr-0 sm:pr-4">
           <Listbox.Button
             role="button"
@@ -42,8 +17,9 @@ const NetworkSelector: React.FC = () => {
             items-center gap-3 rounded-md border-0 px-4 py-2 text-sm max-[340px]:gap-3 sm:border-2 md:text-base"
             aria-busy="true"
           >
-            {selectedNetwork && getChainIcon(selectedNetwork)}
-            <span className="hidden">{selectedNetwork}</span>
+            {selectedChain && (
+              <img src={selectedChain.icon} alt={selectedChain.name} className="w-6" />
+            )}
             <DownCaret
               className={`text-new-black dark:text-flashbang-white w-4
 
@@ -65,15 +41,15 @@ const NetworkSelector: React.FC = () => {
               w-full min-w-[16rem] origin-top-right flex-col overflow-y-auto rounded-sm shadow-lg drop-shadow-xs-strong outline-none"
               aria-busy="true"
             >
-              {SUPPORTED_NETWORKS && (
+              {SUPPORTED_CHAINS && (
                 <div className="font-display bg-flashbang-white flex flex-col gap-y-2 p-6 text-sm dark:bg-darkest-gray mr-3  rounded-sm">
-                  {Object.values(SUPPORTED_NETWORKS).map(network => (
+                  {Object.values(SUPPORTED_CHAINS).map(chain => (
                     <Listbox.Option
-                      key={network}
+                      key={chain.network}
                       className={() =>
                         `dark:text-flashbang-white text-new-black font-display block cursor-pointer text-left text-base no-underline transition`
                       }
-                      value={network}
+                      value={chain}
                     >
                       {({ selected }) => (
                         <div
@@ -84,12 +60,14 @@ const NetworkSelector: React.FC = () => {
                           } `}
                         >
                           <div className="flex">
-                            <div className="mr-3">{getChainIcon(network)}</div>
-                            <span>{network} </span>
+                            <div className="mr-3">
+                              <img src={chain.icon} alt={chain.name} className="w-6" />
+                            </div>
+                            <span>{chain.network} </span>
                           </div>
                           {selected && (
                             <div>
-                              <div className="w-3 h-3 bg-emerald-green rounded-full relative drop-shadow-xs-strong" />
+                              <div className="w-2 h-2 bg-emerald-green rounded-full relative drop-shadow-xs-strong" />
                             </div>
                           )}
                         </div>
