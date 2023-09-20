@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
+import {PermitParams} from '../libraries/PermitParams.sol';
+
 interface ICurve {
   error DeadlineExpired();
   error InsufficientOutputAmount();
@@ -24,6 +26,7 @@ interface ICurve {
   }
 
   function curveExactInputSingle(
-    ExactInputSingleParams memory params
+    ExactInputSingleParams memory params,
+    PermitParams calldata permit
   ) external payable returns (uint256 amountOut);
 }
