@@ -17,6 +17,7 @@ import { TokenSelector, useTokenSelector } from '../TokenSelector';
 import { SwapInformation } from '../SwapInformation';
 import { MulticallToken } from 'src/types';
 import { useMultiCallTokenBalance } from 'src/hooks/useMulticallTokenBalance';
+import { usePermit2 } from 'src/hooks/usePermit2';
 
 const CreateSwap = () => {
   useCullQueries('quote');
@@ -37,6 +38,7 @@ const CreateSwap = () => {
   const ShiftInputLabel = { from: 'You pay', to: 'You receive' } as const;
   const { data: fromBalance, refetch: refetchFromBalance } = useTokenBalance(fromToken);
   const { data: toBalance, refetch: refetchToBalance } = useTokenBalance(toToken);
+  const { getPermit2Params } = usePermit2();
   const isSameTokenPair = fromToken && toToken && fromToken.address === toToken.address;
 
   const isToSwapInputLoading = isFetchingQuote;
@@ -48,8 +50,16 @@ const CreateSwap = () => {
       }
       if (!walletClient) throw new Error('WalletClient not initialised');
       if (!address) throw new Error('fromAddress is missing');
+      if (!fromToken) throw new Error('fromToken is missing');
 
-      const { tx } = await sifi.getSwap({ fromAddress: address, quote });
+      const permit = (quote.approveAddress && quote.permit2Address) ? await getPermit2Params({
+        tokenAddress: fromToken.address,
+        userAddress: address,
+        spenderAddress: quote.approveAddress,
+        permit2Address: quote.permit2Address,
+      }) : undefined;
+
+      const { tx } = await sifi.getSwap({ fromAddress: address, quote, permit });
       const res = await walletClient.sendTransaction({
         chain: mainnet,
         data: tx.data as `0x${string}`,
