@@ -4,7 +4,9 @@ pragma solidity 0.8.19;
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {LibUniV3Like} from '../libraries/LibUniV3Like.sol';
+import {LibWarp} from '../libraries/LibWarp.sol';
 import {IUniV3Callback} from '../interfaces/IUniV3Callback.sol';
+import {IPermit2} from '../interfaces/external/IPermit2.sol';
 
 /**
  * NOTE: Using a shared internal functions uses about 3K more gas than
@@ -23,7 +25,12 @@ contract UniV3Callback is IUniV3Callback {
     if (callback.payer == address(this)) {
       IERC20(callback.token).safeTransfer(msg.sender, callback.amount);
     } else {
-      IERC20(callback.token).safeTransferFrom(callback.payer, msg.sender, callback.amount);
+      LibWarp.state().permit2.transferFrom(
+        callback.payer,
+        msg.sender,
+        (uint160)(callback.amount),
+        callback.token
+      );
     }
 
     LibUniV3Like.state().isActive = 0;
