@@ -2,6 +2,7 @@
 pragma solidity 0.8.19;
 
 import 'forge-std/Test.sol';
+import 'forge-std/console.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
@@ -15,8 +16,12 @@ import {FacetTest} from './helpers/FacetTest.sol';
 import {UniV3Callback} from 'contracts/facets/UniV3Callback.sol';
 import {Addresses, Mainnet, Polygon, Arbitrum, Optimism} from './helpers/Networks.sol';
 import {WarpLinkEncoder} from './helpers/WarpLinkEncoder.sol';
+import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransfer.sol';
+import {IPermit2} from 'contracts/interfaces/external/IPermit2.sol';
+import {PermitParams} from 'contracts/libraries/PermitParams.sol';
+import {PermitSignature} from './helpers/PermitSignature.sol';
 
-contract WarpLinkTestBase is FacetTest {
+contract WarpLinkTestBase is FacetTest, PermitSignature {
   event CollectedFee(
     address indexed partner,
     address indexed token,
@@ -25,15 +30,24 @@ contract WarpLinkTestBase is FacetTest {
   );
 
   WarpLink internal facet;
-  address internal USER = makeAddr('User');
+  IPermit2 internal permit2;
+
+  uint256 internal USER_PRIV;
+  address internal USER;
   uint48 internal deadline;
   WarpLinkEncoder internal encoder;
+
+  IAllowanceTransfer.PermitSingle internal emptyPermit;
+  bytes internal emptyPermitSig;
+  PermitParams internal emptyPermitParams;
 
   function setUpOn(uint256 chainId, uint256 blockNumber) internal override {
     super.setUpOn(chainId, blockNumber);
 
     encoder = new WarpLinkEncoder();
     deadline = (uint48)(block.timestamp + 1);
+
+    (USER, USER_PRIV) = makeAddrAndKey('User');
 
     IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](2);
 
@@ -54,10 +68,27 @@ contract WarpLinkTestBase is FacetTest {
     IDiamondCut(address(diamond)).diamondCut(
       facetCuts,
       address(initLibWarp),
-      abi.encodeWithSelector(initLibWarp.init.selector, Addresses.weth(chainId))
+      abi.encodeWithSelector(initLibWarp.init.selector, Addresses.weth(chainId), Addresses.PERMIT2)
     );
 
     facet = WarpLink(address(diamond));
+
+    permit2 = IPermit2(Addresses.PERMIT2);
+
+    emptyPermit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(0),
+        amount: 0,
+        expiration: deadline,
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    emptyPermitSig = getPermitSignature(emptyPermit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
+
+    emptyPermitParams = PermitParams({nonce: emptyPermit.details.nonce, signature: emptyPermitSig});
   }
 
   function getPair(
@@ -99,7 +130,8 @@ contract WarpLinkTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      })
+      }),
+      emptyPermitParams
     );
   }
 
@@ -110,7 +142,20 @@ contract WarpLinkTest is WarpLinkTestBase {
     );
 
     vm.prank(USER);
-    Mainnet.WETH.approve(address(facet), 1 ether);
+    Mainnet.WETH.approve(address(Addresses.PERMIT2), 2 ether);
+
+    IAllowanceTransfer.PermitDetails memory details = IAllowanceTransfer.PermitDetails({
+      token: address(Mainnet.WETH),
+      amount: 1 ether,
+      expiration: deadline,
+      nonce: 0
+    });
+
+    bytes memory sig = getPermitSignature(
+      IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
+      USER_PRIV,
+      permit2.DOMAIN_SEPARATOR()
+    );
 
     deal(address(Mainnet.WETH), USER, 1 ether);
     vm.prank(USER);
@@ -127,11 +172,25 @@ contract WarpLinkTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      })
+      }),
+      PermitParams({nonce: details.nonce, signature: sig})
     );
   }
 
   function testFork_swapSingleUniV2Sushi() public {
+    IAllowanceTransfer.PermitDetails memory details = IAllowanceTransfer.PermitDetails({
+      token: address(Mainnet.WETH),
+      amount: 1 ether,
+      expiration: deadline,
+      nonce: 0
+    });
+
+    bytes memory sig = getPermitSignature(
+      IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
+      USER_PRIV,
+      permit2.DOMAIN_SEPARATOR()
+    );
+
     // Swap WETH to DAI on Sushiswap V2
     bytes memory commands = bytes.concat(
       abi.encodePacked(
@@ -149,7 +208,7 @@ contract WarpLinkTest is WarpLinkTestBase {
     uint256 expectedFee = 0;
 
     vm.prank(USER);
-    Mainnet.WETH.approve(address(facet), 1 ether);
+    Mainnet.WETH.approve(address(Addresses.PERMIT2), 1 ether);
 
     deal(address(Mainnet.WETH), USER, 1 ether);
     vm.prank(USER);
@@ -166,7 +225,8 @@ contract WarpLinkTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      })
+      }),
+      PermitParams({nonce: details.nonce, signature: sig})
     );
 
     assertEq(Mainnet.DAI.balanceOf(USER), expectedSwapOut - expectedFee, 'dai balance after swap');
@@ -205,7 +265,8 @@ contract WarpLinkTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      })
+      }),
+      emptyPermitParams
     );
 
     assertEq(Mainnet.DAI.balanceOf(USER), expectedSwapOut - expectedFee, 'dai balance after swap');
@@ -248,7 +309,8 @@ contract WarpLinkTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      })
+      }),
+      emptyPermitParams
     );
 
     assertEq(
@@ -292,7 +354,8 @@ contract WarpLinkTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      })
+      }),
+      emptyPermitParams
     );
 
     assertEq(Mainnet.WETH.balanceOf(USER), expectedSwapOut - expectedFee, 'weth balance after');
@@ -346,7 +409,8 @@ contract WarpLinkTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      })
+      }),
+      emptyPermitParams
     );
 
     assertEq(Mainnet.WBTC.balanceOf(USER), expectedSwapOut - expectedFee, 'wbtc balance after');
@@ -436,13 +500,27 @@ contract WarpLinkTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      })
+      }),
+      emptyPermitParams
     );
 
     assertEq(Mainnet.WBTC.balanceOf(USER), expectedSwapOut - expectedFee, 'wbtc balance after');
   }
 
   function testFork_univ2LikeMulti() public {
+    IAllowanceTransfer.PermitDetails memory details = IAllowanceTransfer.PermitDetails({
+      token: address(Mainnet.USDC),
+      amount: 1000 * (10 ** 6),
+      expiration: deadline,
+      nonce: 0
+    });
+
+    bytes memory sig = getPermitSignature(
+      IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
+      USER_PRIV,
+      permit2.DOMAIN_SEPARATOR()
+    );
+
     // Swap USDC through USDT to APE on Sushi V2
     bytes memory commands = bytes.concat(
       abi.encodePacked(
@@ -468,7 +546,7 @@ contract WarpLinkTest is WarpLinkTestBase {
     deal(address(Mainnet.USDC), USER, 1000 * (10 ** 6));
 
     vm.prank(USER);
-    Mainnet.USDC.approve(address(facet), 1000 * (10 ** 6));
+    Mainnet.USDC.approve(address(Addresses.PERMIT2), 1000 * (10 ** 6));
 
     vm.prank(USER);
     facet.warpLinkEngage(
@@ -483,13 +561,26 @@ contract WarpLinkTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      })
+      }),
+      PermitParams({nonce: details.nonce, signature: sig})
     );
 
     assertEq(Mainnet.APE.balanceOf(USER), expectedSwapOut - expectedFee, 'ape balance after');
   }
 
   function testFork_positiveSlippage() public {
+    IAllowanceTransfer.PermitDetails memory details = IAllowanceTransfer.PermitDetails({
+      token: address(Mainnet.WETH),
+      amount: 1 ether,
+      expiration: deadline,
+      nonce: 0
+    });
+
+    bytes memory sig = getPermitSignature(
+      IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
+      USER_PRIV,
+      permit2.DOMAIN_SEPARATOR()
+    );
     // Swap WETH to DAI on Sushiswap V2
     bytes memory commands = abi.encodePacked(
       (uint8)(1), // Command count
@@ -504,7 +595,7 @@ contract WarpLinkTest is WarpLinkTestBase {
     uint256 expectedFee = 0;
 
     vm.prank(USER);
-    Mainnet.WETH.approve(address(facet), 1 ether);
+    Mainnet.WETH.approve(address(Addresses.PERMIT2), 1 ether);
 
     deal(address(Mainnet.WETH), USER, 1 ether);
     vm.prank(USER);
@@ -521,16 +612,29 @@ contract WarpLinkTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 10,
         deadline: deadline
-      })
+      }),
+      PermitParams({nonce: details.nonce, signature: sig})
     );
 
     assertEq(Mainnet.DAI.balanceOf(USER), expectedSwapOut - expectedFee, 'dai balance after swap');
   }
 
   function testFork_collectFee() public {
+    IAllowanceTransfer.PermitDetails memory details = IAllowanceTransfer.PermitDetails({
+      token: address(Mainnet.WETH),
+      amount: 1 ether,
+      expiration: deadline,
+      nonce: 0
+    });
+
+    bytes memory sig = getPermitSignature(
+      IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
+      USER_PRIV,
+      permit2.DOMAIN_SEPARATOR()
+    );
     // Swap WETH to DAI on Sushiswap V2
     bytes memory commands = abi.encodePacked(
-      (uint8)(1), // Command count
+      (uint8)(1), // Command count,
       (uint8)(facet.COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE()),
       (address)(Mainnet.DAI), // WarpUniV2LikeSwapSingleParams.tokenOut
       (address)(getPair(Mainnet.SUSHISWAP_V2_FACTORY, address(Mainnet.WETH), address(Mainnet.DAI))), // WarpUniV2LikeSwapSingleParams.pool
@@ -544,7 +648,7 @@ contract WarpLinkTest is WarpLinkTestBase {
     deal(address(Mainnet.WETH), USER, 1 ether);
 
     vm.prank(USER);
-    Mainnet.WETH.approve(address(facet), 1 ether);
+    Mainnet.WETH.approve(address(Addresses.PERMIT2), 1 ether);
 
     vm.expectEmit(true, true, true, false);
     emit CollectedFee(address(0), address(Mainnet.DAI), 0, expectedFee);
@@ -562,7 +666,8 @@ contract WarpLinkTest is WarpLinkTestBase {
         feeBps: 15,
         slippageBps: 0,
         deadline: deadline
-      })
+      }),
+      PermitParams({nonce: details.nonce, signature: sig})
     );
 
     assertEq(Mainnet.DAI.balanceOf(USER), expectedSwapOut - expectedFee, 'dai balance after swap');
@@ -588,11 +693,25 @@ contract WarpLinkTest is WarpLinkTestBase {
         feeBps: 15,
         slippageBps: 0,
         deadline: (uint48)(deadline - 2)
-      })
+      }),
+      emptyPermitParams
     );
   }
 
   function testFork_swapSingleUniV3() public {
+    IAllowanceTransfer.PermitDetails memory details = IAllowanceTransfer.PermitDetails({
+      token: address(Mainnet.USDC),
+      amount: 1000 * (10 ** 6),
+      expiration: deadline,
+      nonce: 0
+    });
+
+    bytes memory sig = getPermitSignature(
+      IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
+      USER_PRIV,
+      permit2.DOMAIN_SEPARATOR()
+    );
+
     // Swap USDC to USDT on Uniswap V3
     bytes memory commands = bytes.concat(
       abi.encodePacked(
@@ -611,7 +730,7 @@ contract WarpLinkTest is WarpLinkTestBase {
     deal(address(Mainnet.USDC), USER, amountIn);
 
     vm.prank(USER);
-    Mainnet.USDC.approve(address(diamond), amountIn);
+    Mainnet.USDC.approve(address(Addresses.PERMIT2), amountIn);
 
     vm.prank(USER);
     facet.warpLinkEngage(
@@ -626,13 +745,27 @@ contract WarpLinkTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      })
+      }),
+      PermitParams({nonce: details.nonce, signature: sig})
     );
 
     assertEq(Mainnet.USDT.balanceOf(USER), expectedSwapOut - expectedFee, 'usdt balance after');
   }
 
   function testFork_univ3LikeMulti() public {
+    IAllowanceTransfer.PermitDetails memory details = IAllowanceTransfer.PermitDetails({
+      token: address(Mainnet.USDC),
+      amount: 1000 * (10 ** 6),
+      expiration: deadline,
+      nonce: 0
+    });
+
+    bytes memory sig = getPermitSignature(
+      IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
+      USER_PRIV,
+      permit2.DOMAIN_SEPARATOR()
+    );
+
     // Swap USDC through USDT to WETH on Uniswap V3
     bytes memory commands = bytes.concat(
       abi.encodePacked(
@@ -652,7 +785,7 @@ contract WarpLinkTest is WarpLinkTestBase {
     deal(address(Mainnet.USDC), USER, 1000 * (10 ** 6));
 
     vm.prank(USER);
-    Mainnet.USDC.approve(address(facet), 1000 * (10 ** 6));
+    Mainnet.USDC.approve(address(Addresses.PERMIT2), 1000 * (10 ** 6));
 
     vm.prank(USER);
     facet.warpLinkEngage(
@@ -667,7 +800,8 @@ contract WarpLinkTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      })
+      }),
+      PermitParams({nonce: details.nonce, signature: sig})
     );
 
     assertEq(Mainnet.WETH.balanceOf(USER), expectedSwapOut - expectedFee, 'weth balance after');
@@ -702,13 +836,27 @@ contract WarpLinkTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      })
+      }),
+      emptyPermitParams
     );
 
     assertApproxEqRel(Mainnet.STETH.balanceOf(USER), expectedSwapOut - expectedFee, 0.001 ether);
   }
 
   function testFork_warpCurve_StethToEth() public {
+    IAllowanceTransfer.PermitDetails memory details = IAllowanceTransfer.PermitDetails({
+      token: address(Mainnet.STETH),
+      amount: 1 ether,
+      expiration: deadline,
+      nonce: 0
+    });
+
+    bytes memory sig = getPermitSignature(
+      IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
+      USER_PRIV,
+      permit2.DOMAIN_SEPARATOR()
+    );
+
     bytes memory commands = abi.encodePacked(
       (uint8)(1), // Command count
       (uint8)(facet.COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE()),
@@ -728,9 +876,9 @@ contract WarpLinkTest is WarpLinkTestBase {
     Mainnet.STETH.transfer(USER, 2 ether);
 
     vm.prank(USER);
-    SafeERC20.forceApprove(Mainnet.STETH, address(facet), 2 ether);
+    SafeERC20.forceApprove(Mainnet.STETH, address(Addresses.PERMIT2), 2 ether);
 
-    console2.log('allowance %s', Mainnet.STETH.allowance(USER, address(facet)));
+    //console2.log('allowance %s', Mainnet.STETH.allowance(USER, address(Addresses.PERMIT2)));
 
     vm.prank(USER);
     facet.warpLinkEngage(
@@ -745,7 +893,8 @@ contract WarpLinkTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 5,
         deadline: deadline
-      })
+      }),
+      PermitParams({nonce: details.nonce, signature: sig})
     );
 
     assertApproxEqRel(USER.balance, expectedSwapOut - expectedFee, 0.001 ether);
@@ -759,6 +908,19 @@ contract WarpLinkTest is WarpLinkTestBase {
 
     deal(tokenIn, USER, amountIn);
 
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: tokenIn,
+        amount: (uint160)(amountIn),
+        expiration: 1694336027,
+        nonce: 0
+      }),
+      address(diamond),
+      1694336027
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
+
     bytes memory commands = abi.encodePacked(
       (uint8)(1), // Command count
       (uint8)(8), // COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE
@@ -771,7 +933,7 @@ contract WarpLinkTest is WarpLinkTestBase {
     );
 
     vm.prank(USER);
-    IERC20(tokenIn).approve(address(facet), amountIn);
+    IERC20(tokenIn).approve(address(Addresses.PERMIT2), amountIn);
 
     vm.prank(USER);
     facet.warpLinkEngage(
@@ -786,7 +948,8 @@ contract WarpLinkTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 100,
         deadline: 1694336027
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
     assertEq(IERC20(tokenOut).balanceOf(USER), amountOut, 'gusd balance');
@@ -802,8 +965,21 @@ contract WarpLinkTest is WarpLinkTestBase {
     // Log the network
     vm.prank(USER);
     IERC20(address(0x6B175474E89094C44Da98b954EedeAC495271d0F)).approve(
-      address(facet),
+      address(Addresses.PERMIT2),
       100000000000000000000
+    );
+
+    IAllowanceTransfer.PermitDetails memory details = IAllowanceTransfer.PermitDetails({
+      token: 0x6B175474E89094C44Da98b954EedeAC495271d0F,
+      amount: (uint160)(100000000000000000000),
+      expiration: deadline,
+      nonce: 0
+    });
+
+    bytes memory sig = getPermitSignature(
+      IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
+      USER_PRIV,
+      permit2.DOMAIN_SEPARATOR()
     );
 
     bytes memory commands = bytes.concat(
@@ -841,7 +1017,8 @@ contract WarpLinkTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 100,
         deadline: 1694337947
-      })
+      }),
+      PermitParams({nonce: details.nonce, signature: sig})
     );
 
     assertEq(Mainnet.WBTC.balanceOf(USER), 344657, 'wbtc balance');
@@ -885,7 +1062,8 @@ contract WarpLinkTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 100,
         deadline: 1694420123
-      })
+      }),
+      emptyPermitParams
     );
 
     assertEq(Mainnet.FRXETH.balanceOf(USER), 1000867499582465464, 'balance');
@@ -898,6 +1076,20 @@ contract WarpLinkBlock18069811Test is WarpLinkTestBase {
   }
 
   function testFork_paraswapVector() public {
+    // 0. permit for APE
+    IAllowanceTransfer.PermitDetails memory details = IAllowanceTransfer.PermitDetails({
+      token: address(Mainnet.APE),
+      amount: (uint160)(1000 ether),
+      expiration: deadline,
+      nonce: 0
+    });
+
+    bytes memory sig = getPermitSignature(
+      IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
+      USER_PRIV,
+      permit2.DOMAIN_SEPARATOR()
+    );
+
     // 1.1: 92.5% of split 1 will swap Uni V2 APE -> WETH, unwrap
     bytes memory commandsSplit1_1 = bytes.concat(
       abi.encodePacked(
@@ -989,7 +1181,7 @@ contract WarpLinkBlock18069811Test is WarpLinkTestBase {
     deal(address(Mainnet.APE), USER, 1000 ether);
 
     vm.prank(USER);
-    Mainnet.APE.approve(address(facet), 1000 ether);
+    Mainnet.APE.approve(address(Addresses.PERMIT2), 1000 ether);
 
     vm.prank(USER);
     facet.warpLinkEngage(
@@ -1004,7 +1196,8 @@ contract WarpLinkBlock18069811Test is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 10,
         deadline: deadline
-      })
+      }),
+      PermitParams({nonce: 0, signature: sig})
     );
 
     assertEq(Mainnet.USDC.balanceOf(USER), expectedSwapOut - expectedFee, 'usdc balance after');
@@ -1039,7 +1232,8 @@ contract WarpLinkPolygonTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      })
+      }),
+      emptyPermitParams
     );
   }
 
@@ -1074,7 +1268,8 @@ contract WarpLinkPolygonTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      })
+      }),
+      emptyPermitParams
     );
 
     assertEq(Polygon.USDC.balanceOf(USER), expectedSwapOut - expectedFee, 'after');
@@ -1107,7 +1302,8 @@ contract WarpLinkArbitrumTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      })
+      }),
+      emptyPermitParams
     );
   }
 
@@ -1142,7 +1338,8 @@ contract WarpLinkArbitrumTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      })
+      }),
+      emptyPermitParams
     );
 
     assertEq(Arbitrum.USDC.balanceOf(USER), expectedSwapOut - expectedFee, 'after');
@@ -1175,7 +1372,8 @@ contract WarpLinkOptimismTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      })
+      }),
+      emptyPermitParams
     );
   }
 
@@ -1210,7 +1408,8 @@ contract WarpLinkOptimismTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      })
+      }),
+      emptyPermitParams
     );
 
     assertEq(Optimism.USDT.balanceOf(USER), expectedSwapOut - expectedFee, 'after');

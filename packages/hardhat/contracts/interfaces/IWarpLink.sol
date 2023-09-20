@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
+import {PermitParams} from '../libraries/PermitParams.sol';
+
 interface IWarpLink {
   error UnhandledCommand();
   error IncorrectEthValue();
@@ -37,7 +39,7 @@ interface IWarpLink {
     bytes commands;
   }
 
-  function warpLinkEngage(Params memory params) external payable;
+  function warpLinkEngage(Params memory params, PermitParams calldata permit) external payable;
 
   function commandTypeWrap() external pure returns (uint256);
 
