@@ -12,6 +12,22 @@ type Permit2Params = GetSwapOptions['permit'];
 // Current time + ms, expressed in seconds for EVM
 const toDeadline = (expiration: number): number => Math.floor((Date.now() + expiration) / 1000);
 
+const getLocalStorageSignatureKey = (tokenAddress: string, userAddress: string, chainId: number): string => {
+  return `sifi-permit-2-${tokenAddress}-${userAddress}-${chainId}`;
+};
+
+const storeSignatureInLocalStorage = (signature: string, tokenAddress: string, userAddress: string, chainId: number): void => {
+  localStorage.setItem(
+    getLocalStorageSignatureKey(tokenAddress, userAddress, chainId), signature
+  );
+};
+
+const loadSignatureFromLocalStorage = (tokenAddress: string, userAddress: string, chainId: number): string | null => {
+  return localStorage.getItem(
+    getLocalStorageSignatureKey(tokenAddress, userAddress, chainId)
+  );
+};
+
 const usePermit2 = () => {
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
@@ -60,17 +76,27 @@ const usePermit2 = () => {
     spenderAddress,
     permit2Address,
   }: Permit2Addresses): Promise<Permit2Params> => {
-  const allowanceProvider = new AllowanceProvider(ethersProvider, permit2Address);
-    const { nonce } = await allowanceProvider.getAllowanceData(tokenAddress, userAddress, spenderAddress);
+    const allowanceProvider = new AllowanceProvider(ethersProvider, permit2Address);
+    const { nonce, expiration } = await allowanceProvider.getAllowanceData(tokenAddress, userAddress, spenderAddress);
 
-    const signature = await signPermit2(
-      constructPermitSingle(tokenAddress, spenderAddress, nonce),
+    const permitSingle = constructPermitSingle(tokenAddress, spenderAddress, nonce);
+
+    // TODO: check units of `expiration`
+    const permitHasExpired = (expiration * 1000) < Date.now();
+
+    const storedSignature = loadSignatureFromLocalStorage(tokenAddress, userAddress, publicClient.chain.id);
+    const shouldUseStoredSignature = storedSignature && !permitHasExpired;
+
+    const signature = shouldUseStoredSignature ? storedSignature : await signPermit2(
+      permitSingle,
       permit2Address
     );
 
+    storeSignatureInLocalStorage(signature, tokenAddress, userAddress, publicClient.chain.id)
+
     return {
       nonce,
-      deadline: toDeadline(PERMIT_EXPIRATION),
+      deadline: permitHasExpired ? toDeadline(PERMIT_EXPIRATION) : expiration,
       signature,
     }
   }
