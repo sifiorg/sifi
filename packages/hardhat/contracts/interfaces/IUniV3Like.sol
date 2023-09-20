@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
+import {IAllowanceTransfer} from '../interfaces/external/IAllowanceTransfer.sol';
+import {PermitParams} from '../libraries/PermitParams.sol';
+
 interface IUniV3Like {
   error InsufficienTokensDelivered();
   error DeadlineExpired();
@@ -34,10 +37,12 @@ interface IUniV3Like {
   }
 
   function uniswapV3LikeExactInputSingle(
-    ExactInputSingleParams memory params
+    ExactInputSingleParams memory params,
+    PermitParams calldata permit
   ) external payable returns (uint256 amountOut);
 
   function uniswapV3LikeExactInput(
-    ExactInputParams memory params
+    ExactInputParams memory params,
+    PermitParams calldata permit
   ) external payable returns (uint256 amountOut);
 }
