@@ -4,16 +4,28 @@ import { ReactComponent as DownCaret } from 'src/assets/down-caret.svg';
 import { useSelectedChain } from 'src/providers/SelectedChainProvider';
 import { enableMultipleChains } from 'src/utils/featureFlags';
 import { SUPPORTED_CHAINS } from 'src/utils/chains';
+import { useSwitchNetwork } from 'wagmi';
+import type { SelectedChain } from 'src/providers/SelectedChainProvider';
 
 const NetworkSelector: React.FC = () => {
   const { selectedChain, setSelectedChain } = useSelectedChain();
+  const { switchNetwork } = useSwitchNetwork();
+
   const chains = enableMultipleChains
     ? Object.values(SUPPORTED_CHAINS)
     : Object.values(SUPPORTED_CHAINS).filter(chain => chain.id === 1);
 
+  const handleChange = (chain: SelectedChain) => {
+    setSelectedChain(chain);
+
+    if (!switchNetwork) return;
+
+    switchNetwork(chain.id);
+  };
+
   return (
     <div className="font-text relative inline-block">
-      <Listbox value={selectedChain} onChange={setSelectedChain}>
+      <Listbox value={selectedChain} onChange={handleChange}>
         <div className="relative pr-0 sm:pr-4">
           <Listbox.Button
             role="button"
