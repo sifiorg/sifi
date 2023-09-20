@@ -16,7 +16,10 @@ export type Quote = {
   id: string;
   toAmount: bigint;
   estimatedGas: bigint;
-  approveAddress: string;
+  /**
+   * The address to approve for moving tokens, or undefined if moving the native token
+   */
+  approveAddress?: string;
   toAmountAfterFeesUsd: string;
 };
 
