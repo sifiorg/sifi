@@ -10,8 +10,13 @@ import {IUniV3Like} from 'contracts/interfaces/IUniV3Like.sol';
 import {UniV3Like} from 'contracts/facets/UniV3Like.sol';
 import {InitLibWarp} from 'contracts/init/InitLibWarp.sol';
 import {UniV3Callback} from 'contracts/facets/UniV3Callback.sol';
+import {IPermit2} from 'contracts/interfaces/external/IPermit2.sol';
+import {ISignatureTransfer} from 'contracts/interfaces/external/ISignatureTransfer.sol';
+import {PermitSignature} from './helpers/PermitSignature.sol';
+import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransfer.sol';
+import {PermitParams} from 'contracts/libraries/PermitParams.sol';
 
-abstract contract UniV3LikeTestBase is FacetTest {
+abstract contract UniV3LikeTestBase is FacetTest, PermitSignature {
   event CollectedFee(
     address indexed partner,
     address indexed token,
@@ -20,12 +25,16 @@ abstract contract UniV3LikeTestBase is FacetTest {
   );
 
   IUniV3Like internal facet;
+  IPermit2 internal permit2;
   uint48 internal deadline;
-  address internal USER = makeAddr('User');
-  address internal PARTNER = makeAddr('Partner');
+  uint256 USER_PRIV;
+  address USER;
+  address PARTNER = makeAddr('Partner');
 
   function setUpOn(uint256 chainId, uint256 blockNumber) internal override {
     super.setUpOn(chainId, blockNumber);
+
+    (USER, USER_PRIV) = makeAddrAndKey('User');
 
     IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](2);
 
@@ -44,10 +53,12 @@ abstract contract UniV3LikeTestBase is FacetTest {
     IDiamondCut(address(diamond)).diamondCut(
       facetCuts,
       address(new InitLibWarp()),
-      abi.encodeWithSelector(InitLibWarp.init.selector, Addresses.weth(chainId))
+      abi.encodeWithSelector(InitLibWarp.init.selector, Addresses.weth(chainId), Addresses.PERMIT2)
     );
 
     facet = IUniV3Like(address(diamond));
+
+    permit2 = IPermit2(Addresses.PERMIT2);
 
     deadline = (uint48)(block.timestamp + 1000);
   }
@@ -64,7 +75,20 @@ contract UniV3LikeMainnetTest is UniV3LikeTestBase {
     address pool = 0x7858E59e0C01EA06Df3aF3D20aC7B0003275D4Bf;
 
     vm.prank(USER);
-    Mainnet.USDC.approve(address(facet), 1000 * (10 ** 6));
+    Mainnet.USDC.approve(address(Addresses.PERMIT2), 1000 * (10 ** 6));
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.USDC),
+        amount: 1000 * (10 ** 6),
+        expiration: deadline,
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     vm.prank(USER);
     facet.uniswapV3LikeExactInputSingle(
@@ -79,7 +103,8 @@ contract UniV3LikeMainnetTest is UniV3LikeTestBase {
         tokenIn: address(Mainnet.USDC),
         tokenOut: address(Mainnet.USDT),
         pool: pool
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
     assertEq(Mainnet.USDT.balanceOf(USER), 999 * (10 ** 6));
@@ -92,7 +117,20 @@ contract UniV3LikeMainnetTest is UniV3LikeTestBase {
     address pool = 0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8;
 
     vm.prank(USER);
-    Mainnet.USDC.approve(address(facet), 1000 * (10 ** 6));
+    Mainnet.USDC.approve(address(Addresses.PERMIT2), 1000 * (10 ** 6));
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.USDC),
+        amount: 1000 * (10 ** 6),
+        expiration: deadline,
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     vm.prank(USER);
     facet.uniswapV3LikeExactInputSingle(
@@ -107,7 +145,8 @@ contract UniV3LikeMainnetTest is UniV3LikeTestBase {
         tokenIn: address(Mainnet.USDC),
         tokenOut: address(0),
         pool: pool
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
     assertEq(USER.balance, 544318039549018921);
@@ -118,6 +157,23 @@ contract UniV3LikeMainnetTest is UniV3LikeTestBase {
 
     // USDC/WETH, 0.3%
     address pool = 0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8;
+
+    IAllowanceTransfer.PermitSingle memory emptyPermit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(0),
+        amount: 0,
+        expiration: deadline,
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory emptyPermitSig = getPermitSignature(
+      emptyPermit,
+      USER_PRIV,
+      permit2.DOMAIN_SEPARATOR()
+    );
 
     vm.prank(USER);
     facet.uniswapV3LikeExactInputSingle{value: 2 ether}(
@@ -132,7 +188,8 @@ contract UniV3LikeMainnetTest is UniV3LikeTestBase {
         tokenIn: address(0),
         tokenOut: address(Mainnet.USDC),
         pool: pool
-      })
+      }),
+      PermitParams({nonce: emptyPermit.details.nonce, signature: emptyPermitSig})
     );
 
     assertEq(Mainnet.USDC.balanceOf(USER), 3652264740);
@@ -155,7 +212,20 @@ contract UniV3LikeMainnetTest is UniV3LikeTestBase {
     uint256 amountOut = 544005533891390927;
 
     vm.prank(USER);
-    Mainnet.USDC.approve(address(facet), amountIn);
+    Mainnet.USDC.approve(address(Addresses.PERMIT2), amountIn);
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.USDC),
+        amount: (uint160)(amountIn),
+        expiration: deadline,
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     vm.prank(USER);
     facet.uniswapV3LikeExactInput(
@@ -169,7 +239,8 @@ contract UniV3LikeMainnetTest is UniV3LikeTestBase {
         partner: address(0),
         tokens: tokens,
         pools: pools
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
     assertEq(USER.balance, amountOut);
@@ -191,7 +262,20 @@ contract UniV3LikePolygonTest is UniV3LikeTestBase {
     deal(address(tokenIn), USER, 1000 * (10 ** 6));
 
     vm.prank(USER);
-    IERC20(tokenIn).approve(address(facet), 1000 * (10 ** 6));
+    IERC20(tokenIn).approve(address(Addresses.PERMIT2), 1000 * (10 ** 6));
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: tokenIn,
+        amount: 1000 * (10 ** 6),
+        expiration: deadline,
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     vm.prank(USER);
     facet.uniswapV3LikeExactInputSingle(
@@ -206,7 +290,8 @@ contract UniV3LikePolygonTest is UniV3LikeTestBase {
         tokenIn: tokenIn,
         tokenOut: tokenOut,
         pool: pool
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
     assertEq(IERC20(tokenOut).balanceOf(USER), 999 * (10 ** 6));

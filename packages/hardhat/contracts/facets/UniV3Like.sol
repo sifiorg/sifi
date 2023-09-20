@@ -11,6 +11,9 @@ import {LibUniV3Like} from '../libraries/LibUniV3Like.sol';
 import {LibKitty} from '../libraries/LibKitty.sol';
 import {LibWarp} from '../libraries/LibWarp.sol';
 import {IUniV3Callback} from './UniV3Callback.sol';
+import {IPermit2} from '../interfaces/external/IPermit2.sol';
+import {IAllowanceTransfer} from '../interfaces/external/IAllowanceTransfer.sol';
+import {PermitParams} from '../libraries/PermitParams.sol';
 
 /**
  * A router for any Uniswap V3 fork
@@ -26,7 +29,8 @@ contract UniV3Like is IUniV3Like {
   using Address for address;
 
   function uniswapV3LikeExactInputSingle(
-    ExactInputSingleParams memory params
+    ExactInputSingleParams memory params,
+    PermitParams calldata permit
   ) external payable returns (uint256 amountOut) {
     if (block.timestamp > params.deadline) {
       revert DeadlineExpired();
@@ -63,6 +67,24 @@ contract UniV3Like is IUniV3Like {
         amount: params.amountIn
       })
     );
+
+    if (!isFromEth) {
+      // Permit this contract to move tokens from the sender. The actual transfer happens inside UniV3Callback.
+      LibWarp.state().permit2.permit(
+        msg.sender,
+        IAllowanceTransfer.PermitSingle(
+          IAllowanceTransfer.PermitDetails({
+            token: params.tokenIn,
+            amount: (uint160)(params.amountIn),
+            expiration: params.deadline,
+            nonce: (uint48)(permit.nonce)
+          }),
+          address(this),
+          params.deadline
+        ),
+        permit.signature
+      );
+    }
 
     if (zeroForOne) {
       (, int256 amountOutSigned) = IUniswapV3Pool(params.pool).swap(
@@ -127,7 +149,8 @@ contract UniV3Like is IUniV3Like {
   }
 
   function uniswapV3LikeExactInput(
-    ExactInputParams memory params
+    ExactInputParams memory params,
+    PermitParams calldata permit
   ) external payable returns (uint256 amountOut) {
     if (block.timestamp > params.deadline) {
       revert DeadlineExpired();
@@ -158,6 +181,24 @@ contract UniV3Like is IUniV3Like {
     uint256 tokenOutBalancePrev = IERC20(params.tokens[poolLength]).balanceOf(address(this));
 
     amountOut = params.amountIn;
+
+    if (!isFromEth) {
+      // Permit this contract to move tokens from the sender. The actual transfer happens inside UniV3Callback.
+      LibWarp.state().permit2.permit(
+        msg.sender,
+        IAllowanceTransfer.PermitSingle(
+          IAllowanceTransfer.PermitDetails({
+            token: params.tokens[0],
+            amount: (uint160)(params.amountIn),
+            expiration: params.deadline,
+            nonce: (uint48)(permit.nonce)
+          }),
+          address(this),
+          (uint256)(params.deadline)
+        ),
+        permit.signature
+      );
+    }
 
     for (uint index; index < poolLength; ) {
       uint256 indexPlusOne;
