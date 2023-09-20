@@ -17,7 +17,14 @@ export type Quote = {
   toAmount: bigint;
   estimatedGas: bigint;
   /**
+   * The address of the Permit2 contract to use, or undefined if not using Permit2 or if moving the native token.
+   */
+  permit2Address?: string;
+  /**
    * The address to approve for moving tokens, or undefined if moving the native token
+   *
+   * When `permit2Address` is set, this is the spender to use for the permit.
+   * Else, this is the spender to use for the ERC20 approve.
    */
   approveAddress?: string;
   toAmountAfterFeesUsd: string;
@@ -49,6 +56,18 @@ export type GetSwapOptions = {
    * and SIFI. Defaults to 0, meaning no fee is charged.
    */
   feeBps?: number;
+  /**
+   * The permit to use to transfer the tokens
+   *
+   * When `permit2Address` is set on the quote, this field is required
+   *
+   * See https://blog.uniswap.org/permit2-integration-guide for more information
+   */
+  permit?: {
+    nonce: number | bigint;
+    deadline: number | bigint;
+    signature: string;
+  };
 };
 
 export type Swap = {
@@ -157,6 +176,7 @@ export class Sifi {
       toAmount: BigInt(response.toAmount),
       estimatedGas: BigInt(response.estimatedGas),
       approveAddress: response.approveAddress,
+      permit2Address: response.permit2Address,
       toAmountAfterFeesUsd: response.toAmountAfterFeesUsd,
     };
   }
@@ -181,6 +201,12 @@ export class Sifi {
 
     if (options.feeBps !== undefined) {
       params.feeBps = options.feeBps.toString();
+    }
+
+    if (options.permit !== undefined) {
+      params.permitNonce = options.permit.nonce.toString();
+      params.permitDeadline = options.permit.deadline.toString();
+      params.permitSignature = options.permit.signature;
     }
 
     const query = new URLSearchParams(params).toString();
