@@ -8,6 +8,9 @@ import {ICurve} from '../interfaces/ICurve.sol';
 import {LibKitty} from '../libraries/LibKitty.sol';
 import {LibWarp} from '../libraries/LibWarp.sol';
 import {LibCurve} from '../libraries/LibCurve.sol';
+import {IPermit2} from '../interfaces/external/IPermit2.sol';
+import {IAllowanceTransfer} from '../interfaces/external/IAllowanceTransfer.sol';
+import {PermitParams} from '../libraries/PermitParams.sol';
 
 /**
  * Swaps for Curve pools
@@ -20,7 +23,8 @@ contract Curve is ICurve {
   using Address for address;
 
   function curveExactInputSingle(
-    ExactInputSingleParams memory params
+    ExactInputSingleParams memory params,
+    PermitParams calldata permit
   ) external payable returns (uint256 amountOut) {
     if (block.timestamp > params.deadline) {
       revert DeadlineExpired();
@@ -33,10 +37,32 @@ contract Curve is ICurve {
       : IERC20(params.tokenOut).balanceOf(address(this));
 
     if (params.tokenIn != address(0)) {
-      // TODO: Is this necessary to support USDT?
+      // TODO: Is this necessary to support USDT? @jflint256: Yes, I think so.
       IERC20(params.tokenIn).forceApprove(params.pool, params.amountIn);
 
-      IERC20(params.tokenIn).safeTransferFrom(msg.sender, address(this), params.amountIn);
+      // Permit tokens / set allowance
+      LibWarp.state().permit2.permit(
+        msg.sender,
+        IAllowanceTransfer.PermitSingle({
+          details: IAllowanceTransfer.PermitDetails({
+            token: params.tokenIn,
+            amount: (uint160)(params.amountIn),
+            expiration: (uint48)(params.deadline),
+            nonce: (uint48)(permit.nonce)
+          }),
+          spender: address(this),
+          sigDeadline: (uint256)(params.deadline)
+        }),
+        permit.signature
+      );
+
+      // Transfer tokens from msg.sender to address(this)
+      LibWarp.state().permit2.transferFrom(
+        msg.sender,
+        address(this),
+        (uint160)(params.amountIn),
+        params.tokenIn
+      );
     }
 
     LibCurve.exchange({
