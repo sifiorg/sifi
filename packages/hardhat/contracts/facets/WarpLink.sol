@@ -13,6 +13,9 @@ import {LibUniV3Like} from '../libraries/LibUniV3Like.sol';
 import {IUniV3Callback} from '../interfaces/IUniV3Callback.sol';
 import {IUniswapV3Pool} from '../interfaces/external/IUniswapV3Pool.sol';
 import {LibCurve} from '../libraries/LibCurve.sol';
+import {IPermit2} from '../interfaces/external/IPermit2.sol';
+import {IAllowanceTransfer} from '../interfaces/external/IAllowanceTransfer.sol';
+import {PermitParams} from '../libraries/PermitParams.sol';
 
 contract WarpLink is IWarpLink {
   using SafeERC20 for IERC20;
@@ -52,6 +55,7 @@ contract WarpLink is IWarpLink {
     uint256 amount;
     address payer;
     address token;
+    uint48 deadline;
   }
 
   uint256 public constant COMMAND_TYPE_WRAP = 1;
@@ -210,12 +214,10 @@ contract WarpLink is IWarpLink {
     t.token = address(0);
 
     if (shouldMoveTokensFirst) {
-      IERC20(address(s.weth)).safeTransferFrom(prevPayer, address(this), t.amount);
+      s.permit2.transferFrom(prevPayer, address(this), (uint160)(t.amount), address(s.weth));
     }
 
     s.weth.withdraw(t.amount);
-
-    payable(t.payer).transfer(t.amount);
 
     return t;
   }
@@ -257,7 +259,7 @@ contract WarpLink is IWarpLink {
       IERC20(t.token).safeTransfer(params.pool, t.amount);
     } else {
       // Transfer tokens from the sender to the pool
-      IERC20(t.token).safeTransferFrom(t.payer, params.pool, t.amount);
+      LibWarp.state().permit2.transferFrom(t.payer, params.pool, (uint160)(t.amount), t.token);
 
       // Update the payer to this contract
       t.payer = address(this);
@@ -357,7 +359,7 @@ contract WarpLink is IWarpLink {
       IERC20(t.token).safeTransfer(params.pools[0], t.amount);
     } else {
       // Transfer tokens from the sender to the first pool
-      IERC20(t.token).safeTransferFrom(t.payer, params.pools[0], t.amount);
+      LibWarp.state().permit2.transferFrom(t.payer, params.pools[0], (uint160)(t.amount), t.token);
 
       // Update the payer to this contract
       t.payer = address(this);
@@ -599,7 +601,7 @@ contract WarpLink is IWarpLink {
 
     if (t.payer != address(this)) {
       // Transfer tokens from the sender to this contract
-      IERC20(t.token).safeTransferFrom(t.payer, address(this), t.amount);
+      LibWarp.state().permit2.transferFrom(t.payer, address(this), (uint160)(t.amount), t.token);
 
       // Update the payer to this contract
       t.payer = address(this);
@@ -671,14 +673,33 @@ contract WarpLink is IWarpLink {
     return t;
   }
 
-  function warpLinkEngage(Params memory params) external payable {
+  function warpLinkEngage(Params memory params, PermitParams calldata permit) external payable {
     if (block.timestamp > params.deadline) {
       revert DeadlineExpired();
+    }
+
+    if (params.tokenIn != address(0)) {
+      // Permit tokens / set allowance
+      LibWarp.state().permit2.permit(
+        msg.sender,
+        IAllowanceTransfer.PermitSingle({
+          details: IAllowanceTransfer.PermitDetails({
+            token: params.tokenIn,
+            amount: (uint160)(params.amountIn),
+            expiration: (uint48)(params.deadline),
+            nonce: (uint48)(permit.nonce)
+          }),
+          spender: address(this),
+          sigDeadline: (uint256)(params.deadline)
+        }),
+        permit.signature
+      );
     }
 
     TransientState memory t;
     t.amount = params.amountIn;
     t.token = params.tokenIn;
+    t.deadline = params.deadline;
 
     if (msg.value == 0) {
       if (params.tokenIn == address(0)) {
