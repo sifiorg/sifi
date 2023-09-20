@@ -1,7 +1,7 @@
 // https://blog.uniswap.org/permit2-integration-guide#how-to-construct-permit2-signatures-on-the-frontend
-import { AllowanceProvider, PERMIT2_ADDRESS, type PermitSingle, MaxAllowanceTransferAmount } from '@uniswap/permit2-sdk'
-import { usePublicClient } from 'wagmi';
-import { publicClientToProvider } from 'src/utils';
+import { AllowanceProvider, AllowanceTransfer, PERMIT2_ADDRESS, type PermitSingle, MaxAllowanceTransferAmount } from '@uniswap/permit2-sdk'
+import { usePublicClient, useWalletClient } from 'wagmi';
+import { publicClientToProvider, walletClientToSigner } from 'src/utils';
 
 const PERMIT_EXPIRATION = 1000 * 60 * 60 * 24 * 30; // 30 days in ms
 const PERMIT_SIG_EXPIRATION = 1000 * 60 * 30; // 30 minutes in ms
@@ -11,6 +11,7 @@ const toDeadline = (expiration: number): number => Math.floor((Date.now() + expi
 
 const usePermit2 = () => {
   const publicClient = usePublicClient();
+  const { data: walletClient } = useWalletClient();
 
   // Unfortunately the permit2-sdk is built to only work with ethers.js currently
   const ethersProvider = publicClientToProvider(publicClient);
@@ -31,7 +32,19 @@ const usePermit2 = () => {
     };
   };
 
-  return { constructPermitSingle };
+  const signPermit2 = async (tokenAddress: string, user: string, spenderAddress: string): Promise<string> => {
+    if (!walletClient) throw new Error('No wallet client found');
+  
+    const permitSingle = await constructPermitSingle(tokenAddress, user, spenderAddress);
+    const { domain, types, values } = AllowanceTransfer.getPermitData(permitSingle, PERMIT2_ADDRESS, publicClient.chain.id);
+
+    const ethersSigner = walletClientToSigner(walletClient);
+    const signature = await ethersSigner._signTypedData(domain, types, values);
+
+    return signature;
+  };
+
+  return { constructPermitSingle, signPermit2 };
 };
 
 export { usePermit2 };

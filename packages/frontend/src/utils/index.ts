@@ -7,4 +7,4 @@ export * from './parseErrorMessage';
 export * from './evm';
 export * from './isValidTokenAmount';
 export * from './getViemErrorMessage';
-export * from './publicClientToProvider';
+export * from './viemToEthersAdapters';
