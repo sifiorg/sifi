@@ -4,20 +4,24 @@ pragma solidity 0.8.19;
 import {Address} from '@openzeppelin/contracts/utils/Address.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
-import {IUniswapV2Pair} from 'contracts/interfaces/external/IUniswapV2Pair.sol';
-import {IUniV2Router} from 'contracts/interfaces/IUniV2Router.sol';
-import {LibUniV2Router} from 'contracts/libraries/LibUniV2Router.sol';
-import {LibKitty} from 'contracts/libraries/LibKitty.sol';
-import {LibWarp} from 'contracts/libraries/LibWarp.sol';
-import {Errors} from 'contracts/libraries/Errors.sol';
-import {IUniswapV2Pair} from 'contracts/interfaces/external/IUniswapV2Pair.sol';
+import {IUniswapV2Pair} from '../interfaces/external/IUniswapV2Pair.sol';
+import {IUniV2Router} from '../interfaces/IUniV2Router.sol';
+import {LibUniV2Router} from '../libraries/LibUniV2Router.sol';
+import {LibKitty} from '../libraries/LibKitty.sol';
+import {LibWarp} from '../libraries/LibWarp.sol';
+import {Errors} from '../libraries/Errors.sol';
+import {IUniswapV2Pair} from '../interfaces/external/IUniswapV2Pair.sol';
+import {IPermit2} from '../interfaces/external/IPermit2.sol';
+import {IAllowanceTransfer} from '../interfaces/external/IAllowanceTransfer.sol';
+import {PermitParams} from '../libraries/PermitParams.sol';
 
 contract UniV2RouterFacet is IUniV2Router {
   using SafeERC20 for IERC20;
   using Address for address;
 
   function uniswapV2ExactInputSingle(
-    ExactInputSingleParams memory params
+    ExactInputSingleParams memory params,
+    PermitParams calldata permit
   ) external payable returns (uint256 amountOut) {
     if (block.timestamp > params.deadline) {
       revert Errors.DeadlineExpired();
@@ -66,8 +70,24 @@ contract UniV2RouterFacet is IUniV2Router {
       // Transfer tokens to the pool
       IERC20(params.tokenIn).safeTransfer(pair, params.amountIn);
     } else {
-      // Transfer tokens from the sender to the pool
-      IERC20(params.tokenIn).safeTransferFrom(msg.sender, pair, params.amountIn);
+      // Permit tokens / set allowance
+      s.permit2.permit(
+        msg.sender,
+        IAllowanceTransfer.PermitSingle({
+          details: IAllowanceTransfer.PermitDetails({
+            token: params.tokenIn,
+            amount: (uint160)(params.amountIn),
+            expiration: (uint48)(params.deadline),
+            nonce: (uint48)(permit.nonce)
+          }),
+          spender: address(this),
+          sigDeadline: (uint256)(params.deadline)
+        }),
+        permit.signature
+      );
+
+      // Transfer tokens from msg.sender to the pool
+      s.permit2.transferFrom(msg.sender, pair, (uint160)(params.amountIn), params.tokenIn);
     }
 
     bool zeroForOne = params.tokenIn < params.tokenOut ? true : false;
@@ -107,7 +127,8 @@ contract UniV2RouterFacet is IUniV2Router {
   }
 
   function uniswapV2ExactInput(
-    ExactInputParams memory params
+    ExactInputParams memory params,
+    PermitParams calldata permit
   ) external payable returns (uint256 amountOut) {
     if (block.timestamp > params.deadline) {
       revert Errors.DeadlineExpired();
@@ -149,11 +170,27 @@ contract UniV2RouterFacet is IUniV2Router {
       // Transfer tokens to the first pool
       IERC20(params.path[0]).safeTransfer(pairs[0], params.amountIn);
     } else {
-      // Transfer tokens from the sender to the first pool
-      IERC20(params.path[0]).safeTransferFrom(msg.sender, pairs[0], params.amountIn);
+      // Permit tokens / set allowance
+      s.permit2.permit(
+        msg.sender,
+        IAllowanceTransfer.PermitSingle({
+          details: IAllowanceTransfer.PermitDetails({
+            token: params.path[0],
+            amount: (uint160)(params.amountIn),
+            expiration: (uint48)(params.deadline),
+            nonce: (uint48)(permit.nonce)
+          }),
+          spender: address(this),
+          sigDeadline: (uint256)(params.deadline)
+        }),
+        permit.signature
+      );
+
+      // Transfer tokens from msg.sender to the first pool
+      s.permit2.transferFrom(msg.sender, pairs[0], (uint160)(params.amountIn), params.path[0]);
     }
 
-    // From https://github.com/Uniswap/v2-periphery/blob/master/contracts/UniswapV2Router02.sol
+    // https://github.com/Uniswap/v2-periphery/blob/master/contracts/UniswapV2Router02.sol
     for (uint index; index < pathLengthMinusOne; ) {
       uint256 indexPlusOne = index + 1;
       bool zeroForOne = params.path[index] < params.path[indexPlusOne] ? true : false;
