@@ -6,10 +6,22 @@ import { enableMultipleChains } from 'src/utils/featureFlags';
 import { SUPPORTED_CHAINS } from 'src/utils/chains';
 import { useSwitchNetwork } from 'wagmi';
 import type { SelectedChain } from 'src/providers/SelectedChainProvider';
+import { useAddNetwork } from 'src/hooks/useAddNetwork';
 
 const NetworkSelector: React.FC = () => {
   const { selectedChain, setSelectedChain } = useSelectedChain();
-  const { switchNetwork } = useSwitchNetwork();
+  const { addNetwork } = useAddNetwork();
+  const { switchNetwork } = useSwitchNetwork({
+    onError: async error => {
+      if (error?.name.includes('ChainNotConfiguredForConnectorError')) {
+        await addNetwork(selectedChain);
+
+        if (!switchNetwork) return;
+
+        switchNetwork(selectedChain.id);
+      }
+    },
+  });
 
   const chains = enableMultipleChains
     ? Object.values(SUPPORTED_CHAINS)
