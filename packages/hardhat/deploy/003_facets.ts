@@ -62,6 +62,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
         calldata: initContract.interface.encodeFunctionData('init', [
           addresses.uniswapV2Router02,
           addresses.uniswapV2Factory,
+          addresses.permit2,
         ]),
       };
     },
