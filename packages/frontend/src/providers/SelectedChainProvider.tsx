@@ -2,9 +2,11 @@ import React, { createContext, useState, useContext } from 'react';
 import { SUPPORTED_CHAINS } from 'src/utils/chains';
 import { Chain } from 'wagmi';
 
+type SelectedChain = Chain & { icon: string };
+
 type SelectedChainContextType = {
-  selectedChain: Chain & { icon: string };
-  setSelectedChain: React.Dispatch<React.SetStateAction<Chain & { icon: string }>>;
+  selectedChain: SelectedChain;
+  setSelectedChain: React.Dispatch<React.SetStateAction<SelectedChain>>;
 };
 
 const SelectedChainContext = createContext<SelectedChainContextType | undefined>(undefined);
@@ -28,3 +30,4 @@ const useSelectedChain = (): SelectedChainContextType => {
 };
 
 export { SelectedChainProvider, useSelectedChain };
+export type { SelectedChain };

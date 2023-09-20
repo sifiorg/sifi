@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useWatch, useForm, useFormContext } from 'react-hook-form';
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
-import { mainnet } from 'viem/chains';
 import { showToast, ShiftInput } from '@sifi/shared-ui';
 import { useTokens } from 'src/hooks/useTokens';
 import { useTokenBalance } from 'src/hooks/useTokenBalance';
