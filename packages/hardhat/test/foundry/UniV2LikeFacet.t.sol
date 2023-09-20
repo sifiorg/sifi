@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 import 'forge-std/Test.sol';
 import {FacetTest} from './helpers/FacetTest.sol';
@@ -10,8 +10,12 @@ import {UniV2LikeFacet} from 'contracts/facets/UniV2LikeFacet.sol';
 import {InitLibWarp} from 'contracts/init/InitLibWarp.sol';
 import {Errors} from 'contracts/libraries/Errors.sol';
 import {IUniswapV2Factory} from 'contracts/interfaces/external/IUniswapV2Factory.sol';
+import {IPermit2} from 'contracts/interfaces/external/IPermit2.sol';
+import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransfer.sol';
+import {PermitParams} from 'contracts/libraries/PermitParams.sol';
+import {PermitSignature} from './helpers/PermitSignature.sol';
 
-contract UniV2LikeFacetTestBase is FacetTest {
+contract UniV2LikeFacetTestBase is FacetTest, PermitSignature {
   event CollectedFee(
     address indexed partner,
     address indexed token,
@@ -20,12 +24,20 @@ contract UniV2LikeFacetTestBase is FacetTest {
   );
 
   IUniV2Like internal facet;
+  IPermit2 internal permit2;
   uint48 internal deadline;
-  address internal USER = makeAddr('User');
+  uint256 internal USER_PRIV;
+  address internal USER;
   address internal PARTNER = makeAddr('Partner');
+
+  IAllowanceTransfer.PermitSingle emptyPermit;
+  bytes emptyPermitSig;
+  PermitParams emptyPermitParams;
 
   function setUpOn(uint256 chainId, uint256 blockNumber) internal override {
     super.setUpOn(chainId, blockNumber);
+
+    (USER, USER_PRIV) = makeAddrAndKey('User');
 
     IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](1);
 
@@ -40,12 +52,29 @@ contract UniV2LikeFacetTestBase is FacetTest {
     IDiamondCut(address(diamond)).diamondCut(
       facetCuts,
       address(new InitLibWarp()),
-      abi.encodeWithSelector(InitLibWarp.init.selector, Addresses.weth(chainId))
+      abi.encodeWithSelector(InitLibWarp.init.selector, Addresses.weth(chainId), Addresses.PERMIT2)
     );
 
     facet = IUniV2Like(address(diamond));
 
+    permit2 = IPermit2(Addresses.PERMIT2);
+
     deadline = (uint48)(block.timestamp + 1000);
+
+    emptyPermit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(0),
+        amount: 0,
+        expiration: deadline,
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    emptyPermitSig = getPermitSignature(emptyPermit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
+
+    emptyPermitParams = PermitParams({nonce: emptyPermit.details.nonce, signature: emptyPermitSig});
   }
 
   function getPair(
@@ -89,7 +118,8 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
         tokenOut: address(Mainnet.USDC),
         pool: pool,
         poolFeeBps: 30
-      })
+      }),
+      emptyPermitParams
     );
   }
 
@@ -114,7 +144,22 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
     uint256 expectedSwapOut = 1234;
     uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
 
-    Mainnet.DAI.approve(address(facet), 2000 ether);
+    // NOTE: Uniswaps deployed Permit2 contract. Expect that some users already
+    // have approved it for USDC
+    Mainnet.DAI.approve(address(Addresses.PERMIT2), 2000 ether);
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.DAI),
+        amount: 2000 ether,
+        expiration: deadline,
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     facet.uniswapV2LikeExactInput(
       IUniV2Like.ExactInputParams({
@@ -128,7 +173,8 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
         tokens: tokens,
         pools: pools,
         poolFeesBps: poolFeesBps
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
     assertEq(Mainnet.WBTC.balanceOf(USER), expectedSwapOut - expectedFee);
@@ -157,7 +203,8 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
         tokenOut: address(Mainnet.USDT),
         pool: pool,
         poolFeeBps: 25
-      })
+      }),
+      emptyPermitParams
     );
   }
 
@@ -186,7 +233,22 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
     uint256 expectedSwapOut = 6737074;
     uint256 expectedFee = 0;
 
-    Mainnet.DAI.approve(address(facet), 2000 ether);
+    // NOTE: Uniswaps deployed Permit2 contract. Expect that some users already
+    // have approved it for USDC
+    Mainnet.DAI.approve(address(Addresses.PERMIT2), 2000 ether);
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.DAI),
+        amount: 2000 ether,
+        expiration: deadline,
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     facet.uniswapV2LikeExactInput(
       IUniV2Like.ExactInputParams({
@@ -200,7 +262,8 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
         tokens: tokens,
         pools: pools,
         poolFeesBps: poolFeesBps
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
     assertEq(Mainnet.WBTC.balanceOf(USER), expectedSwapOut - expectedFee);
@@ -233,7 +296,8 @@ contract UniV2LikeFacetArbitrumTest is UniV2LikeFacetTestBase {
         tokenOut: 0xaf88d065e77c8cC2239327C5EDb3A432268e5831,
         pool: pool,
         poolFeeBps: 0x1e
-      })
+      }),
+      emptyPermitParams
     );
 
     assertApproxEqRel(Arbitrum.USDC.balanceOf(USER), 130346515, 0.05 ether);

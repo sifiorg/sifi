@@ -2,12 +2,14 @@
 pragma solidity 0.8.19;
 
 import {IWETH} from '@uniswap/v2-periphery/contracts/interfaces/IWETH.sol';
+import {IPermit2} from '../interfaces/external/IPermit2.sol';
 
 library LibWarp {
   bytes32 constant DIAMOND_STORAGE_SLOT = keccak256('diamond.storage.LibWarp');
 
   struct State {
     IWETH weth;
+    IPermit2 permit2;
   }
 
   function state() internal pure returns (State storage s) {

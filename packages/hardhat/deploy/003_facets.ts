@@ -81,7 +81,10 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
 
       return {
         address: initDeployment.address,
-        calldata: initContract.interface.encodeFunctionData('init', [addresses.weth]),
+        calldata: initContract.interface.encodeFunctionData('init', [
+          addresses.weth,
+          addresses.permit2,
+        ]),
       };
     },
   };
