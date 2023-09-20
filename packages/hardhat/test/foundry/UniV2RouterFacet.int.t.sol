@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 import 'forge-std/Test.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {FacetTest} from './helpers/FacetTest.sol';
-import {Mainnet} from './helpers/Networks.sol';
+import {Addresses, Mainnet} from './helpers/Networks.sol';
 import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
 import {IUniV2Router} from 'contracts/interfaces/IUniV2Router.sol';
 import {UniV2RouterFacet} from 'contracts/facets/UniV2RouterFacet.sol';
@@ -13,16 +13,22 @@ import {IKitty} from 'contracts/interfaces/IKitty.sol';
 import {KittyFacet} from 'contracts/facets/KittyFacet.sol';
 import {LibKitty} from 'contracts/libraries/LibKitty.sol';
 import {Errors} from 'contracts/libraries/Errors.sol';
+import {IPermit2} from 'contracts/interfaces/external/IPermit2.sol';
+import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransfer.sol';
+import {PermitParams} from 'contracts/libraries/PermitParams.sol';
+import {PermitSignature} from './helpers/PermitSignature.sol';
 
-contract UniV2RouterIntegrationTest is FacetTest {
+contract UniV2RouterIntegrationTest is FacetTest, PermitSignature {
   event PartnerWithdraw(address indexed partner, address indexed token, uint256 amount);
 
   address PARTNER = address(0xdeadbeef9023480492001);
-  address USER = makeAddr('USER');
+  uint256 USER_PRIV;
+  address USER;
   address VAULT = makeAddr('VAULT');
 
   IUniV2Router internal uniV2Router;
   IKitty internal kitty;
+  IPermit2 internal permit2;
 
   uint256 private deadline;
 
@@ -30,6 +36,8 @@ contract UniV2RouterIntegrationTest is FacetTest {
     vm.createSelectFork(StdChains.getChain(1).rpcUrl, 17853419);
 
     super.setUp();
+
+    (USER, USER_PRIV) = makeAddrAndKey('USER');
 
     deadline = block.timestamp + 1000;
 
@@ -56,12 +64,14 @@ contract UniV2RouterIntegrationTest is FacetTest {
       abi.encodeWithSelector(
         InitUniV2Router.init.selector,
         Mainnet.UNISWAP_V2_ROUTER_02_ADDR,
-        Mainnet.UNISWAP_V2_FACTORY_ADDR
+        Mainnet.UNISWAP_V2_FACTORY_ADDR,
+        Addresses.PERMIT2
       )
     );
 
     kitty = IKitty(address(diamond));
     uniV2Router = IUniV2Router(address(diamond));
+    permit2 = IPermit2(Addresses.PERMIT2);
   }
 
   function testFork_swapEthForUsdc() public {
@@ -70,6 +80,23 @@ contract UniV2RouterIntegrationTest is FacetTest {
     path[1] = address(Mainnet.USDC);
 
     deal(USER, 1 ether);
+
+    IAllowanceTransfer.PermitSingle memory emptyPermit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(0),
+        amount: 0,
+        expiration: (uint48)(deadline),
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory emptyPermitSig = getPermitSignature(
+      emptyPermit,
+      USER_PRIV,
+      permit2.DOMAIN_SEPARATOR()
+    );
 
     vm.prank(USER);
 
@@ -83,7 +110,8 @@ contract UniV2RouterIntegrationTest is FacetTest {
         deadline: (uint48)(deadline),
         partner: PARTNER,
         path: path
-      })
+      }),
+      PermitParams({nonce: emptyPermit.details.nonce, signature: emptyPermitSig})
     );
 
     // From Swap event log
@@ -123,7 +151,20 @@ contract UniV2RouterIntegrationTest is FacetTest {
 
     vm.startPrank(USER);
 
-    Mainnet.USDC.approve(address(diamond), 2000 * (10 ** 6));
+    Mainnet.USDC.approve(address(Addresses.PERMIT2), 2000 * (10 ** 6));
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.USDC),
+        amount: 2000 * (10 ** 6),
+        expiration: (uint48)(deadline),
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     uniV2Router.uniswapV2ExactInput(
       IUniV2Router.ExactInputParams({
@@ -135,7 +176,8 @@ contract UniV2RouterIntegrationTest is FacetTest {
         deadline: (uint48)(deadline),
         partner: PARTNER,
         path: path
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
     vm.stopPrank();
@@ -175,7 +217,20 @@ contract UniV2RouterIntegrationTest is FacetTest {
     // approve and swap as user
     vm.startPrank(USER);
 
-    Mainnet.USDC.approve(address(diamond), 2000 * (10 ** 6));
+    Mainnet.USDC.approve(address(Addresses.PERMIT2), 2000 * (10 ** 6));
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.USDC),
+        amount: 2000 * (10 ** 6),
+        expiration: (uint48)(deadline),
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     uniV2Router.uniswapV2ExactInput(
       IUniV2Router.ExactInputParams({
@@ -187,7 +242,8 @@ contract UniV2RouterIntegrationTest is FacetTest {
         deadline: (uint48)(deadline),
         partner: PARTNER,
         path: path
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
     vm.stopPrank();

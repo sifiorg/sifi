@@ -3,18 +3,22 @@ pragma solidity 0.8.19;
 
 import 'forge-std/Test.sol';
 import {FacetTest} from './helpers/FacetTest.sol';
-import {Mainnet} from './helpers/Networks.sol';
+import {Addresses, Mainnet} from './helpers/Networks.sol';
 import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
 import {IUniV2Router} from 'contracts/interfaces/IUniV2Router.sol';
 import {UniV2RouterFacet} from 'contracts/facets/UniV2RouterFacet.sol';
 import {InitUniV2Router} from 'contracts/init/InitUniV2Router.sol';
 import {Errors} from 'contracts/libraries/Errors.sol';
+import {IPermit2} from 'contracts/interfaces/external/IPermit2.sol';
+import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransfer.sol';
+import {PermitParams} from 'contracts/libraries/PermitParams.sol';
+import {PermitSignature} from './helpers/PermitSignature.sol';
 
 /**
  * @notice assertApproxRelEq is used in this test with a tolerance of 0.05 ether which equals to 5%
  */
 
-contract UniV2RouterFacetTest is FacetTest {
+contract UniV2RouterFacetTest is FacetTest, PermitSignature {
   event CollectedFee(
     address indexed partner,
     address indexed token,
@@ -23,14 +27,22 @@ contract UniV2RouterFacetTest is FacetTest {
   );
 
   IUniV2Router internal facet;
+  IPermit2 permit2;
   uint256 private deadline;
-  address USER = makeAddr('USER');
+  uint256 USER_PRIV;
+  address USER;
   address PARTNER = makeAddr('PARTNER');
+
+  IAllowanceTransfer.PermitSingle emptyPermit;
+  bytes emptyPermitSig;
+  PermitParams emptyPermitParams;
 
   function setUp() public override {
     vm.createSelectFork(StdChains.getChain(1).rpcUrl, 17853419);
 
     super.setUp();
+
+    (USER, USER_PRIV) = makeAddrAndKey('USER');
 
     IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](1);
 
@@ -48,13 +60,31 @@ contract UniV2RouterFacetTest is FacetTest {
       abi.encodeWithSelector(
         InitUniV2Router.init.selector,
         Mainnet.UNISWAP_V2_ROUTER_02_ADDR,
-        Mainnet.UNISWAP_V2_FACTORY_ADDR
+        Mainnet.UNISWAP_V2_FACTORY_ADDR,
+        Addresses.PERMIT2
       )
     );
 
     facet = IUniV2Router(address(diamond));
 
+    permit2 = IPermit2(Addresses.PERMIT2);
+
     deadline = block.timestamp + 1000;
+
+    emptyPermit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(0),
+        amount: 0,
+        expiration: (uint48)(deadline),
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    emptyPermitSig = getPermitSignature(emptyPermit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
+
+    emptyPermitParams = PermitParams({nonce: emptyPermit.details.nonce, signature: emptyPermitSig});
   }
 
   function testFork_uniswapV2ExactInputSingle_EthForUsdc_PositiveSlippage() public {
@@ -72,7 +102,8 @@ contract UniV2RouterFacetTest is FacetTest {
         partner: address(0),
         tokenIn: address(0),
         tokenOut: address(Mainnet.USDC)
-      })
+      }),
+      emptyPermitParams
     );
 
     assertApproxEqRel(Mainnet.USDC.balanceOf(USER), 1830 * (10 ** 6), 0.05 ether);
@@ -97,7 +128,8 @@ contract UniV2RouterFacetTest is FacetTest {
         partner: PARTNER,
         tokenIn: address(0),
         tokenOut: address(Mainnet.USDC)
-      })
+      }),
+      emptyPermitParams
     );
 
     assertApproxEqRel(Mainnet.USDC.balanceOf(USER), 1830 * (10 ** 6), 0.05 ether);
@@ -109,7 +141,20 @@ contract UniV2RouterFacetTest is FacetTest {
 
     vm.startPrank(USER);
 
-    Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
+    Mainnet.USDC.approve(address(Addresses.PERMIT2), 2000 * (10 ** 6));
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.USDC),
+        amount: 2000 * (10 ** 6),
+        expiration: (uint48)(deadline),
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     facet.uniswapV2ExactInputSingle(
       IUniV2Router.ExactInputSingleParams({
@@ -122,7 +167,8 @@ contract UniV2RouterFacetTest is FacetTest {
         partner: address(0),
         tokenIn: address(Mainnet.USDC),
         tokenOut: address(Mainnet.DAI)
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
     assertApproxEqRel(Mainnet.DAI.balanceOf(USER), 2000 * (10 ** 18), 0.05 ether);
@@ -133,7 +179,20 @@ contract UniV2RouterFacetTest is FacetTest {
 
     vm.startPrank(USER);
 
-    Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
+    Mainnet.USDC.approve(address(Addresses.PERMIT2), 2000 * (10 ** 6));
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.USDC),
+        amount: 2000 * (10 ** 6),
+        expiration: (uint48)(deadline),
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     vm.expectEmit(true, true, true, false);
     emit CollectedFee(PARTNER, address(Mainnet.DAI), 2 * (10 ** 18), 2 * (10 ** 18));
@@ -149,7 +208,8 @@ contract UniV2RouterFacetTest is FacetTest {
         partner: PARTNER,
         tokenIn: address(Mainnet.USDC),
         tokenOut: address(Mainnet.DAI)
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
     assertApproxEqRel(Mainnet.DAI.balanceOf(USER), 2000 * (10 ** 18), 0.05 ether);
@@ -165,7 +225,20 @@ contract UniV2RouterFacetTest is FacetTest {
 
     vm.startPrank(USER);
 
-    Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
+    Mainnet.USDC.approve(address(Addresses.PERMIT2), 2000 * (10 ** 6));
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.USDC),
+        amount: 2000 * (10 ** 6),
+        expiration: (uint48)(deadline),
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     facet.uniswapV2ExactInputSingle(
       IUniV2Router.ExactInputSingleParams({
@@ -178,7 +251,8 @@ contract UniV2RouterFacetTest is FacetTest {
         partner: address(0),
         tokenIn: address(Mainnet.USDC),
         tokenOut: address(0)
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
     assertApproxEqRel(USER.balance, 1.08 ether, 0.05 ether);
@@ -190,7 +264,20 @@ contract UniV2RouterFacetTest is FacetTest {
 
     vm.startPrank(USER);
 
-    Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
+    Mainnet.USDC.approve(address(Addresses.PERMIT2), 2000 * (10 ** 6));
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.USDC),
+        amount: 2000 * (10 ** 6),
+        expiration: (uint48)(deadline),
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     vm.expectEmit(true, true, true, false);
     emit CollectedFee(PARTNER, address(Mainnet.WETH), 0.004 ether, 0.004 ether);
@@ -206,7 +293,8 @@ contract UniV2RouterFacetTest is FacetTest {
         partner: PARTNER,
         tokenIn: address(Mainnet.USDC),
         tokenOut: address(0)
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
     assertApproxEqRel(USER.balance, 1.08 ether, 0.05 ether);
@@ -225,7 +313,20 @@ contract UniV2RouterFacetTest is FacetTest {
     uint256 expectedSwapOut = 1991846446632959177237;
     uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
 
-    Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
+    Mainnet.USDC.approve(address(Addresses.PERMIT2), 2000 * (10 ** 6));
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.USDC),
+        amount: 2000 * (10 ** 6),
+        expiration: (uint48)(deadline),
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     vm.expectEmit(true, true, true, true);
     emit CollectedFee(address(0), address(Mainnet.DAI), 2 * 0, expectedFee);
@@ -240,7 +341,8 @@ contract UniV2RouterFacetTest is FacetTest {
         deadline: (uint48)(deadline),
         partner: address(0),
         path: path
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
     assertEq(Mainnet.DAI.balanceOf(USER), expectedSwapOut - expectedFee);
@@ -259,7 +361,20 @@ contract UniV2RouterFacetTest is FacetTest {
     uint256 expectedSwapOut = 1234;
     uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
 
-    Mainnet.DAI.approve(address(facet), 2000 ether);
+    Mainnet.DAI.approve(address(Addresses.PERMIT2), 2000 ether);
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.DAI),
+        amount: 2000 ether,
+        expiration: (uint48)(deadline),
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     // vm.expectEmit(true, true, true, true);
     // emit CollectedFee(address(0), address(Mainnet.DAI), 0, expectedFee);
@@ -274,7 +389,8 @@ contract UniV2RouterFacetTest is FacetTest {
         deadline: (uint48)(deadline),
         partner: address(0),
         path: path
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
     assertEq(Mainnet.WBTC.balanceOf(USER), expectedSwapOut - expectedFee);
@@ -292,7 +408,20 @@ contract UniV2RouterFacetTest is FacetTest {
     uint256 expectedSwapOut = 1086115131221856519;
     uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
 
-    Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
+    Mainnet.USDC.approve(address(Addresses.PERMIT2), 2000 * (10 ** 6));
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.USDC),
+        amount: 2000 * (10 ** 6),
+        expiration: (uint48)(deadline),
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     vm.expectEmit(true, true, true, true);
     emit CollectedFee(address(0), address(Mainnet.WETH), 2 * 0, expectedFee);
@@ -307,7 +436,8 @@ contract UniV2RouterFacetTest is FacetTest {
         deadline: (uint48)(deadline),
         partner: address(0),
         path: path
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
     assertEq(USER.balance, expectedSwapOut - expectedFee);
@@ -338,7 +468,8 @@ contract UniV2RouterFacetTest is FacetTest {
         deadline: (uint48)(deadline),
         partner: address(0),
         path: path
-      })
+      }),
+      emptyPermitParams
     );
 
     assertEq(Mainnet.DAI.balanceOf(USER), expectedSwapOut - expectedFee);
@@ -358,7 +489,20 @@ contract UniV2RouterFacetTest is FacetTest {
     uint256 expectedSwapOut = 1991846446632959177237;
     uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
 
-    Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
+    Mainnet.USDC.approve(address(Addresses.PERMIT2), 2000 * (10 ** 6));
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.USDC),
+        amount: 2000 * (10 ** 6),
+        expiration: (uint48)(deadline),
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     vm.expectEmit(true, true, true, true);
     emit CollectedFee(address(0), address(Mainnet.DAI), 2 * 0, expectedFee);
@@ -373,7 +517,8 @@ contract UniV2RouterFacetTest is FacetTest {
         deadline: (uint48)(deadline),
         partner: address(0),
         path: path
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
     assertEq(Mainnet.DAI.balanceOf(recipient), expectedSwapOut - expectedFee);
@@ -389,9 +534,21 @@ contract UniV2RouterFacetTest is FacetTest {
     vm.startPrank(USER);
 
     uint256 expectedSwapOut = 1991846446632959177237;
-    uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
 
-    Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
+    Mainnet.USDC.approve(address(Addresses.PERMIT2), 2000 * (10 ** 6));
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.USDC),
+        amount: 2000 * (10 ** 6),
+        expiration: (uint48)(deadline),
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     vm.expectRevert(abi.encodeWithSelector(Errors.InsufficientOutputAmount.selector));
 
@@ -405,7 +562,8 @@ contract UniV2RouterFacetTest is FacetTest {
         deadline: (uint48)(deadline),
         partner: address(0),
         path: path
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
   }
 
@@ -419,9 +577,21 @@ contract UniV2RouterFacetTest is FacetTest {
     vm.startPrank(USER);
 
     uint256 expectedSwapOut = 1991846446632959177237;
-    uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
 
-    Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
+    Mainnet.USDC.approve(address(Addresses.PERMIT2), 2000 * (10 ** 6));
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.USDC),
+        amount: 2000 * (10 ** 6),
+        expiration: (uint48)(deadline),
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     vm.expectRevert(abi.encodeWithSelector(Errors.DeadlineExpired.selector));
 
@@ -435,7 +605,8 @@ contract UniV2RouterFacetTest is FacetTest {
         deadline: (uint48)(block.timestamp - 1),
         partner: address(0),
         path: path
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
   }
 
@@ -461,7 +632,8 @@ contract UniV2RouterFacetTest is FacetTest {
         partner: address(0),
         tokenIn: address(0),
         tokenOut: address(Mainnet.DAI)
-      })
+      }),
+      emptyPermitParams
     );
 
     assertEq(Mainnet.DAI.balanceOf(USER), expectedSwapOut - expectedFee);
@@ -481,7 +653,8 @@ contract UniV2RouterFacetTest is FacetTest {
         partner: address(0),
         tokenIn: address(Mainnet.USDC),
         tokenOut: address(Mainnet.DAI)
-      })
+      }),
+      emptyPermitParams
     );
   }
 
@@ -491,9 +664,20 @@ contract UniV2RouterFacetTest is FacetTest {
     vm.startPrank(USER);
 
     uint256 expectedSwapOut = 1991846446632959177237;
-    uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
 
-    Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
+    Mainnet.USDC.approve(address(Addresses.PERMIT2), 2000 * (10 ** 6));
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.USDC),
+        amount: 2000 * (10 ** 6),
+        expiration: (uint48)(deadline),
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     vm.expectRevert(abi.encodeWithSelector(Errors.InsufficientOutputAmount.selector));
 
@@ -508,7 +692,8 @@ contract UniV2RouterFacetTest is FacetTest {
         partner: address(0),
         tokenIn: address(Mainnet.USDC),
         tokenOut: address(Mainnet.DAI)
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
   }
 
@@ -522,7 +707,20 @@ contract UniV2RouterFacetTest is FacetTest {
     uint256 expectedSwapOut = 1991846446632959177237;
     uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
 
-    Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
+    Mainnet.USDC.approve(address(Addresses.PERMIT2), 2000 * (10 ** 6));
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.USDC),
+        amount: 2000 * (10 ** 6),
+        expiration: (uint48)(deadline),
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     vm.expectEmit(true, true, true, true);
     emit CollectedFee(address(0), address(Mainnet.DAI), 2 * 0, expectedFee);
@@ -538,7 +736,8 @@ contract UniV2RouterFacetTest is FacetTest {
         partner: address(0),
         tokenIn: address(Mainnet.USDC),
         tokenOut: address(Mainnet.DAI)
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
     assertEq(Mainnet.DAI.balanceOf(recipient), expectedSwapOut - expectedFee);
@@ -552,7 +751,19 @@ contract UniV2RouterFacetTest is FacetTest {
     uint256 expectedSwapOut = 1086115131221856519;
     uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
 
-    Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
+    Mainnet.USDC.approve(address(Addresses.PERMIT2), 2000 * (10 ** 6));
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.USDC),
+        amount: 2000 * (10 ** 6),
+        expiration: (uint48)(deadline),
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     vm.expectEmit(true, true, true, true);
     emit CollectedFee(address(0), address(Mainnet.WETH), 2 * 0, expectedFee);
@@ -568,7 +779,8 @@ contract UniV2RouterFacetTest is FacetTest {
         partner: address(0),
         tokenIn: address(Mainnet.USDC),
         tokenOut: address(0)
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
     assertEq(USER.balance, expectedSwapOut - expectedFee);
@@ -582,7 +794,20 @@ contract UniV2RouterFacetTest is FacetTest {
     uint256 expectedSwapOut = 1991846446632959177237;
     uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
 
-    Mainnet.USDC.approve(address(facet), 2000 * (10 ** 6));
+    Mainnet.USDC.approve(address(Addresses.PERMIT2), 2000 * (10 ** 6));
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.USDC),
+        amount: 2000 * (10 ** 6),
+        expiration: (uint48)(deadline),
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     vm.expectEmit(true, true, true, true);
     emit CollectedFee(address(0), address(Mainnet.DAI), 2 * 0, expectedFee);
@@ -598,7 +823,8 @@ contract UniV2RouterFacetTest is FacetTest {
         partner: address(0),
         tokenIn: address(Mainnet.USDC),
         tokenOut: address(Mainnet.DAI)
-      })
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
     assertEq(Mainnet.DAI.balanceOf(USER), expectedSwapOut - expectedFee);
