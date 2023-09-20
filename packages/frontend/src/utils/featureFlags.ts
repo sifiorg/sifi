@@ -1,2 +1,2 @@
 export const enableUnlistedTokenTrading = false;
-export const enableMultipleChains = false;
+export const enableMultipleChains = true;
