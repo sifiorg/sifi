@@ -1,7 +1,11 @@
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.19;
+
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IWarpLink} from 'contracts/interfaces/IWarpLink.sol';
 import {WarpLink} from 'contracts/facets/WarpLink.sol';
 import {IUniswapV2Factory} from 'contracts/interfaces/external/IUniswapV2Factory.sol';
+import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransfer.sol';
 
 contract WarpLinkEncoder {
   IWarpLink public warpLink;
