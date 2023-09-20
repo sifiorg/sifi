@@ -4,12 +4,13 @@ import { ReactComponent as DownCaret } from 'src/assets/down-caret.svg';
 import { useSelectedChain } from 'src/providers/SelectedChainProvider';
 import { enableMultipleChains } from 'src/utils/featureFlags';
 import { SUPPORTED_CHAINS } from 'src/utils/chains';
-import { useSwitchNetwork } from 'wagmi';
+import { useNetwork, useSwitchNetwork } from 'wagmi';
 import type { SelectedChain } from 'src/providers/SelectedChainProvider';
 import { useAddNetwork } from 'src/hooks/useAddNetwork';
 
 const NetworkSelector: React.FC = () => {
   const { selectedChain, setSelectedChain } = useSelectedChain();
+  const { chain: activeChain } = useNetwork();
   const { addNetwork } = useAddNetwork();
   const { switchNetwork } = useSwitchNetwork({
     onError: async error => {
@@ -92,7 +93,7 @@ const NetworkSelector: React.FC = () => {
                           </div>
                           <span>{chain.name} </span>
                         </div>
-                        {selected && (
+                        {chain.id === activeChain?.id && (
                           <div>
                             <div className="w-2 h-2 bg-emerald-green rounded-full relative drop-shadow-xs-strong" />
                           </div>
