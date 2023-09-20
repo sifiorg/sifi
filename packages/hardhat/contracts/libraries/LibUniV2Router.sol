@@ -4,6 +4,7 @@ pragma solidity 0.8.19;
 import {IUniswapV2Pair} from 'contracts/interfaces/external/IUniswapV2Pair.sol';
 import {IUniswapV2Router02} from '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol';
 import {IWETH} from '@uniswap/v2-periphery/contracts/interfaces/IWETH.sol';
+import {IPermit2} from '../interfaces/external/IPermit2.sol';
 
 error InitializationFunctionReverted(address _initializationContractAddress, bytes _calldata);
 
@@ -15,6 +16,7 @@ library LibUniV2Router {
     IWETH weth;
     IUniswapV2Router02 uniswapV2router02;
     address uniswapV2Factory;
+    IPermit2 permit2;
   }
 
   function diamondStorage() internal pure returns (DiamondStorage storage s) {

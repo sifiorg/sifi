@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
+import {PermitParams} from '../libraries/PermitParams.sol';
+
 interface IUniV2Router {
   struct ExactInputParams {
     uint256 amountIn;
@@ -26,10 +28,12 @@ interface IUniV2Router {
   }
 
   function uniswapV2ExactInputSingle(
-    ExactInputSingleParams memory params
+    ExactInputSingleParams memory params,
+    PermitParams calldata permit
   ) external payable returns (uint256 amountOut);
 
   function uniswapV2ExactInput(
-    ExactInputParams memory params
+    ExactInputParams memory params,
+    PermitParams calldata permit
   ) external payable returns (uint256 amountOut);
 }
