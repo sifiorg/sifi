@@ -2,10 +2,14 @@ import { Fragment } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import { ReactComponent as DownCaret } from 'src/assets/down-caret.svg';
 import { useSelectedChain } from 'src/providers/SelectedChainProvider';
+import { enableMultipleChains } from 'src/utils/featureFlags';
 import { SUPPORTED_CHAINS } from 'src/utils';
 
 const NetworkSelector: React.FC = () => {
   const { selectedChain, setSelectedChain } = useSelectedChain();
+  const chains = enableMultipleChains
+    ? Object.values(SUPPORTED_CHAINS)
+    : Object.values(SUPPORTED_CHAINS).filter(chain => chain.id === 1);
 
   return (
     <div className="font-text relative inline-block">
@@ -41,41 +45,39 @@ const NetworkSelector: React.FC = () => {
               w-full min-w-[16rem] origin-top-right flex-col overflow-y-auto rounded-sm shadow-lg drop-shadow-xs-strong outline-none"
               aria-busy="true"
             >
-              {SUPPORTED_CHAINS && (
-                <div className="font-display bg-flashbang-white flex flex-col gap-y-2 p-6 text-sm dark:bg-darkest-gray mr-3  rounded-sm">
-                  {Object.values(SUPPORTED_CHAINS).map(chain => (
-                    <Listbox.Option
-                      key={chain.network}
-                      className={() =>
-                        `dark:text-flashbang-white text-new-black font-display block cursor-pointer text-left text-base no-underline transition`
-                      }
-                      value={chain}
-                    >
-                      {({ selected }) => (
-                        <div
-                          className={`flex rounded-xl place-items-center justify-between p-2  ${
-                            selected
-                              ? 'bg-dark-gray bg-opacity-20'
-                              : 'hover:bg-flashbang-white hover:bg-opacity-10 ease-linear transition-all'
-                          } `}
-                        >
-                          <div className="flex">
-                            <div className="mr-3">
-                              <img src={chain.icon} alt={chain.name} className="w-6" />
-                            </div>
-                            <span>{chain.network} </span>
+              <div className="font-display bg-flashbang-white flex flex-col gap-y-2 p-6 text-sm dark:bg-darkest-gray mr-3  rounded-sm">
+                {Object.values(chains).map(chain => (
+                  <Listbox.Option
+                    key={chain.network}
+                    className={() =>
+                      `dark:text-flashbang-white text-new-black font-display block cursor-pointer text-left text-base no-underline transition`
+                    }
+                    value={chain}
+                  >
+                    {({ selected }) => (
+                      <div
+                        className={`flex rounded-xl place-items-center justify-between p-2  ${
+                          selected
+                            ? 'bg-dark-gray bg-opacity-20'
+                            : 'hover:bg-flashbang-white hover:bg-opacity-10 ease-linear transition-all'
+                        } `}
+                      >
+                        <div className="flex">
+                          <div className="mr-3">
+                            <img src={chain.icon} alt={chain.name} className="w-6" />
                           </div>
-                          {selected && (
-                            <div>
-                              <div className="w-2 h-2 bg-emerald-green rounded-full relative drop-shadow-xs-strong" />
-                            </div>
-                          )}
+                          <span>{chain.network} </span>
                         </div>
-                      )}
-                    </Listbox.Option>
-                  ))}
-                </div>
-              )}
+                        {selected && (
+                          <div>
+                            <div className="w-2 h-2 bg-emerald-green rounded-full relative drop-shadow-xs-strong" />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </Listbox.Option>
+                ))}
+              </div>
             </Listbox.Options>
           </Transition>
         </div>
