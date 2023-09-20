@@ -3,7 +3,7 @@ import { Listbox, Transition } from '@headlessui/react';
 import { ReactComponent as DownCaret } from 'src/assets/down-caret.svg';
 import { useSelectedChain } from 'src/providers/SelectedChainProvider';
 import { enableMultipleChains } from 'src/utils/featureFlags';
-import { SUPPORTED_CHAINS } from 'src/utils';
+import { SUPPORTED_CHAINS } from 'src/utils/chains';
 
 const NetworkSelector: React.FC = () => {
   const { selectedChain, setSelectedChain } = useSelectedChain();
@@ -48,7 +48,7 @@ const NetworkSelector: React.FC = () => {
               <div className="font-display bg-flashbang-white flex flex-col gap-y-2 p-6 text-sm dark:bg-darkest-gray mr-3  rounded-sm">
                 {Object.values(chains).map(chain => (
                   <Listbox.Option
-                    key={chain.network}
+                    key={chain.name}
                     className={() =>
                       `dark:text-flashbang-white text-new-black font-display block cursor-pointer text-left text-base no-underline transition`
                     }
@@ -66,7 +66,7 @@ const NetworkSelector: React.FC = () => {
                           <div className="mr-3">
                             <img src={chain.icon} alt={chain.name} className="w-6" />
                           </div>
-                          <span>{chain.network} </span>
+                          <span>{chain.name} </span>
                         </div>
                         {selected && (
                           <div>
