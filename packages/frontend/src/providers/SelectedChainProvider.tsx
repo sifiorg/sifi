@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext } from 'react';
-import { Chain, mainnet } from 'wagmi';
+import { SUPPORTED_CHAINS } from 'src/utils/chains';
+import { Chain } from 'viem';
 
 type SelectedChainContextType = {
   selectedChain: Chain;
@@ -9,7 +10,7 @@ type SelectedChainContextType = {
 const SelectedChainContext = createContext<SelectedChainContextType | undefined>(undefined);
 
 const SelectedChainProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const [selectedChain, setSelectedChain] = useState(mainnet);
+  const [selectedChain, setSelectedChain] = useState(SUPPORTED_CHAINS[0]);
 
   return (
     <SelectedChainContext.Provider value={{ selectedChain, setSelectedChain }}>
