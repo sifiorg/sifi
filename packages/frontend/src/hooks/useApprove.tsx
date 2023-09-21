@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { erc20ABI, mainnet, usePublicClient, useWalletClient } from 'wagmi';
+import { erc20ABI, usePublicClient, useWalletClient } from 'wagmi';
 import { useWatch } from 'react-hook-form';
 import { MAX_ALLOWANCE } from 'src/constants';
 import { SwapFormKey } from 'src/providers/SwapFormProvider';
