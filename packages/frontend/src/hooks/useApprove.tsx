@@ -15,7 +15,7 @@ const useApprove = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { quote } = useQuote();
   const { tokens } = useTokens();
-  const approveAddress = quote?.approveAddress as `0x${string}`;
+  const approveAddress = (quote?.permit2Address || quote?.approveAddress) as `0x${string}`;
 
   const [fromTokenSymbol] = useWatch({
     name: [SwapFormKey.FromToken],
