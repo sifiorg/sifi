@@ -244,7 +244,10 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
     functionSelectors: selectors,
   }));
 
-  const cuts = [...cutsAddActions, ...cutsReplaceActions, ...cutsRemoveActions];
+  let cuts = [...cutsAddActions, ...cutsReplaceActions, ...cutsRemoveActions].map(cut => ({
+    ...cut,
+    facetName: nextFacets.find(facet => facet.address === cut.facetAddress)?.name,
+  }));
 
   if (!cuts.length) {
     console.log('Diamond cuts are already up to date');
@@ -254,11 +257,17 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
 
   console.log('Cuts:');
 
-  for (const cut of cuts) {
-    const facetName = nextFacets.find(facet => facet.address === cut.facetAddress)?.name;
+  // HACK: Do not replace the OwnershipFacet for Polygon. It's always proposed as a replacement,
+  // but fails with the error that it's being replaced with itself
+  if (network.name === 'polygon') {
+    cuts = cuts.filter(cut => cut.facetName !== 'OwnershipFacet');
+  }
 
+  for (const cut of cuts) {
     console.log(
-      `\t${actionNames[cut.action]} ${cut.facetAddress}${facetName ? ` (${facetName})` : ''}`
+      `\t${actionNames[cut.action]} ${cut.facetAddress}${
+        cut.facetName ? ` (${cut.facetName})` : ''
+      }`
     );
 
     for (const selector of cut.functionSelectors) {
