@@ -34,11 +34,9 @@ const SwitchNetworkButton = () => {
   };
 
   return (
-    <div className="mb-2">
-      <Button type="button" isLoading={isSwitchingNetwork} onClick={handleSwitchNetwork}>
-        Switch Network
-      </Button>
-    </div>
+    <Button type="button" isLoading={isSwitchingNetwork} onClick={handleSwitchNetwork}>
+      Switch Network
+    </Button>
   );
 };
 
