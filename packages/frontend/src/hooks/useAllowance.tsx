@@ -12,7 +12,7 @@ const useAllowance = () => {
   const { tokens } = useTokens();
   const { isConnected, address } = useAccount();
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  const approveAddress = quote?.approveAddress as `0x${string}`;
+  const approveAddress = (quote?.permit2Address || quote?.approveAddress) as `0x${string}`;
 
   const [fromTokenSymbol, fromAmount] = useWatch({
     name: [SwapFormKey.FromToken, SwapFormKey.FromAmount],
