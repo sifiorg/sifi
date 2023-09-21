@@ -3,10 +3,24 @@ import { useSwitchNetwork } from 'wagmi';
 import { useTokens } from 'src/hooks/useTokens';
 import { SwapFormKey } from 'src/providers/SwapFormProvider';
 import { getTokenBySymbol } from 'src/utils';
+import { useAddNetwork } from 'src/hooks/useAddNetwork';
 import { Button } from '../Button';
+import { useSelectedChain } from 'src/providers/SelectedChainProvider';
 
 const SwitchNetworkButton = () => {
-  const { switchNetwork, isLoading: isSwitchingNetwork } = useSwitchNetwork();
+  const { addNetwork } = useAddNetwork();
+  const { selectedChain } = useSelectedChain();
+  const { switchNetwork, isLoading: isSwitchingNetwork } = useSwitchNetwork({
+    onError: async error => {
+      if (error?.name.includes('ChainNotConfiguredForConnectorError')) {
+        await addNetwork(selectedChain);
+
+        if (!switchNetwork) return;
+
+        switchNetwork(selectedChain.id);
+      }
+    },
+  });
   const { tokens } = useTokens();
   const [fromTokenSymbol] = useWatch({
     name: [SwapFormKey.FromToken, SwapFormKey.ToToken, SwapFormKey.FromAmount],
