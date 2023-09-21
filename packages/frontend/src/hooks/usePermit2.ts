@@ -1,6 +1,7 @@
 // https://blog.uniswap.org/permit2-integration-guide#how-to-construct-permit2-signatures-on-the-frontend
 import { AllowanceProvider, AllowanceTransfer, type PermitSingle, MaxAllowanceTransferAmount } from '@uniswap/permit2-sdk'
 import { usePublicClient, useWalletClient } from 'wagmi';
+import { type BigNumberish } from 'ethers';
 import { publicClientToProvider, walletClientToSigner } from 'src/utils';
 import { GetSwapOptions } from '@sifi/sdk';
 
@@ -23,11 +24,12 @@ const usePermit2 = () => {
     tokenAddress: string,
     spenderAddress: string,
     nonce: number,
+    amount: BigNumberish,
   ): PermitSingle => {  
     return {
       details: {
         token: tokenAddress,
-        amount: MaxAllowanceTransferAmount,
+        amount,
         expiration: toDeadline(PERMIT_EXPIRATION),
         nonce,
       },
@@ -47,11 +49,12 @@ const usePermit2 = () => {
     return signature;
   };
 
-  type Permit2Addresses = {
+  type Permit2Inputs = {
     tokenAddress: string;
     userAddress: string;
     spenderAddress: string;
     permit2Address: string;
+    amount: BigNumberish;
   };
 
   const getPermit2Params = async ({
@@ -59,11 +62,12 @@ const usePermit2 = () => {
     userAddress,
     spenderAddress,
     permit2Address,
-  }: Permit2Addresses): Promise<Permit2Params> => {
+    amount
+  }: Permit2Inputs): Promise<Permit2Params> => {
     const allowanceProvider = new AllowanceProvider(ethersProvider, permit2Address);
     const { nonce, expiration } = await allowanceProvider.getAllowanceData(tokenAddress, userAddress, spenderAddress);
 
-    const permitSingle = constructPermitSingle(tokenAddress, spenderAddress, nonce);
+    const permitSingle = constructPermitSingle(tokenAddress, spenderAddress, nonce, amount);
 
     const signature = await signPermit2(
       permitSingle,
