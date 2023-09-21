@@ -1,15 +1,30 @@
-import EthereumIcon from '../assets/chain-icons/ethereum.svg';
-import ArbitrumIcon from '../assets/chain-icons/arbitrum.svg';
-import PolygonIcon from '../assets/chain-icons/polygon.svg';
-import OptimismIcon from '../assets/chain-icons/optimism.svg';
-import { mainnet, polygon, optimism, arbitrum } from 'viem/chains';
-import type { SelectedChain } from 'src/providers/SelectedChainProvider';
+import ethereumIcon from '../assets/chain-icons/ethereum.svg';
+import arbitrumIcon from '../assets/chain-icons/arbitrum.svg';
+import polygonIcon from '../assets/chain-icons/polygon.svg';
+import optimismIcon from '../assets/chain-icons/optimism.svg';
+import { mainnet, polygon, optimism, arbitrum, Chain } from 'viem/chains';
 
-const SUPPORTED_CHAINS: { [network: string]: SelectedChain } = {
-  mainnet: { ...mainnet, icon: EthereumIcon },
-  arbitrum: { ...arbitrum, icon: ArbitrumIcon },
-  optimism: { ...optimism, icon: OptimismIcon },
-  polygon: { ...polygon, icon: PolygonIcon },
-};
+const SUPPORTED_CHAINS: Chain[] = [
+  // The order in which the chains are displayed in the UI
+  mainnet,
+  arbitrum,
+  optimism,
+  polygon,
+];
 
-export { SUPPORTED_CHAINS };
+function getChainIcon(chainId: number) {
+  switch (chainId) {
+    case mainnet.id:
+      return ethereumIcon;
+    case arbitrum.id:
+      return arbitrumIcon;
+    case optimism.id:
+      return optimismIcon;
+    case polygon.id:
+      return polygonIcon;
+    default:
+      return '';
+  }
+}
+
+export { SUPPORTED_CHAINS, getChainIcon };

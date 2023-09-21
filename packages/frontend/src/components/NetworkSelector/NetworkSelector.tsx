@@ -3,9 +3,8 @@ import { Listbox, Transition } from '@headlessui/react';
 import { ReactComponent as DownCaret } from 'src/assets/down-caret.svg';
 import { useSelectedChain } from 'src/providers/SelectedChainProvider';
 import { enableMultipleChains } from 'src/utils/featureFlags';
-import { SUPPORTED_CHAINS } from 'src/utils/chains';
-import { useNetwork, useSwitchNetwork } from 'wagmi';
-import type { SelectedChain } from 'src/providers/SelectedChainProvider';
+import { SUPPORTED_CHAINS, getChainIcon } from 'src/utils/chains';
+import { Chain, useNetwork, useSwitchNetwork } from 'wagmi';
 import { useAddNetwork } from 'src/hooks/useAddNetwork';
 
 const NetworkSelector: React.FC = () => {
@@ -28,7 +27,7 @@ const NetworkSelector: React.FC = () => {
     ? Object.values(SUPPORTED_CHAINS)
     : Object.values(SUPPORTED_CHAINS).filter(chain => chain.id === 1);
 
-  const handleChange = (chain: SelectedChain) => {
+  const handleChange = (chain: Chain) => {
     setSelectedChain(chain);
 
     if (!switchNetwork) return;
@@ -47,7 +46,7 @@ const NetworkSelector: React.FC = () => {
             aria-busy="true"
           >
             {selectedChain && (
-              <img src={selectedChain.icon} alt={selectedChain.name} className="w-6" />
+              <img src={getChainIcon(selectedChain.id)} alt={selectedChain.name} className="w-6" />
             )}
             <DownCaret
               className={`text-new-black dark:text-flashbang-white w-4
@@ -89,7 +88,7 @@ const NetworkSelector: React.FC = () => {
                       >
                         <div className="flex">
                           <div className="mr-3">
-                            <img src={chain.icon} alt={chain.name} className="w-6" />
+                            <img src={getChainIcon(chain.id)} alt={chain.name} className="w-6" />
                           </div>
                           <span>{chain.name} </span>
                         </div>

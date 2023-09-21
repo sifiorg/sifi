@@ -1,13 +1,12 @@
 import type { FC, PropsWithChildren } from 'react';
 import { WagmiConfig, configureChains, createConfig } from 'wagmi';
-import { mainnet, polygon, arbitrum, optimism } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
 import { connectors } from 'src/connectors';
+import { SUPPORTED_CHAINS } from 'src/utils/chains';
 
-const { publicClient, webSocketPublicClient } = configureChains(
-  [mainnet, polygon, arbitrum, optimism],
-  [publicProvider()]
-);
+const { publicClient, webSocketPublicClient } = configureChains(SUPPORTED_CHAINS, [
+  publicProvider(),
+]);
 
 const config = createConfig({
   autoConnect: true,

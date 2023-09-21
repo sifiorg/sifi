@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
+import { Chain } from 'viem';
 
 const useAddNetwork = () => {
-  const addNetwork = useCallback(async (chain: SelectedChain) => {
+  const addNetwork = useCallback(async (chain: Chain) => {
     const { ethereum } = window;
 
     if (ethereum && ethereum.request) {
