@@ -2,6 +2,7 @@ import ethereumIcon from '../assets/chain-icons/ethereum.svg';
 import arbitrumIcon from '../assets/chain-icons/arbitrum.svg';
 import polygonIcon from '../assets/chain-icons/polygon.svg';
 import optimismIcon from '../assets/chain-icons/optimism.svg';
+import defaultIcon from '../assets/chain-icons/default-chain.svg';
 import { mainnet, polygon, optimism, arbitrum, Chain } from 'viem/chains';
 
 const SUPPORTED_CHAINS: Chain[] = [
@@ -23,7 +24,7 @@ function getChainIcon(chainId: number) {
     case polygon.id:
       return polygonIcon;
     default:
-      return '';
+      return defaultIcon;
   }
 }
 
