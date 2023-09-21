@@ -18,6 +18,7 @@ import { SwapInformation } from '../SwapInformation';
 import { MulticallToken } from 'src/types';
 import { useMultiCallTokenBalance } from 'src/hooks/useMulticallTokenBalance';
 import { usePermit2 } from 'src/hooks/usePermit2';
+import { parseUnits } from 'viem';
 
 const CreateSwap = () => {
   useCullQueries('quote');
@@ -28,7 +29,7 @@ const CreateSwap = () => {
   const { handleSubmit } = useForm();
   const { tokens } = useTokens();
   const { balanceMap, refetch: refetchTokenBalances } = useMultiCallTokenBalance(tokens as MulticallToken[]);
-  const [fromTokenSymbol, toTokenSymbol] = useWatch({
+  const [fromTokenSymbol, toTokenSymbol, fromAmount] = useWatch({
     name: [SwapFormKey.FromToken, SwapFormKey.ToToken, SwapFormKey.FromAmount],
   });
   const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
@@ -57,6 +58,7 @@ const CreateSwap = () => {
         userAddress: address,
         spenderAddress: quote.approveAddress,
         permit2Address: quote.permit2Address,
+        amount: parseUnits(fromAmount, fromToken.decimals),
       }) : undefined;
 
       const { tx } = await sifi.getSwap({ fromAddress: address, quote, permit });
