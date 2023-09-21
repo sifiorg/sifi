@@ -2,11 +2,10 @@
 import { AllowanceProvider, AllowanceTransfer, type PermitSingle, MaxAllowanceTransferAmount } from '@uniswap/permit2-sdk'
 import { usePublicClient, useWalletClient } from 'wagmi';
 import { type BigNumberish } from 'ethers';
-import { publicClientToProvider, walletClientToSigner } from 'src/utils';
+import { publicClientToProvider, walletClientToSigner, signTypedData } from 'src/utils';
 import { GetSwapOptions } from '@sifi/sdk';
 
-const PERMIT_EXPIRATION = 1000 * 60 * 60 * 24 * 30; // 30 days in ms
-const PERMIT_SIG_EXPIRATION = 1000 * 60 * 30; // 30 minutes in ms
+const PERMIT_EXPIRATION = 1000 * 60 * 15; // 15 minutes in ms
 
 type Permit2Params = GetSwapOptions['permit'];
 
@@ -19,6 +18,7 @@ const usePermit2 = () => {
 
   // Unfortunately the permit2-sdk is built to only work with ethers.js currently
   const ethersProvider = publicClientToProvider(publicClient);
+  const deadline = toDeadline(PERMIT_EXPIRATION);
 
   const constructPermitSingle = (
     tokenAddress: string,
@@ -30,11 +30,11 @@ const usePermit2 = () => {
       details: {
         token: tokenAddress,
         amount,
-        expiration: toDeadline(PERMIT_EXPIRATION),
+        expiration: deadline,
         nonce,
       },
       spender: spenderAddress,
-      sigDeadline: toDeadline(PERMIT_SIG_EXPIRATION),
+      sigDeadline: deadline,
     };
   };
 
@@ -44,7 +44,7 @@ const usePermit2 = () => {
     const { domain, types, values } = AllowanceTransfer.getPermitData(permitSingle, permit2Address, publicClient.chain.id);
 
     const ethersSigner = walletClientToSigner(walletClient);
-    const signature = await ethersSigner._signTypedData(domain, types, values);
+    const signature = await signTypedData(ethersSigner, domain, types, values);
 
     return signature;
   };
@@ -65,7 +65,7 @@ const usePermit2 = () => {
     amount
   }: Permit2Inputs): Promise<Permit2Params> => {
     const allowanceProvider = new AllowanceProvider(ethersProvider, permit2Address);
-    const { nonce, expiration } = await allowanceProvider.getAllowanceData(tokenAddress, userAddress, spenderAddress);
+    const { nonce } = await allowanceProvider.getAllowanceData(tokenAddress, userAddress, spenderAddress);
 
     const permitSingle = constructPermitSingle(tokenAddress, spenderAddress, nonce, amount);
 
@@ -76,7 +76,7 @@ const usePermit2 = () => {
 
     return {
       nonce,
-      deadline: toDeadline(PERMIT_EXPIRATION),
+      deadline,
       signature,
     }
   }

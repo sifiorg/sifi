@@ -8,3 +8,4 @@ export * from './evm';
 export * from './isValidTokenAmount';
 export * from './getViemErrorMessage';
 export * from './viemToEthersAdapters';
+export * from './uniswapPermitSigning';
