@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity ^0.8.19;
 
 import {IWETH} from '@uniswap/v2-periphery/contracts/interfaces/IWETH.sol';
 import {IPermit2} from '../interfaces/external/IPermit2.sol';

@@ -8,3 +8,4 @@ allow_paths = ["../../node_modules"]
 
 # See https://github.com/foundry-rs/foundry/issues/4988#issuecomment-1556331314
 evm_version = 'paris'
+solc_version = '0.8.19'
