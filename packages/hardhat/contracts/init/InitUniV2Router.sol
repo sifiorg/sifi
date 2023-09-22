@@ -15,9 +15,9 @@ contract InitUniV2Router {
       s.isInitialized = true;
       s.uniswapV2router02 = IUniswapV2Router02(uniswapV2Router02);
       s.weth = IWETH(s.uniswapV2router02.WETH());
-      s.permit2 = IPermit2(permit2);
     }
 
     s.uniswapV2Factory = uniswapV2Factory;
+    s.permit2 = IPermit2(permit2);
   }
 }
