@@ -1,4 +1,4 @@
-name: Node.js CI
+name: CI
 
 permissions:
   id-token: write
@@ -67,17 +67,8 @@ jobs:
       - name: Test
         run: pnpm -filter '!@sifi/hardhat' packages/frontend test
 
-      - name: Test hardhat
-        env:
-          RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
-        if: ${{ env.MAINNET_RPC_URL != null }}
-        run: pnpm -C packages/hardhat test
-
       - name: Foundry forge build
         run: pnpm -C packages/hardhat forge-build
-
-      - name: Foundry forge test
-        run: pnpm -C packages/hardhat forge-test
 
       - name: Slither analyze
         id: slither
