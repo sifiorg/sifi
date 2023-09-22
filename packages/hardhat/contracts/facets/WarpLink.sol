@@ -17,7 +17,18 @@ import {IPermit2} from '../interfaces/external/IPermit2.sol';
 import {IAllowanceTransfer} from '../interfaces/external/IAllowanceTransfer.sol';
 import {PermitParams} from '../libraries/PermitParams.sol';
 
-contract WarpLink is IWarpLink {
+abstract contract WarpLinkCommandTypes {
+  uint256 internal constant COMMAND_TYPE_WRAP = 1;
+  uint256 internal constant COMMAND_TYPE_UNWRAP = 2;
+  uint256 internal constant COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE = 3;
+  uint256 internal constant COMMAND_TYPE_SPLIT = 4;
+  uint256 internal constant COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT = 5;
+  uint256 internal constant COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT_SINGLE = 6;
+  uint256 internal constant COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT = 7;
+  uint256 internal constant COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE = 8;
+}
+
+contract WarpLink is IWarpLink, WarpLinkCommandTypes {
   using SafeERC20 for IERC20;
   using Stream for uint256;
 
@@ -56,47 +67,6 @@ contract WarpLink is IWarpLink {
     address payer;
     address token;
     uint48 deadline;
-  }
-
-  uint256 public constant COMMAND_TYPE_WRAP = 1;
-  uint256 public constant COMMAND_TYPE_UNWRAP = 2;
-  uint256 public constant COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE = 3;
-  uint256 public constant COMMAND_TYPE_SPLIT = 4;
-  uint256 public constant COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT = 5;
-  uint256 public constant COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT_SINGLE = 6;
-  uint256 public constant COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT = 7;
-  uint256 public constant COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE = 8;
-
-  function commandTypeWrap() external pure returns (uint256) {
-    return COMMAND_TYPE_WRAP;
-  }
-
-  function commandTypeUnwrap() external pure returns (uint256) {
-    return COMMAND_TYPE_UNWRAP;
-  }
-
-  function commandTypeWarpUniV2LikeExactInputSingle() external pure returns (uint256) {
-    return COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE;
-  }
-
-  function commandTypeSplit() external pure returns (uint256) {
-    return COMMAND_TYPE_SPLIT;
-  }
-
-  function commandTypeWarpUniV2LikeExactInput() external pure returns (uint256) {
-    return COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT;
-  }
-
-  function commandTypeWarpUniV3LikeExactInputSingle() external pure returns (uint256) {
-    return COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT_SINGLE;
-  }
-
-  function commandTypeWarpUniV3LikeExactInput() external pure returns (uint256) {
-    return COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT;
-  }
-
-  function commandTypeWarpCurveExactInputSingle() external pure returns (uint256) {
-    return COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE;
   }
 
   function processSplit(
