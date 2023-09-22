@@ -40,20 +40,4 @@ interface IWarpLink {
   }
 
   function warpLinkEngage(Params memory params, PermitParams calldata permit) external payable;
-
-  function commandTypeWrap() external pure returns (uint256);
-
-  function commandTypeUnwrap() external pure returns (uint256);
-
-  function commandTypeWarpUniV2LikeExactInputSingle() external pure returns (uint256);
-
-  function commandTypeSplit() external pure returns (uint256);
-
-  function commandTypeWarpUniV2LikeExactInput() external pure returns (uint256);
-
-  function commandTypeWarpUniV3LikeExactInputSingle() external pure returns (uint256);
-
-  function commandTypeWarpUniV3LikeExactInput() external pure returns (uint256);
-
-  function commandTypeWarpCurveExactInputSingle() external pure returns (uint256);
 }
