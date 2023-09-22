@@ -1,13 +1,14 @@
 import { useState } from 'react';
+import { showToast } from '@sifi/shared-ui';
 import { useMutation } from '@tanstack/react-query';
 import { erc20ABI, usePublicClient, useWalletClient } from 'wagmi';
 import { useWatch } from 'react-hook-form';
 import { MAX_ALLOWANCE } from 'src/constants';
 import { SwapFormKey } from 'src/providers/SwapFormProvider';
-import { getTokenBySymbol } from 'src/utils';
+import { getEvmTxUrl, getTokenBySymbol } from 'src/utils';
+import { useSelectedChain } from 'src/providers/SelectedChainProvider';
 import { useQuote } from './useQuote';
 import { useTokens } from './useTokens';
-import { useSelectedChain } from 'src/providers/SelectedChainProvider';
 
 const useApprove = () => {
   const { selectedChain } = useSelectedChain();
@@ -52,6 +53,13 @@ const useApprove = () => {
     setIsApprovalModalOpen(false);
 
     await publicClient.waitForTransactionReceipt({ hash });
+    const explorerLink = getEvmTxUrl(selectedChain, hash);
+    showToast({
+      type: 'success',
+      text: `Approved ${fromTokenSymbol} for trading`,
+      link: { href: explorerLink || '', text: 'View Transaction' },
+    });
+    setIsLoading(false);
   };
 
   const mutation = useMutation(['requestApproval'], requestApproval, { retry: 0 });
