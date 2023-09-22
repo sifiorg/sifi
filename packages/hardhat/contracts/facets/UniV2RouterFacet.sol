@@ -204,7 +204,7 @@ contract UniV2RouterFacet is IUniV2Router {
       );
 
       unchecked {
-        index++;
+        ++index;
       }
     }
 
