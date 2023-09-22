@@ -132,6 +132,11 @@ const CreateSwap = () => {
   const spendableBalance = useSpendableBalance({ token: fromToken });
   const depositMax = isConnected ? spendableBalance : undefined;
 
+  const resetTokenAmounts = () => {
+    setValue(SwapFormKey.FromAmount, '');
+    setValue(SwapFormKey.ToAmount, '');
+  };
+
   useEffect(() => {
     if (tokens.length > 1) {
       setValue(fromTokenKey, tokens[0].symbol);
@@ -141,10 +146,15 @@ const CreateSwap = () => {
 
   useEffect(() => {
     if (isSameTokenPair) {
-      setValue(SwapFormKey.FromAmount, '');
-      setValue(SwapFormKey.ToAmount, '');
+      resetTokenAmounts();
     }
   }, [isSameTokenPair]);
+
+  useEffect(() => {
+    if (fromToken) {
+      setValue(SwapFormKey.FromAmount, '');
+    }
+  }, [fromToken])
 
   return (
     <div className="m:w-full py-2 sm:max-w-md">
