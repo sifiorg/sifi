@@ -86,7 +86,7 @@ const CreateSwap = () => {
         setIsLoading(false);
       },
       onSuccess: async hash => {
-        const explorerLink = getEvmTxUrl('ethereum', hash);
+        const explorerLink = getEvmTxUrl(selectedChain, hash);
 
         showToast({
           text: 'Your swap has been confirmed. Please stand by.',
