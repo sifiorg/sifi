@@ -14,11 +14,7 @@ import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransf
 import {PermitParams} from 'contracts/libraries/PermitParams.sol';
 import {PermitSignature} from './helpers/PermitSignature.sol';
 
-/**
- * @notice assertApproxRelEq is used in this test with a tolerance of 0.05 ether which equals to 5%
- */
-
-contract UniV2RouterFacetTest is FacetTest, PermitSignature {
+contract UniV2RouterFacetTestBase is FacetTest, PermitSignature {
   event CollectedFee(
     address indexed partner,
     address indexed token,
@@ -27,20 +23,18 @@ contract UniV2RouterFacetTest is FacetTest, PermitSignature {
   );
 
   IUniV2Router internal facet;
-  IPermit2 permit2;
-  uint256 private deadline;
-  uint256 USER_PRIV;
-  address USER;
-  address PARTNER = makeAddr('PARTNER');
+  IPermit2 internal permit2;
+  uint256 internal deadline;
+  uint256 internal USER_PRIV;
+  address internal USER;
+  address internal PARTNER = makeAddr('PARTNER');
 
-  IAllowanceTransfer.PermitSingle emptyPermit;
-  bytes emptyPermitSig;
-  PermitParams emptyPermitParams;
+  IAllowanceTransfer.PermitSingle internal emptyPermit;
+  bytes internal emptyPermitSig;
+  PermitParams internal emptyPermitParams;
 
-  function setUp() public override {
-    vm.createSelectFork(StdChains.getChain(1).rpcUrl, 17853419);
-
-    super.setUp();
+  function setUpOn(uint256 chainId, uint256 blockNumber) internal override {
+    super.setUpOn(chainId, blockNumber);
 
     (USER, USER_PRIV) = makeAddrAndKey('USER');
 
@@ -85,6 +79,16 @@ contract UniV2RouterFacetTest is FacetTest, PermitSignature {
     emptyPermitSig = getPermitSignature(emptyPermit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
 
     emptyPermitParams = PermitParams({nonce: emptyPermit.details.nonce, signature: emptyPermitSig});
+  }
+}
+
+/**
+ * @notice assertApproxRelEq is used in this test with a tolerance of 0.05 ether which equals to 5%
+ */
+
+contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
+  function setUp() public override {
+    super.setUpOn(1, 17853419);
   }
 
   function testFork_uniswapV2ExactInputSingle_EthForUsdc_PositiveSlippage() public {
