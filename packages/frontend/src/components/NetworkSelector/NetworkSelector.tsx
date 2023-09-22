@@ -1,40 +1,43 @@
-import { Fragment, useState } from 'react';
+import { Fragment } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import { ReactComponent as DownCaret } from 'src/assets/down-caret.svg';
-import EthereumIcon from '../../assets/chain-icons/ethereum.svg';
-// import ArbitrumIcon from '../../assets/chain-icons/arbitrum.svg';
-// import PolygonIcon from '../../assets/chain-icons/polygon.svg';
-
-// Networks are temporarily hadrcoded
-
-enum SUPPORTED_NETWORKS {
-  ethereum = 'ethereum',
-  // polygon = 'polygon',
-  // arbitrum = 'arbitrum',
-}
-
-type NetworkType = keyof typeof SUPPORTED_NETWORKS;
-
-const NETWORK_ICONS: Record<NetworkType, any> = {
-  ethereum: EthereumIcon,
-  // arbitrum: ArbitrumIcon,
-  // polygon: PolygonIcon,
-};
-
-const DEFAULT_NETWORK = SUPPORTED_NETWORKS.ethereum;
-
-const getChainIcon = (network: NetworkType) => {
-  const iconSrc = NETWORK_ICONS[network];
-
-  return iconSrc ? <img src={iconSrc} alt={network} className="w-6" /> : null;
-};
+import { useSelectedChain } from 'src/providers/SelectedChainProvider';
+import { enableMultipleChains } from 'src/utils/featureFlags';
+import { SUPPORTED_CHAINS, getChainIcon } from 'src/utils/chains';
+import { Chain, useNetwork, useSwitchNetwork } from 'wagmi';
+import { useAddNetwork } from 'src/hooks/useAddNetwork';
 
 const NetworkSelector: React.FC = () => {
-  const [selectedNetwork, setSelectedNetwork] = useState<NetworkType>(DEFAULT_NETWORK);
+  const { selectedChain, setSelectedChain } = useSelectedChain();
+  const { chain: activeChain } = useNetwork();
+  const { addNetwork } = useAddNetwork();
+  const { switchNetwork } = useSwitchNetwork({
+    onError: async error => {
+      if (error?.name.includes('ChainNotConfiguredForConnectorError')) {
+        await addNetwork(selectedChain);
+
+        if (!switchNetwork) return;
+
+        switchNetwork(selectedChain.id);
+      }
+    },
+  });
+
+  const chains = enableMultipleChains
+    ? Object.values(SUPPORTED_CHAINS)
+    : Object.values(SUPPORTED_CHAINS).filter(chain => chain.id === 1);
+
+  const handleChange = (chain: Chain) => {
+    setSelectedChain(chain);
+
+    if (!switchNetwork) return;
+
+    switchNetwork(chain.id);
+  };
 
   return (
     <div className="font-text relative inline-block">
-      <Listbox value={selectedNetwork} onChange={setSelectedNetwork}>
+      <Listbox value={selectedChain} onChange={handleChange}>
         <div className="relative pr-0 sm:pr-4">
           <Listbox.Button
             role="button"
@@ -42,8 +45,9 @@ const NetworkSelector: React.FC = () => {
             items-center gap-3 rounded-md border-0 px-4 py-2 text-sm max-[340px]:gap-3 sm:border-2 md:text-base"
             aria-busy="true"
           >
-            {selectedNetwork && getChainIcon(selectedNetwork)}
-            <span className="hidden">{selectedNetwork}</span>
+            {selectedChain && (
+              <img src={getChainIcon(selectedChain.id)} alt={selectedChain.name} className="w-6" />
+            )}
             <DownCaret
               className={`text-new-black dark:text-flashbang-white w-4
 
@@ -65,39 +69,39 @@ const NetworkSelector: React.FC = () => {
               w-full min-w-[16rem] origin-top-right flex-col overflow-y-auto rounded-sm shadow-lg drop-shadow-xs-strong outline-none"
               aria-busy="true"
             >
-              {SUPPORTED_NETWORKS && (
-                <div className="font-display bg-flashbang-white flex flex-col gap-y-2 p-6 text-sm dark:bg-darkest-gray mr-3  rounded-sm">
-                  {Object.values(SUPPORTED_NETWORKS).map(network => (
-                    <Listbox.Option
-                      key={network}
-                      className={() =>
-                        `dark:text-flashbang-white text-new-black font-display block cursor-pointer text-left text-base no-underline transition`
-                      }
-                      value={network}
-                    >
-                      {({ selected }) => (
-                        <div
-                          className={`flex rounded-xl place-items-center justify-between p-2  ${
-                            selected
-                              ? 'bg-dark-gray bg-opacity-20'
-                              : 'hover:bg-flashbang-white hover:bg-opacity-10 ease-linear transition-all'
-                          } `}
-                        >
-                          <div className="flex">
-                            <div className="mr-3">{getChainIcon(network)}</div>
-                            <span>{network} </span>
+              <div className="font-display bg-flashbang-white flex flex-col gap-y-2 p-6 text-sm dark:bg-darkest-gray mr-3  rounded-sm">
+                {Object.values(chains).map(chain => (
+                  <Listbox.Option
+                    key={chain.name}
+                    className={() =>
+                      `dark:text-flashbang-white text-new-black font-display block cursor-pointer text-left text-base no-underline transition`
+                    }
+                    value={chain}
+                  >
+                    {({ selected }) => (
+                      <div
+                        className={`flex rounded-xl place-items-center justify-between p-2  ${
+                          selected
+                            ? 'bg-dark-gray bg-opacity-20'
+                            : 'hover:bg-flashbang-white hover:bg-opacity-10 ease-linear transition-all'
+                        } `}
+                      >
+                        <div className="flex">
+                          <div className="mr-3">
+                            <img src={getChainIcon(chain.id)} alt={chain.name} className="w-6" />
                           </div>
-                          {selected && (
-                            <div>
-                              <div className="w-3 h-3 bg-emerald-green rounded-full relative drop-shadow-xs-strong" />
-                            </div>
-                          )}
+                          <span>{chain.name} </span>
                         </div>
-                      )}
-                    </Listbox.Option>
-                  ))}
-                </div>
-              )}
+                        {chain.id === activeChain?.id && (
+                          <div>
+                            <div className="w-2 h-2 bg-emerald-green rounded-full relative drop-shadow-xs-strong" />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </Listbox.Option>
+                ))}
+              </div>
             </Listbox.Options>
           </Transition>
         </div>

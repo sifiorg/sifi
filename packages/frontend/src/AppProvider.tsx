@@ -9,6 +9,7 @@ import { SDKProvider } from './providers/SDKProvider';
 import { SwapFormProvider } from './providers/SwapFormProvider';
 import { WagmiProvider } from './providers/WagmiProvider';
 import { TokensProvider } from './providers/TokensProvider';
+import { SelectedChainProvider } from './providers/SelectedChainProvider';
 
 const QueryProvider = QueryClientProvider;
 const queryClient = new QueryClient();
@@ -19,14 +20,16 @@ export const AppProvider: FC<PropsWithChildren> = ({ children }) => {
       <QueryProvider client={queryClient}>
         <AnalyticsProvider>
           <SDKProvider>
-            <TokensProvider>
-              <SwapFormProvider>
-                <WagmiProvider>
-                  {children}
-                  <CustomToastContainer />
-                </WagmiProvider>
-              </SwapFormProvider>
-            </TokensProvider>
+            <SelectedChainProvider>
+              <TokensProvider>
+                <SwapFormProvider>
+                  <WagmiProvider>
+                    {children}
+                    <CustomToastContainer />
+                  </WagmiProvider>
+                </SwapFormProvider>
+              </TokensProvider>
+            </SelectedChainProvider>
           </SDKProvider>
         </AnalyticsProvider>
         <ReactQueryDevtools initialIsOpen={false} />
