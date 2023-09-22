@@ -94,7 +94,7 @@ if (ETHERSCAN_API_KEY) {
       sepolia: ETHERSCAN_API_KEY,
       polygon: POLYGON_SCAN_API_KEY,
       arbitrumOne: ARBITRUM_SCAN_API_KEY,
-      optimism: OPTIMISM_SCAN_API_KEY,
+      optimisticEthereum: OPTIMISM_SCAN_API_KEY,
     },
   };
 }
