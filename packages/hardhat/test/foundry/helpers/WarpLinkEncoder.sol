@@ -3,11 +3,11 @@ pragma solidity 0.8.19;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IWarpLink} from 'contracts/interfaces/IWarpLink.sol';
-import {WarpLink} from 'contracts/facets/WarpLink.sol';
+import {WarpLink, WarpLinkCommandTypes} from 'contracts/facets/WarpLink.sol';
 import {IUniswapV2Factory} from 'contracts/interfaces/external/IUniswapV2Factory.sol';
 import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransfer.sol';
 
-contract WarpLinkEncoder {
+contract WarpLinkEncoder is WarpLinkCommandTypes {
   IWarpLink public warpLink;
 
   constructor() {
@@ -33,7 +33,7 @@ contract WarpLinkEncoder {
     uint16 poolFeeBps
   ) public view returns (bytes memory result) {
     result = abi.encodePacked(
-      (uint8)(warpLink.commandTypeWarpUniV2LikeExactInputSingle()),
+      (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE),
       (address)(toToken),
       (address)(getUniswapV2LikePair(factory, fromToken, toToken)),
       (uint8)(fromToken < toToken ? 1 : 0),
@@ -50,7 +50,7 @@ contract WarpLinkEncoder {
     require(tokens.length == poolFeesBps.length, 'tokens and poolFeesBps length mismatch');
 
     result = abi.encodePacked(
-      (uint8)(warpLink.commandTypeWarpUniV2LikeExactInput()),
+      (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT),
       (uint8)(pools.length)
     );
 
@@ -75,7 +75,7 @@ contract WarpLinkEncoder {
     address pool
   ) public view returns (bytes memory result) {
     result = abi.encodePacked(
-      (uint8)(warpLink.commandTypeWarpUniV3LikeExactInputSingle()),
+      (uint8)(COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT_SINGLE),
       (address)(tokenOut),
       (address)(pool)
     );

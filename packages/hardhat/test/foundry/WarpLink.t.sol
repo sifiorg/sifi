@@ -8,7 +8,7 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
 import {IUniV2Router} from 'contracts/interfaces/IUniV2Router.sol';
 import {IWarpLink} from 'contracts/interfaces/IWarpLink.sol';
-import {WarpLink} from 'contracts/facets/WarpLink.sol';
+import {WarpLink, WarpLinkCommandTypes} from 'contracts/facets/WarpLink.sol';
 import {LibKitty} from 'contracts/libraries/LibKitty.sol';
 import {InitLibWarp} from 'contracts/init/InitLibWarp.sol';
 import {IUniswapV2Factory} from 'contracts/interfaces/external/IUniswapV2Factory.sol';
@@ -21,7 +21,7 @@ import {IPermit2} from 'contracts/interfaces/external/IPermit2.sol';
 import {PermitParams} from 'contracts/libraries/PermitParams.sol';
 import {PermitSignature} from './helpers/PermitSignature.sol';
 
-contract WarpLinkTestBase is FacetTest, PermitSignature {
+contract WarpLinkTestBase is FacetTest, PermitSignature, WarpLinkCommandTypes {
   event CollectedFee(
     address indexed partner,
     address indexed token,
@@ -112,7 +112,7 @@ contract WarpLinkTest is WarpLinkTestBase {
   function testFork_Wrap() public {
     bytes memory commands = abi.encodePacked(
       (uint8)(1), // Command count
-      (uint8)(facet.COMMAND_TYPE_WRAP())
+      (uint8)(COMMAND_TYPE_WRAP)
     );
 
     vm.deal(USER, 1 ether);
@@ -138,7 +138,7 @@ contract WarpLinkTest is WarpLinkTestBase {
   function testFork_Unwrap() public {
     bytes memory commands = abi.encodePacked(
       (uint8)(1), // Command count
-      (uint8)(facet.COMMAND_TYPE_UNWRAP())
+      (uint8)(COMMAND_TYPE_UNWRAP)
     );
 
     vm.prank(USER);
@@ -237,7 +237,7 @@ contract WarpLinkTest is WarpLinkTestBase {
     bytes memory commands = bytes.concat(
       abi.encodePacked(
         (uint8)(2), // Command count
-        (uint8)(facet.COMMAND_TYPE_WRAP())
+        (uint8)(COMMAND_TYPE_WRAP)
       ),
       encoder.encodeWarpUniV2LikeExactInputSingle({
         factory: Mainnet.SUSHISWAP_V2_FACTORY,
@@ -276,13 +276,13 @@ contract WarpLinkTest is WarpLinkTestBase {
     // Wrap ETH, swap the WETH to DAI on Sushi and finally the DAI to USDC on Uniswap
     bytes memory commands = abi.encodePacked(
       (uint8)(3), // Command count
-      (uint8)(facet.COMMAND_TYPE_WRAP()),
-      (uint8)(facet.COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE()),
+      (uint8)(COMMAND_TYPE_WRAP),
+      (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE),
       (address)(Mainnet.DAI), // WarpUniV2LikeSwapSingleParams.tokenOut
       (address)(getPair(Mainnet.SUSHISWAP_V2_FACTORY, address(Mainnet.WETH), address(Mainnet.DAI))), // WarpUniV2LikeSwapSingleParams.pool
       (uint8)(address(Mainnet.WETH) < address(Mainnet.DAI) ? 1 : 0), // WarpUniV2LikeSwapSingleParams.zeroForOne
       (uint16)(30), // WarpUniV2LikeSwapSingleParams.poolFeeBps
-      (uint8)(facet.COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE()),
+      (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE),
       (address)(Mainnet.USDC), // WarpUniV2LikeSwapSingleParams.tokenOut
       (address)(
         getPair(Mainnet.UNISWAP_V2_FACTORY_ADDR, address(Mainnet.DAI), address(Mainnet.USDC))
@@ -324,16 +324,16 @@ contract WarpLinkTest is WarpLinkTestBase {
     // Split into 3 wraps
     bytes memory commands = abi.encodePacked(
       (uint8)(1), // Command count
-      (uint8)(facet.COMMAND_TYPE_SPLIT()),
+      (uint8)(COMMAND_TYPE_SPLIT),
       (uint8)(3), // 3 splits
       (uint16)(33_00), // Split 1 has 33%
       (uint8)(1), // Split 1 Command count
-      (uint8)(facet.COMMAND_TYPE_WRAP()),
+      (uint8)(COMMAND_TYPE_WRAP),
       (uint16)(33_00), // Split 2 has 33%
       (uint8)(1), // Split 3 Command count
-      (uint8)(facet.COMMAND_TYPE_WRAP()),
+      (uint8)(COMMAND_TYPE_WRAP),
       (uint8)(1), // Split 3 Command count
-      (uint8)(facet.COMMAND_TYPE_WRAP()) // Split 3 has remaining %
+      (uint8)(COMMAND_TYPE_WRAP) // Split 3 has remaining %
     );
 
     uint256 expectedSwapOut = 1 ether;
@@ -366,12 +366,12 @@ contract WarpLinkTest is WarpLinkTestBase {
     bytes memory commands = bytes.concat(
       abi.encodePacked(
         (uint8)(2), // Command count
-        (uint8)(facet.COMMAND_TYPE_WRAP()),
-        (uint8)(facet.COMMAND_TYPE_SPLIT()),
+        (uint8)(COMMAND_TYPE_WRAP),
+        (uint8)(COMMAND_TYPE_SPLIT),
         (uint8)(2), // Split count
         (uint16)(70_00), // Split 1: 70%
         (uint8)(1), // Split 1: Command count
-        (uint8)(facet.COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE()),
+        (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE),
         (address)(Mainnet.WBTC), // WarpUniV2LikeSwapSingleParams.tokenOut
         (address)(
           getPair(Mainnet.UNISWAP_V2_FACTORY_ADDR, address(Mainnet.WETH), address(Mainnet.WBTC))
@@ -381,7 +381,7 @@ contract WarpLinkTest is WarpLinkTestBase {
       ),
       abi.encodePacked(
         (uint8)(1), // Split 2: Command count
-        (uint8)(facet.COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE()),
+        (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE),
         (address)(Mainnet.WBTC), // WarpUniV2LikeSwapSingleParams.tokenOut
         (address)(
           getPair(Mainnet.SUSHISWAP_V2_FACTORY, address(Mainnet.WETH), address(Mainnet.WBTC))
@@ -429,20 +429,20 @@ contract WarpLinkTest is WarpLinkTestBase {
     bytes memory commands = bytes.concat(
       abi.encodePacked(
         (uint8)(2), // Command count
-        (uint8)(facet.COMMAND_TYPE_WRAP()),
-        (uint8)(facet.COMMAND_TYPE_SPLIT()),
+        (uint8)(COMMAND_TYPE_WRAP),
+        (uint8)(COMMAND_TYPE_SPLIT),
         (uint8)(2) // Split count
       ),
       abi.encodePacked(
         (uint16)(70_00), // Split 1: 70%
         (uint8)(1), // Split 1: Command count
-        (uint8)(facet.COMMAND_TYPE_SPLIT()),
+        (uint8)(COMMAND_TYPE_SPLIT),
         (uint8)(2) // Split count
       ),
       abi.encodePacked(
         (uint16)(50_00), // Split 1.1: 50%
         (uint8)(2), // Split 1.1: Command count
-        (uint8)(facet.COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE()),
+        (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE),
         (address)(Mainnet.USDC), // WarpUniV2LikeSwapSingleParams.tokenOut
         (address)(
           getPair(Mainnet.UNISWAP_V2_FACTORY_ADDR, address(Mainnet.WETH), address(Mainnet.USDC))
@@ -452,7 +452,7 @@ contract WarpLinkTest is WarpLinkTestBase {
       ),
       abi.encodePacked(
         // Split 1.1 second swap
-        (uint8)(facet.COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE()),
+        (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE),
         (address)(Mainnet.WBTC), // WarpUniV2LikeSwapSingleParams.tokenOut
         (address)(
           getPair(Mainnet.UNISWAP_V2_FACTORY_ADDR, address(Mainnet.USDC), address(Mainnet.WBTC))
@@ -462,7 +462,7 @@ contract WarpLinkTest is WarpLinkTestBase {
       ),
       abi.encodePacked(
         (uint8)(1), // Split 1.2: Command count
-        (uint8)(facet.COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE()),
+        (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE),
         (address)(Mainnet.WBTC), // WarpUniV2LikeSwapSingleParams.tokenOut
         (address)(
           getPair(Mainnet.UNISWAP_V2_FACTORY_ADDR, address(Mainnet.WETH), address(Mainnet.WBTC))
@@ -472,7 +472,7 @@ contract WarpLinkTest is WarpLinkTestBase {
       ),
       abi.encodePacked(
         (uint8)(1), // Split 2: Command count
-        (uint8)(facet.COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE()),
+        (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE),
         (address)(Mainnet.WBTC), // WarpUniV2LikeSwapSingleParams.tokenOut
         (address)(
           getPair(Mainnet.SUSHISWAP_V2_FACTORY, address(Mainnet.WETH), address(Mainnet.WBTC))
@@ -525,7 +525,7 @@ contract WarpLinkTest is WarpLinkTestBase {
     bytes memory commands = bytes.concat(
       abi.encodePacked(
         (uint8)(1), // Command count
-        (uint8)(facet.COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT()),
+        (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT),
         (uint8)(2), // Pool count
         (address)(Mainnet.USDT), // token 0
         (address)(Mainnet.APE), // token 1
@@ -584,7 +584,7 @@ contract WarpLinkTest is WarpLinkTestBase {
     // Swap WETH to DAI on Sushiswap V2
     bytes memory commands = abi.encodePacked(
       (uint8)(1), // Command count
-      (uint8)(facet.COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE()),
+      (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE),
       (address)(Mainnet.DAI), // WarpUniV2LikeSwapSingleParams.tokenOut
       (address)(getPair(Mainnet.SUSHISWAP_V2_FACTORY, address(Mainnet.WETH), address(Mainnet.DAI))), // WarpUniV2LikeSwapSingleParams.pool
       (uint8)(address(Mainnet.WETH) < address(Mainnet.DAI) ? 1 : 0), // WarpUniV2LikeSwapSingleParams.zeroForOne
@@ -635,7 +635,7 @@ contract WarpLinkTest is WarpLinkTestBase {
     // Swap WETH to DAI on Sushiswap V2
     bytes memory commands = abi.encodePacked(
       (uint8)(1), // Command count,
-      (uint8)(facet.COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE()),
+      (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE),
       (address)(Mainnet.DAI), // WarpUniV2LikeSwapSingleParams.tokenOut
       (address)(getPair(Mainnet.SUSHISWAP_V2_FACTORY, address(Mainnet.WETH), address(Mainnet.DAI))), // WarpUniV2LikeSwapSingleParams.pool
       (uint8)(address(Mainnet.WETH) < address(Mainnet.DAI) ? 1 : 0), // WarpUniV2LikeSwapSingleParams.zeroForOne
@@ -770,7 +770,7 @@ contract WarpLinkTest is WarpLinkTestBase {
     bytes memory commands = bytes.concat(
       abi.encodePacked(
         (uint8)(1), // Command count
-        (uint8)(facet.COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT()),
+        (uint8)(COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT),
         (uint8)(2), // Pool count
         (address)(Mainnet.USDT), // token 0
         (address)(Mainnet.WETH), // token 1
@@ -810,7 +810,7 @@ contract WarpLinkTest is WarpLinkTestBase {
   function testFork_warpCurve_EthToSteth() public {
     bytes memory commands = abi.encodePacked(
       (uint8)(1), // Command count
-      (uint8)(facet.COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE()),
+      (uint8)(COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE),
       (address)(Mainnet.STETH), // tokenOut
       (address)(0xDC24316b9AE028F1497c275EB9192a3Ea0f67022), // pool
       (uint8)(0), // i (eth)
@@ -859,7 +859,7 @@ contract WarpLinkTest is WarpLinkTestBase {
 
     bytes memory commands = abi.encodePacked(
       (uint8)(1), // Command count
-      (uint8)(facet.COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE()),
+      (uint8)(COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE),
       (address)(0), // tokenOut
       (address)(0xDC24316b9AE028F1497c275EB9192a3Ea0f67022), // pool
       (uint8)(1), // i (steth)
@@ -1102,7 +1102,7 @@ contract WarpLinkBlock18069811Test is WarpLinkTestBase {
         toToken: address(Mainnet.WETH),
         poolFeeBps: 30
       }),
-      abi.encodePacked((uint8)(facet.COMMAND_TYPE_UNWRAP()))
+      abi.encodePacked((uint8)(COMMAND_TYPE_UNWRAP))
     );
 
     // 1.2: 7.5% of split 1 will swap Uni V2 APE -> WETH on Sushi V2, unwrap
@@ -1116,19 +1116,19 @@ contract WarpLinkBlock18069811Test is WarpLinkTestBase {
         toToken: address(Mainnet.WETH),
         poolFeeBps: 30
       }),
-      abi.encodePacked((uint8)(facet.COMMAND_TYPE_UNWRAP()))
+      abi.encodePacked((uint8)(COMMAND_TYPE_UNWRAP))
     );
 
     // 1: Split 1 will swap APE -> WETH -> Unwrap in two, wrap the ETH,  and then WETH to USDC on Uni V2
     bytes memory commandsSplit1 = bytes.concat(
       abi.encodePacked(
         (uint8)(3), // Command count
-        (uint8)(facet.COMMAND_TYPE_SPLIT()),
+        (uint8)(COMMAND_TYPE_SPLIT),
         (uint8)(2) // Split count
       ),
       commandsSplit1_1,
       commandsSplit1_2,
-      abi.encodePacked((uint8)(facet.COMMAND_TYPE_WRAP())),
+      abi.encodePacked((uint8)(COMMAND_TYPE_WRAP)),
       encoder.encodeWarpUniV2LikeExactInputSingle({
         factory: Mainnet.UNISWAP_V2_FACTORY_ADDR,
         fromToken: address(Mainnet.WETH),
@@ -1164,7 +1164,7 @@ contract WarpLinkBlock18069811Test is WarpLinkTestBase {
     bytes memory commands = bytes.concat(
       abi.encodePacked(
         (uint8)(1), // Command count
-        (uint8)(facet.COMMAND_TYPE_SPLIT()),
+        (uint8)(COMMAND_TYPE_SPLIT),
         (uint8)(2), // Split count,
         (uint16)(80_00) // Split %
       ),
@@ -1214,7 +1214,7 @@ contract WarpLinkPolygonTest is WarpLinkTestBase {
   function testFork_Wrap() public {
     bytes memory commands = abi.encodePacked(
       (uint8)(1), // Command count
-      (uint8)(facet.COMMAND_TYPE_WRAP())
+      (uint8)(COMMAND_TYPE_WRAP)
     );
 
     vm.deal(USER, 1 ether);
@@ -1247,7 +1247,7 @@ contract WarpLinkPolygonTest is WarpLinkTestBase {
     bytes memory commands = bytes.concat(
       abi.encodePacked(
         (uint8)(2), // Command count
-        (uint8)(facet.COMMAND_TYPE_WRAP())
+        (uint8)(COMMAND_TYPE_WRAP)
       ),
       encoder.encodeWarpUniV3LikeExactInputSingle({
         tokenOut: address(Polygon.USDC),
@@ -1284,7 +1284,7 @@ contract WarpLinkArbitrumTest is WarpLinkTestBase {
   function testFork_Wrap() public {
     bytes memory commands = abi.encodePacked(
       (uint8)(1), // Command count
-      (uint8)(facet.COMMAND_TYPE_WRAP())
+      (uint8)(COMMAND_TYPE_WRAP)
     );
 
     vm.deal(USER, 1 ether);
@@ -1317,7 +1317,7 @@ contract WarpLinkArbitrumTest is WarpLinkTestBase {
     bytes memory commands = bytes.concat(
       abi.encodePacked(
         (uint8)(2), // Command count
-        (uint8)(facet.COMMAND_TYPE_WRAP())
+        (uint8)(COMMAND_TYPE_WRAP)
       ),
       encoder.encodeWarpUniV3LikeExactInputSingle({
         tokenOut: address(Arbitrum.USDC),
@@ -1354,7 +1354,7 @@ contract WarpLinkOptimismTest is WarpLinkTestBase {
   function testFork_Wrap() public {
     bytes memory commands = abi.encodePacked(
       (uint8)(1), // Command count
-      (uint8)(facet.COMMAND_TYPE_WRAP())
+      (uint8)(COMMAND_TYPE_WRAP)
     );
 
     vm.deal(USER, 1 ether);
@@ -1387,7 +1387,7 @@ contract WarpLinkOptimismTest is WarpLinkTestBase {
     bytes memory commands = bytes.concat(
       abi.encodePacked(
         (uint8)(2), // Command count
-        (uint8)(facet.COMMAND_TYPE_WRAP())
+        (uint8)(COMMAND_TYPE_WRAP)
       ),
       encoder.encodeWarpUniV3LikeExactInputSingle({
         tokenOut: address(Optimism.USDT),
