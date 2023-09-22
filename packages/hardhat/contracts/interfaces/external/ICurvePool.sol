@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity ^0.8.19;
 
 // Kind 1
 // Example v0.2.4 tripool (stables)
