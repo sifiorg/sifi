@@ -48,7 +48,7 @@ const TokensProvider: FunctionComponent<{ children: ReactNode }> = ({ children }
   const appendTokenFetchedByAddress = async (address: `0x${string}`) => {
     const token = tokens?.find(token => token.address.toLowerCase() === address.toLowerCase());
     if (!token) {
-      const fetchedToken = await sifi.getToken(selectedChainId, address);
+      const fetchedToken = await sifi.getToken(selectedChain.id, address);
       if (fetchedToken) {
         setTokens(tokens => [...tokens, fetchedToken]);
       }
