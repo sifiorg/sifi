@@ -3,8 +3,8 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import pMap from 'p-map';
 import { DiamondCutFacet, DiamondLoupeFacet } from '../typechain-types';
 import { FacetCutAction } from '../types/diamond.t';
-import { deploy, getFunctionSelectorsFromContract, verify } from './helpers';
-import { networkAddresses } from './addresses';
+import { deploy, getFunctionSelectorsFromContract, verify } from '../deploy-helpers';
+import { networkAddresses } from '../deploy-helpers/addresses';
 
 const actionNames = Object.keys(FacetCutAction);
 

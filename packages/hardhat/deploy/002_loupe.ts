@@ -2,7 +2,7 @@ import { getNamedAccounts } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DiamondCutFacet, DiamondLoupeFacet, IDiamondCut } from '../typechain-types';
 import { FacetCutAction } from '../types/diamond.t';
-import { deploy, getFunctionSelectorsFromContract, verify } from './helpers';
+import { deploy, getFunctionSelectorsFromContract, verify } from '../deploy-helpers';
 
 /**
  * Initial addition of the loupe facet
