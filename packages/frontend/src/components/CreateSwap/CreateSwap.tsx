@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useWatch, useForm, useFormContext } from 'react-hook-form';
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
-import { mainnet } from 'viem/chains';
 import { showToast, ShiftInput } from '@sifi/shared-ui';
 import { useTokens } from 'src/hooks/useTokens';
 import { useTokenBalance } from 'src/hooks/useTokenBalance';
 import { useMutation } from '@tanstack/react-query';
 import { useSifi } from 'src/providers/SDKProvider';
-import { getEvmTxUrl, getTokenBySymbol, getViemErrorMessage, parseErrorMessage } from 'src/utils';
+import { getEvmTxUrl, getTokenBySymbol, getViemErrorMessage } from 'src/utils';
 import { SwapFormKey, SwapFormKeyHelper } from 'src/providers/SwapFormProvider';
 import { useCullQueries } from 'src/hooks/useCullQueries';
 import { useSpendableBalance } from 'src/hooks/useSpendableBalance';
@@ -19,12 +18,14 @@ import { MulticallToken } from 'src/types';
 import { useMultiCallTokenBalance } from 'src/hooks/useMulticallTokenBalance';
 import { usePermit2 } from 'src/hooks/usePermit2';
 import { parseUnits } from 'viem';
+import { useSelectedChain } from 'src/providers/SelectedChainProvider';
 
 const CreateSwap = () => {
   useCullQueries('quote');
   const { address, isConnected } = useAccount();
   const sifi = useSifi();
-  const publicClient = usePublicClient({ chainId: 1 });
+  const { selectedChain } = useSelectedChain();
+  const publicClient = usePublicClient({ chainId: selectedChain.id });
   const { data: walletClient } = useWalletClient();
   const { handleSubmit } = useForm();
   const { tokens } = useTokens();
@@ -63,7 +64,7 @@ const CreateSwap = () => {
 
       const { tx } = await sifi.getSwap({ fromAddress: address, quote, permit });
       const res = await walletClient.sendTransaction({
-        chain: mainnet,
+        chain: selectedChain,
         data: tx.data as `0x${string}`,
         account: tx.from as `0x${string}`,
         to: tx.to as `0x${string}`,

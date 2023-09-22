@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { erc20ABI, mainnet, usePublicClient, useWalletClient } from 'wagmi';
+import { erc20ABI, usePublicClient, useWalletClient } from 'wagmi';
 import { useWatch } from 'react-hook-form';
 import { MAX_ALLOWANCE } from 'src/constants';
 import { SwapFormKey } from 'src/providers/SwapFormProvider';
 import { getTokenBySymbol } from 'src/utils';
 import { useQuote } from './useQuote';
 import { useTokens } from './useTokens';
+import { useSelectedChain } from 'src/providers/SelectedChainProvider';
 
 const useApprove = () => {
+  const { selectedChain } = useSelectedChain();
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({ chainId: selectedChain.id });
   const { data: walletClient } = useWalletClient();
   const [isLoading, setIsLoading] = useState(false);
   const { quote } = useQuote();
@@ -40,7 +42,7 @@ const useApprove = () => {
     // TODO: Handle case when account already has allowance but it's not sufficient
 
     const hash = await walletClient.writeContract({
-      chain: mainnet,
+      chain: selectedChain,
       address: fromToken.address as `0x${string}`,
       abi: erc20ABI,
       functionName: 'approve',
