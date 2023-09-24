@@ -16,6 +16,7 @@ import {LibCurve} from '../libraries/LibCurve.sol';
 import {IPermit2} from '../interfaces/external/IPermit2.sol';
 import {IAllowanceTransfer} from '../interfaces/external/IAllowanceTransfer.sol';
 import {PermitParams} from '../libraries/PermitParams.sol';
+import {IStargateRouter} from '../interfaces/external/IStargateRouter.sol';
 
 abstract contract WarpLinkCommandTypes {
   uint256 internal constant COMMAND_TYPE_WRAP = 1;
@@ -26,6 +27,7 @@ abstract contract WarpLinkCommandTypes {
   uint256 internal constant COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT_SINGLE = 6;
   uint256 internal constant COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT = 7;
   uint256 internal constant COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE = 8;
+  uint256 internal constant COMMAND_TYPE_JUMP_STARGATE = 9;
 }
 
 contract WarpLink is IWarpLink, WarpLinkCommandTypes {
@@ -62,11 +64,33 @@ contract WarpLink is IWarpLink, WarpLinkCommandTypes {
     bool underlying;
   }
 
+  struct JumpStargateParams {
+    uint16 dstChainId;
+    uint256 srcPoolId;
+    uint256 dstPoolId;
+  }
+
   struct TransientState {
+    address paramPartner;
+    uint16 paramFeeBps;
+    address paramRecipient;
+    uint256 paramAmountOut;
+    uint16 paramSlippageBps;
     uint256 amount;
     address payer;
     address token;
     uint48 deadline;
+    /**
+     * 0 or 1
+     */
+    uint256 jumped;
+    /**
+     * The amount of native value not spent. The native value starts off as
+     * `msg.value - params.amount` and is decreased by spending money on jumps.
+     *
+     * Any leftover native value is returned to `msg.sender`
+     */
+    uint256 nativeValueRemaining;
   }
 
   function processSplit(
@@ -105,6 +129,10 @@ contract WarpLink is IWarpLink, WarpLinkCommandTypes {
       tPart.token = t.token;
 
       tPart = engageInternal(stream, tPart);
+
+      if (tPart.jumped == 1) {
+        revert IllegalJumpInSplit();
+      }
 
       if (partIndex == 0) {
         firstPartPayerOut = tPart.payer;
@@ -214,7 +242,7 @@ contract WarpLink is IWarpLink, WarpLinkCommandTypes {
     TransientState memory t
   ) internal returns (TransientState memory) {
     if (t.token == address(0)) {
-      revert EthNotSupportedForWarp();
+      revert NativeTokenNotSupported();
     }
 
     WarpUniV2LikeWarpSingleParams memory params;
@@ -395,7 +423,7 @@ contract WarpLink is IWarpLink, WarpLinkCommandTypes {
     params.pool = stream.readAddress();
 
     if (t.token == address(0)) {
-      revert EthNotSupportedForWarp();
+      revert NativeTokenNotSupported();
     }
 
     // NOTE: The pool is untrusted
@@ -608,6 +636,97 @@ contract WarpLink is IWarpLink, WarpLinkCommandTypes {
     return t;
   }
 
+  /**
+   * Jump to another chain using the Stargate bridge
+   *
+   * The token must not be ETH (0)
+   *
+   * After this operation, the token will be unchanged and `t.amount` will
+   * be how much was sent. `t.jumped` will be set to `1` to indicate
+   * that no more commands should be run
+   *
+   * The user may construct a command where `srcPoolId` is not for `t.token`. This is harmless
+   * because only `t.token` can be moved by Stargate.
+   *
+   * This command must not run inside of a split.
+   *
+   * A bridge fee must be paid in the native token. This fee is determined with
+   * `IStargateRouter.quoteLayerZeroFee`
+   *
+   * The value for `t.token` remains the same and is not chained.
+   *
+   * Params are read from the stream as:
+   *   - dstChainId (uint16)
+   *   - srcPoolId (uint8)
+   *   - dstPoolId (uint8)
+   */
+  function processJumpStargate(
+    uint256 stream,
+    TransientState memory t
+  ) internal returns (TransientState memory) {
+    if (t.token == address(0)) {
+      // NOTE: There is a WETH pool
+      revert NativeTokenNotSupported();
+    }
+
+    JumpStargateParams memory params;
+    params.dstChainId = stream.readUint16();
+    params.srcPoolId = stream.readUint8();
+    params.dstPoolId = stream.readUint8();
+
+    // NOTE: It is not possible to know how many tokens were delivered. Therfore positive slippage
+    // is never charged
+    t.amount = LibKitty.calculateAndRegisterFee(
+      t.paramPartner,
+      t.token,
+      t.paramFeeBps,
+      t.amount,
+      t.amount
+    );
+
+    // Enforce minimum amount/max slippage
+    if (t.amount < LibWarp.applySlippage(t.paramAmountOut, t.paramSlippageBps)) {
+      revert InsufficientOutputAmount();
+    }
+
+    if (t.token != address(0)) {
+      if (t.payer != address(this)) {
+        // Transfer tokens from the sender to this contract
+        LibWarp.state().permit2.transferFrom(t.payer, address(this), (uint160)(t.amount), t.token);
+
+        // Update the payer to this contract
+        t.payer = address(this);
+      }
+
+      // Allow Stargate to transfer the tokens
+      IERC20(t.token).forceApprove(address(LibWarp.state().stargateRouter), t.amount);
+    }
+
+    t.jumped = 1;
+
+    LibWarp.state().stargateRouter.swap{value: t.nativeValueRemaining}({
+      _dstChainId: params.dstChainId,
+      _srcPoolId: params.srcPoolId,
+      _dstPoolId: params.dstPoolId,
+      //  NOTE: There is no guarantee that `msg.sender` can handle receiving tokens/ETH
+      _refundAddress: payable(address(this)),
+      _amountLD: t.amount,
+      // Max 5% slippage
+      _minAmountLD: (t.amount * 95) / 100,
+      _lzTxParams: IStargateRouter.lzTxObj({
+        dstGasForCall: 0,
+        dstNativeAmount: 0,
+        dstNativeAddr: ''
+      }),
+      _to: abi.encodePacked(t.paramRecipient),
+      _payload: ''
+    });
+
+    t.nativeValueRemaining = 0;
+
+    return t;
+  }
+
   function engageInternal(
     uint256 stream,
     TransientState memory t
@@ -635,6 +754,12 @@ contract WarpLink is IWarpLink, WarpLinkCommandTypes {
         t = processWarpUniV3LikeExactInput(stream, t);
       } else if (commandType == COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE) {
         t = processWarpCurveExactInputSingle(stream, t);
+      } else if (commandType == COMMAND_TYPE_JUMP_STARGATE) {
+        if (commandIndex != commandCount - 1) {
+          revert JumpMustBeLastCommand();
+        }
+
+        t = processJumpStargate(stream, t);
       } else {
         revert UnhandledCommand();
       }
@@ -648,7 +773,30 @@ contract WarpLink is IWarpLink, WarpLinkCommandTypes {
       revert DeadlineExpired();
     }
 
-    if (params.tokenIn != address(0)) {
+    TransientState memory t;
+    t.paramPartner = params.partner;
+    t.paramFeeBps = params.feeBps;
+    t.paramRecipient = params.recipient;
+    t.paramAmountOut = params.amountOut;
+    t.amount = params.amountIn;
+    t.token = params.tokenIn;
+    t.deadline = params.deadline;
+
+    if (params.tokenIn == address(0)) {
+      if (msg.value < params.amountIn) {
+        revert InsufficientEthValue();
+      }
+
+      t.nativeValueRemaining = msg.value - params.amountIn;
+
+      // The ETH has already been moved to this contract
+      t.payer = address(this);
+    } else {
+      // Tokens will initially moved from the sender
+      t.payer = msg.sender;
+
+      t.nativeValueRemaining = msg.value;
+
       // Permit tokens / set allowance
       LibWarp.state().permit2.permit(
         msg.sender,
@@ -666,31 +814,6 @@ contract WarpLink is IWarpLink, WarpLinkCommandTypes {
       );
     }
 
-    TransientState memory t;
-    t.amount = params.amountIn;
-    t.token = params.tokenIn;
-    t.deadline = params.deadline;
-
-    if (msg.value == 0) {
-      if (params.tokenIn == address(0)) {
-        revert UnexpectedValueAndTokenCombination();
-      }
-
-      // Tokens will initially moved from the sender
-      t.payer = msg.sender;
-    } else {
-      if (params.tokenIn != address(0)) {
-        revert UnexpectedValueAndTokenCombination();
-      }
-
-      if (msg.value != params.amountIn) {
-        revert IncorrectEthValue();
-      }
-
-      // The ETH has already been moved to this contract
-      t.payer = address(this);
-    }
-
     uint256 stream = Stream.createStream(params.commands);
 
     t = engageInternal(stream, t);
@@ -705,6 +828,16 @@ contract WarpLink is IWarpLink, WarpLinkCommandTypes {
     // Enforce minimum amount/max slippage
     if (amountOut < LibWarp.applySlippage(params.amountOut, params.slippageBps)) {
       revert InsufficientOutputAmount();
+    }
+
+    if (t.nativeValueRemaining > 0) {
+      // TODO: Is this the correct recipient?
+      payable(msg.sender).transfer(t.nativeValueRemaining);
+    }
+
+    if (t.jumped == 1) {
+      // The coins have jumped away from this chain. Fees were collected before the jump
+      return;
     }
 
     // Collect fees
