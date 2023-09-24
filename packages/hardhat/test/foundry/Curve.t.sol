@@ -50,7 +50,12 @@ contract CurveTest is FacetTest, PermitSignature {
     IDiamondCut(address(diamond)).diamondCut(
       facetCuts,
       address(new InitLibWarp()),
-      abi.encodeWithSelector(InitLibWarp.init.selector, Addresses.weth(1), Addresses.PERMIT2)
+      abi.encodeWithSelector(
+        InitLibWarp.init.selector,
+        Addresses.weth(1),
+        Addresses.PERMIT2,
+        Addresses.stargateRouter(1)
+      )
     );
 
     facet = ICurve(address(diamond));

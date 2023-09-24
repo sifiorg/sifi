@@ -84,6 +84,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
         calldata: initContract.interface.encodeFunctionData('init', [
           addresses.weth,
           addresses.permit2,
+          addresses.stargateRouter ?? '0x0000000000000000000000000000000000000000',
         ]),
       };
     },
