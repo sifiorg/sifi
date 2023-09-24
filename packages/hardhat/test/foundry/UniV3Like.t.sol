@@ -53,7 +53,12 @@ abstract contract UniV3LikeTestBase is FacetTest, PermitSignature {
     IDiamondCut(address(diamond)).diamondCut(
       facetCuts,
       address(new InitLibWarp()),
-      abi.encodeWithSelector(InitLibWarp.init.selector, Addresses.weth(chainId), Addresses.PERMIT2)
+      abi.encodeWithSelector(
+        InitLibWarp.init.selector,
+        Addresses.weth(chainId),
+        Addresses.PERMIT2,
+        Addresses.stargateRouter(chainId)
+      )
     );
 
     facet = IUniV3Like(address(diamond));
