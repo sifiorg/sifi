@@ -5,7 +5,7 @@ import {PermitParams} from '../libraries/PermitParams.sol';
 
 interface IWarpLink {
   error UnhandledCommand();
-  error IncorrectEthValue();
+  error InsufficientEthValue();
   error InsufficientOutputAmount();
   error InsufficientTokensDelivered();
   error UnexpectedTokenForWrap();
@@ -15,10 +15,11 @@ interface IWarpLink {
   error NotEnoughParts();
   error InconsistentPartTokenOut();
   error InconsistentPartPayerOut();
-  error UnexpectedValueAndTokenCombination();
   error UnexpectedPayerForWrap();
-  error EthNotSupportedForWarp();
+  error NativeTokenNotSupported();
   error DeadlineExpired();
+  error IllegalJumpInSplit();
+  error JumpMustBeLastCommand();
 
   struct Params {
     address partner;

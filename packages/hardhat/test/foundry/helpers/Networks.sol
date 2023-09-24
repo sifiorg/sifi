@@ -17,12 +17,14 @@ library Mainnet {
   address public constant UNISWAP_V2_FACTORY_ADDR = 0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f;
   address public constant SUSHISWAP_V2_FACTORY = 0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac;
   address public constant PANCAKESWAP_V2_FACTORY = 0x1097053Fd2ea711dad45caCcc45EfF7548fCB362;
+  address public constant STARGATE_ROUTER_ADDR = 0x8731d54E9D02c286767d56ac03e8037C07e01e98;
 }
 
 library Arbitrum {
   uint256 public constant CHAIN_ID = 42161;
   IERC20 public constant WETH = IERC20(0x82aF49447D8a07e3bd95BD0d56f35241523fBab1);
   IERC20 public constant USDC = IERC20(0xaf88d065e77c8cC2239327C5EDb3A432268e5831);
+  address public constant STARGATE_ROUTER_ADDR = 0x53Bf833A5d6c4ddA888F69c22C88C9f356a41614;
 }
 
 library Polygon {
@@ -30,6 +32,7 @@ library Polygon {
   IERC20 public constant WMATIC = IERC20(0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270);
   IERC20 public constant USDC = IERC20(0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174);
   IERC20 public constant USDT = IERC20(0xc2132D05D31c914a87C6611C10748AEb04B58e8F);
+  address public constant STARGATE_ROUTER_ADDR = 0x45A01E4e04F14f7A4a6702c74187c5F6222033cd;
 }
 
 library Optimism {
@@ -37,6 +40,17 @@ library Optimism {
   IERC20 public constant WETH = IERC20(0x4200000000000000000000000000000000000006);
   IERC20 public constant USDC = IERC20(0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85);
   IERC20 public constant USDT = IERC20(0x94b008aA00579c1307B0EF2c499aD98a8ce58e58);
+  address public constant STARGATE_ROUTER_ADDR = 0x53Bf833A5d6c4ddA888F69c22C88C9f356a41614;
+}
+
+library Avalanche {
+  uint256 public constant CHAIN_ID = 43114;
+  address public constant STARGATE_ROUTER_ADDR = 0x45A01E4e04F14f7A4a6702c74187c5F6222033cd;
+}
+
+library Goerli {
+  uint256 public constant CHAIN_ID = 5;
+  address public constant STARGATE_ROUTER_ADDR = 0x7612aE2a34E5A363E137De748801FB4c86499152;
 }
 
 library Addresses {
@@ -52,7 +66,25 @@ library Addresses {
     } else if (chainId == Optimism.CHAIN_ID) {
       return Optimism.WETH;
     } else {
-      revert('Unsupported chain');
+      return IERC20(address(0));
+    }
+  }
+
+  function stargateRouter(uint256 chainId) internal pure returns (address) {
+    if (chainId == Mainnet.CHAIN_ID) {
+      return Mainnet.STARGATE_ROUTER_ADDR;
+    } else if (chainId == Optimism.CHAIN_ID) {
+      return Optimism.STARGATE_ROUTER_ADDR;
+    } else if (chainId == Avalanche.CHAIN_ID) {
+      return Avalanche.STARGATE_ROUTER_ADDR;
+    } else if (chainId == Goerli.CHAIN_ID) {
+      return Goerli.STARGATE_ROUTER_ADDR;
+    } else if (chainId == Polygon.CHAIN_ID) {
+      return Polygon.STARGATE_ROUTER_ADDR;
+    } else if (chainId == Arbitrum.CHAIN_ID) {
+      return Arbitrum.STARGATE_ROUTER_ADDR;
+    } else {
+      return address(0);
     }
   }
 }

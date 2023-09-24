@@ -14,12 +14,28 @@ import {InitLibWarp} from 'contracts/init/InitLibWarp.sol';
 import {IUniswapV2Factory} from 'contracts/interfaces/external/IUniswapV2Factory.sol';
 import {FacetTest} from './helpers/FacetTest.sol';
 import {UniV3Callback} from 'contracts/facets/UniV3Callback.sol';
-import {Addresses, Mainnet, Polygon, Arbitrum, Optimism} from './helpers/Networks.sol';
+import {Addresses, Mainnet, Polygon, Arbitrum, Optimism, Goerli} from './helpers/Networks.sol';
 import {WarpLinkEncoder} from './helpers/WarpLinkEncoder.sol';
 import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransfer.sol';
 import {IPermit2} from 'contracts/interfaces/external/IPermit2.sol';
 import {PermitParams} from 'contracts/libraries/PermitParams.sol';
 import {PermitSignature} from './helpers/PermitSignature.sol';
+
+interface IStargateRouter {
+  struct lzTxObj {
+    uint256 dstGasForCall;
+    uint256 dstNativeAmount;
+    bytes dstNativeAddr;
+  }
+
+  function quoteLayerZeroFee(
+    uint16 _dstChainId,
+    uint8 _functionType,
+    bytes calldata _toAddress,
+    bytes calldata _transferAndCallPayload,
+    lzTxObj memory _lzTxParams
+  ) external view returns (uint256, uint256);
+}
 
 contract WarpLinkTestBase is FacetTest, PermitSignature, WarpLinkCommandTypes {
   event CollectedFee(
@@ -68,7 +84,12 @@ contract WarpLinkTestBase is FacetTest, PermitSignature, WarpLinkCommandTypes {
     IDiamondCut(address(diamond)).diamondCut(
       facetCuts,
       address(initLibWarp),
-      abi.encodeWithSelector(initLibWarp.init.selector, Addresses.weth(chainId), Addresses.PERMIT2)
+      abi.encodeWithSelector(
+        initLibWarp.init.selector,
+        Addresses.weth(chainId),
+        Addresses.PERMIT2,
+        Addresses.stargateRouter(chainId)
+      )
     );
 
     facet = WarpLink(address(diamond));
@@ -1068,6 +1089,140 @@ contract WarpLinkTest is WarpLinkTestBase {
 
     assertEq(Mainnet.FRXETH.balanceOf(USER), 1000867499582465464, 'balance');
   }
+
+  function testFork_jumpStargate_EthToUsdc() public {
+    uint256 amountIn = 1 ether;
+
+    bytes memory commands = abi.encodePacked(
+      (uint8)(3), // Command count
+      (uint8)(COMMAND_TYPE_WRAP),
+      encoder.encodeWarpUniV2LikeExactInputSingle({
+        factory: Mainnet.UNISWAP_V2_FACTORY_ADDR,
+        fromToken: address(Mainnet.WETH),
+        toToken: address(Mainnet.USDC),
+        poolFeeBps: 30
+      }),
+      (uint8)(COMMAND_TYPE_JUMP_STARGATE),
+      (uint16)(106), // dstChainId (Avalanche)
+      (uint8)(1), // srcPoolId (USDC, Ethereum)
+      (uint8)(1) // dstPoolId (USDC, Avalanche)
+    );
+
+    uint256 expectedSwapOut = 1567 * (10 ** 6);
+
+    (uint256 nativeWei, ) = IStargateRouter(Mainnet.STARGATE_ROUTER_ADDR).quoteLayerZeroFee({
+      _dstChainId: 106,
+      _functionType: 1, // swap remote
+      _toAddress: abi.encodePacked(USER),
+      _transferAndCallPayload: '',
+      _lzTxParams: IStargateRouter.lzTxObj({
+        dstGasForCall: 0,
+        dstNativeAmount: 0,
+        dstNativeAddr: ''
+      })
+    });
+
+    vm.deal(USER, (amountIn + nativeWei));
+
+    console2.log('Native fee: %s', nativeWei);
+
+    vm.prank(USER);
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(0),
+        amount: uint160(amountIn),
+        expiration: deadline,
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
+
+    vm.prank(USER);
+    facet.warpLinkEngage{value: amountIn + nativeWei}(
+      IWarpLink.Params({
+        tokenIn: address(0),
+        tokenOut: address(Mainnet.USDC),
+        commands: commands,
+        amountIn: amountIn,
+        amountOut: expectedSwapOut,
+        recipient: USER,
+        partner: address(0),
+        feeBps: 0,
+        slippageBps: 0,
+        deadline: deadline
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
+    );
+  }
+
+  function testFork_jumpStargate_Usdc() public {
+    uint256 amountIn = 1000 * (10 ** 6);
+    address tokenIn = address(Mainnet.USDC);
+
+    bytes memory commands = abi.encodePacked(
+      (uint8)(1), // Command count
+      (uint8)(COMMAND_TYPE_JUMP_STARGATE),
+      (uint16)(106), // dstChainId (Avalanche)
+      (uint8)(1), // srcPoolId (USDC, Ethereum)
+      (uint8)(1) // dstPoolId (USDC, Avalanche)
+    );
+
+    uint256 expectedSwapOut = 1000 * (10 ** 6);
+
+    (uint256 nativeWei, ) = IStargateRouter(Mainnet.STARGATE_ROUTER_ADDR).quoteLayerZeroFee({
+      _dstChainId: 106,
+      _functionType: 1, // swap remote
+      _toAddress: abi.encodePacked(USER),
+      _transferAndCallPayload: '',
+      _lzTxParams: IStargateRouter.lzTxObj({
+        dstGasForCall: 0,
+        dstNativeAmount: 0,
+        dstNativeAddr: ''
+      })
+    });
+
+    vm.deal(USER, nativeWei);
+    deal(tokenIn, USER, amountIn);
+
+    console2.log('Native fee: %s', nativeWei);
+
+    vm.prank(USER);
+    IERC20(tokenIn).approve(address(Addresses.PERMIT2), amountIn);
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: tokenIn,
+        amount: uint160(amountIn),
+        expiration: deadline,
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
+
+    vm.prank(USER);
+    facet.warpLinkEngage{value: nativeWei}(
+      IWarpLink.Params({
+        tokenIn: tokenIn,
+        tokenOut: tokenIn,
+        commands: commands,
+        amountIn: amountIn,
+        amountOut: expectedSwapOut,
+        recipient: USER,
+        partner: address(0),
+        feeBps: 0,
+        slippageBps: 0,
+        deadline: deadline
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
+    );
+  }
 }
 
 contract WarpLinkBlock18069811Test is WarpLinkTestBase {
@@ -1413,5 +1568,76 @@ contract WarpLinkOptimismTest is WarpLinkTestBase {
     );
 
     assertEq(Optimism.USDT.balanceOf(USER), expectedSwapOut - expectedFee, 'after');
+  }
+}
+
+contract WarpLinkGoerliTest is WarpLinkTestBase {
+  function setUp() public override {
+    setUpOn(Goerli.CHAIN_ID, 9755539);
+  }
+
+  function testFork_jumpStargate_Usdc() public {
+    uint256 amountIn = 1000 * (10 ** 6);
+
+    // NOTE: Mock USDC from https://stargateprotocol.gitbook.io/stargate/developers/contract-addresses/testnet
+    address tokenIn = address(0xDf0360Ad8C5ccf25095Aa97ee5F2785c8d848620);
+
+    bytes memory commands = abi.encodePacked(
+      (uint8)(1), // Command count
+      (uint8)(COMMAND_TYPE_JUMP_STARGATE),
+      (uint16)(10132), // dstChainId: Optimism-Goerli
+      (uint8)(1), // srcPoolId: USDC, Ethereum-Goerli
+      (uint8)(1) // dstPoolId: USDC, Optimism-Goerli
+    );
+
+    uint256 expectedSwapOut = 1000 * (10 ** 6);
+
+    (uint256 nativeWei, ) = IStargateRouter(Goerli.STARGATE_ROUTER_ADDR).quoteLayerZeroFee({
+      _dstChainId: 10132,
+      _functionType: 1, // swap remote
+      _toAddress: abi.encodePacked(USER),
+      _transferAndCallPayload: '',
+      _lzTxParams: IStargateRouter.lzTxObj({
+        dstGasForCall: 0,
+        dstNativeAmount: 0,
+        dstNativeAddr: ''
+      })
+    });
+
+    vm.deal(USER, nativeWei);
+    deal(tokenIn, USER, amountIn);
+
+    vm.prank(USER);
+    IERC20(tokenIn).approve(address(Addresses.PERMIT2), amountIn);
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: tokenIn,
+        amount: uint160(amountIn),
+        expiration: deadline,
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
+
+    vm.prank(USER);
+    facet.warpLinkEngage{value: nativeWei}(
+      IWarpLink.Params({
+        tokenIn: tokenIn,
+        tokenOut: tokenIn,
+        commands: commands,
+        amountIn: amountIn,
+        amountOut: expectedSwapOut,
+        recipient: USER,
+        partner: address(0),
+        feeBps: 0,
+        slippageBps: 0,
+        deadline: deadline
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
+    );
   }
 }
