@@ -57,8 +57,8 @@ importers:
         specifier: ^1.8.0
         version: link:../sdk
       '@sifi/shared-ui':
-        specifier: ^1.7.4
-        version: 1.7.4(@headlessui/react@1.7.11)(date-fns@2.29.3)(react-dom@18.2.0)(react-hook-form@7.43.1)(react-router-dom@6.0.1)(react@18.2.0)(viem@1.9.0)(wagmi@1.3.10)
+        specifier: ^1.7.5
+        version: 1.7.5(@headlessui/react@1.7.11)(date-fns@2.29.3)(react-dom@18.2.0)(react-hook-form@7.43.1)(react-router-dom@6.0.1)(react@18.2.0)(viem@1.9.0)(wagmi@1.3.10)
       '@tanstack/react-query':
         specifier: ^4.13.0
         version: 4.28.0(react-dom@18.2.0)(react@18.2.0)
@@ -5544,8 +5544,8 @@ packages:
       tslib: 1.14.1
     dev: true
 
-  /@sifi/shared-ui@1.7.4(@headlessui/react@1.7.11)(date-fns@2.29.3)(react-dom@18.2.0)(react-hook-form@7.43.1)(react-router-dom@6.0.1)(react@18.2.0)(viem@1.9.0)(wagmi@1.3.10):
-    resolution: {integrity: sha512-oNKZ0E5JCRklw4PvMaKsnWPNpkuL4Jfs99nPJNnJU4iGeUadEcsgzSauxXYxFf8+NxtXg3EghObRi2UYROsTNQ==}
+  /@sifi/shared-ui@1.7.5(@headlessui/react@1.7.11)(date-fns@2.29.3)(react-dom@18.2.0)(react-hook-form@7.43.1)(react-router-dom@6.0.1)(react@18.2.0)(viem@1.9.0)(wagmi@1.3.10):
+    resolution: {integrity: sha512-+aZCcKtY0LyQnYJ56bCNHW9LxD6rm6drpf7OMvYSl+lkvcNv7s/yNRNombT4tz+rLW+Qgiv2xbK+uI8CWSRHsQ==}
     peerDependencies:
       '@headlessui/react': ^1.7.3
       date-fns: 2.29.3
