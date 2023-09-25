@@ -57,8 +57,8 @@ importers:
         specifier: ^1.8.0
         version: link:../sdk
       '@sifi/shared-ui':
-        specifier: ^1.7.3
-        version: 1.7.3(@headlessui/react@1.7.11)(date-fns@2.29.3)(ethers@5.7.1)(react-dom@18.2.0)(react-hook-form@7.43.1)(react-router-dom@6.0.1)(react@18.2.0)(wagmi@1.3.10)
+        specifier: ^1.7.4
+        version: 1.7.4(@headlessui/react@1.7.11)(date-fns@2.29.3)(react-dom@18.2.0)(react-hook-form@7.43.1)(react-router-dom@6.0.1)(react@18.2.0)(viem@1.9.0)(wagmi@1.3.10)
       '@tanstack/react-query':
         specifier: ^4.13.0
         version: 4.28.0(react-dom@18.2.0)(react@18.2.0)
@@ -261,10 +261,6 @@ importers:
       solhint-plugin-prettier:
         specifier: ^0.0.5
         version: 0.0.5(prettier-plugin-solidity@1.1.3)(prettier@2.8.8)
-
-  packages/hardhat/lib/forge-std: {}
-
-  packages/hardhat/lib/forge-std/lib/ds-test: {}
 
   packages/sdk:
     devDependencies:
@@ -5548,24 +5544,23 @@ packages:
       tslib: 1.14.1
     dev: true
 
-  /@sifi/shared-ui@1.7.3(@headlessui/react@1.7.11)(date-fns@2.29.3)(ethers@5.7.1)(react-dom@18.2.0)(react-hook-form@7.43.1)(react-router-dom@6.0.1)(react@18.2.0)(wagmi@1.3.10):
-    resolution: {integrity: sha512-U88Hyxw4oR7rhqk+wglH1RqdbfEzYpXoBHyDTC+uJ/tUGysJyeO6qEklEMT2cqwEd8GUL22IvOoHOam8zaV+NQ==}
+  /@sifi/shared-ui@1.7.4(@headlessui/react@1.7.11)(date-fns@2.29.3)(react-dom@18.2.0)(react-hook-form@7.43.1)(react-router-dom@6.0.1)(react@18.2.0)(viem@1.9.0)(wagmi@1.3.10):
+    resolution: {integrity: sha512-oNKZ0E5JCRklw4PvMaKsnWPNpkuL4Jfs99nPJNnJU4iGeUadEcsgzSauxXYxFf8+NxtXg3EghObRi2UYROsTNQ==}
     peerDependencies:
       '@headlessui/react': ^1.7.3
       date-fns: 2.29.3
-      ethers: 5.7.1
       react: 18.1.0
       react-dom: 18.1.0
       react-hook-form: ^7.42.1
       react-router-dom: 6.0.1
-      wagmi: 0.7.10
+      viem: 1.9.2
+      wagmi: ^1.3.10
     dependencies:
       '@headlessui/react': 1.7.11(react-dom@18.2.0)(react@18.2.0)
       '@heroicons/react': 2.0.13(react@18.2.0)
       big.js: 6.2.1
       date-fns: 2.29.3
       debounce: 1.2.1
-      ethers: 5.7.1
       react: 18.2.0
       react-day-picker: 8.6.0(date-fns@2.29.3)(react@18.2.0)
       react-dom: 18.2.0(react@18.2.0)
@@ -5574,6 +5569,7 @@ packages:
       react-router-dom: 6.0.1(react-dom@18.2.0)(react@18.2.0)
       react-toastify: 9.0.3(react-dom@18.2.0)(react@18.2.0)
       react-tooltip: 5.7.3(react-dom@18.2.0)(react@18.2.0)
+      viem: 1.9.0(typescript@5.2.2)
       wagmi: 1.3.10(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2)(viem@1.9.0)
     dev: false
 
