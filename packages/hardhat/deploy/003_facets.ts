@@ -257,10 +257,12 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
 
   console.log('Cuts:');
 
-  // HACK: Do not replace the OwnershipFacet for Polygon. It's always proposed as a replacement,
-  // but fails with the error that it's being replaced with itself
-  if (network.name === 'polygon') {
-    cuts = cuts.filter(cut => cut.facetName !== 'OwnershipFacet');
+  // HACK: Some replacements are always proposed, but fail with the error that it's being
+  // replaced with the same selector
+  if (network.name === 'polygon' || network.name === 'goerli') {
+    cuts = cuts.filter(
+      cut => cut.facetName !== 'OwnershipFacet' && cut.facetName !== 'DiamondLoupeFacet'
+    );
   }
 
   for (const cut of cuts) {
