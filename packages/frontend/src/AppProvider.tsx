@@ -20,16 +20,16 @@ export const AppProvider: FC<PropsWithChildren> = ({ children }) => {
       <QueryProvider client={queryClient}>
         <AnalyticsProvider>
           <SDKProvider>
+            <WagmiProvider>
             <SelectedChainProvider>
               <TokensProvider>
                 <SwapFormProvider>
-                  <WagmiProvider>
                     {children}
                     <CustomToastContainer />
-                  </WagmiProvider>
                 </SwapFormProvider>
               </TokensProvider>
-            </SelectedChainProvider>
+              </SelectedChainProvider>
+            </WagmiProvider>
           </SDKProvider>
         </AnalyticsProvider>
         <ReactQueryDevtools initialIsOpen={false} />
