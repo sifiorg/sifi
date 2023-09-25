@@ -7,6 +7,12 @@ export const networkAddresses: Partial<Record<string, Partial<Record<AddressKey,
     weth: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
     permit2: '0x000000000022D473030F116dDEE9F6B43aC78BA3',
   },
+  goerli: {
+    uniswapV2Router02: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
+    uniswapV2Factory: '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f',
+    weth: '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6',
+    permit2: '0x000000000022D473030F116dDEE9F6B43aC78BA3',
+  },
   sepolia: {
     uniswapV2Router02: '0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008',
     uniswapV2Factory: '0x7E0987E5b3a30e3f2828572Bb659A548460a3003',
