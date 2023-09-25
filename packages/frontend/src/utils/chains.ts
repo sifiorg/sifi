@@ -3,7 +3,7 @@ import arbitrumIcon from '../assets/chain-icons/arbitrum.svg';
 import polygonIcon from '../assets/chain-icons/polygon.svg';
 import optimismIcon from '../assets/chain-icons/optimism.svg';
 import defaultIcon from '../assets/chain-icons/default-chain.svg';
-import { mainnet, polygon, optimism, arbitrum, sepolia, Chain } from 'viem/chains';
+import { mainnet, polygon, optimism, arbitrum, sepolia, Chain, goerli } from 'viem/chains';
 import { isTest } from './environments';
 
 const PRODUCTION_CHAINS: Chain[] = [
@@ -15,7 +15,8 @@ const PRODUCTION_CHAINS: Chain[] = [
 ];
 
 const TEST_CHAINS: Chain[] = [
-  sepolia
+  sepolia,
+  goerli,
 ];
 
 const SUPPORTED_CHAINS = isTest ? PRODUCTION_CHAINS.concat(TEST_CHAINS) : PRODUCTION_CHAINS;
