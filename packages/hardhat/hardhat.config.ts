@@ -64,6 +64,12 @@ const config = {
       accounts: { mnemonic: '' },
     },
     hardhat: {},
+    goerli: {
+      url: getNetworkUrl('goerli'),
+      accounts: { mnemonic: '' },
+      chainId: 5,
+      gasMultiplier: 2,
+    },
     sepolia: {
       url: getNetworkUrl('sepolia'),
       accounts: { mnemonic: '' },
@@ -91,6 +97,7 @@ if (ETHERSCAN_API_KEY) {
   config.etherscan = {
     apiKey: {
       mainnet: ETHERSCAN_API_KEY,
+      goerli: ETHERSCAN_API_KEY,
       sepolia: ETHERSCAN_API_KEY,
       polygon: POLYGON_SCAN_API_KEY,
       arbitrumOne: ARBITRUM_SCAN_API_KEY,
@@ -122,6 +129,13 @@ if (EVM_MNEMONIC) {
 if (DEV_MNEMONIC) {
   config.networks.hardhat = {
     ...config.networks.hardhat,
+    accounts: {
+      mnemonic: DEV_MNEMONIC,
+    },
+  };
+
+  config.networks.goerli = {
+    ...config.networks.goerli,
     accounts: {
       mnemonic: DEV_MNEMONIC,
     },
