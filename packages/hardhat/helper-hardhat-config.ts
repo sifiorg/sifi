@@ -18,6 +18,10 @@ export const NETWORK_CONFIGS: Partial<Record<string, NetworkConfig>> = {
     uniV2RouterAddress: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D', // wrong but ok for deployment testing
     blockConfirmations: 1,
   },
+  goerli: {
+    isDev: true,
+    blockConfirmations: 6,
+  },
   sepolia: {
     isDev: true,
     wethAddress: '0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9',
