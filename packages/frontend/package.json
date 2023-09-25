@@ -11,6 +11,7 @@
     "build": "tsc && vite build",
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "dev": "vite",
+    "dev:local": "REACT_APP_BACKEND_OVERRIDE=localhost vite",
     "lint": "eslint \"./src/**/*.{js,jsx,ts,tsx}\" || true",
     "preview": "vite preview",
     "storybook": "env STORYBOOK_DEV=true storybook dev -p 6006",
