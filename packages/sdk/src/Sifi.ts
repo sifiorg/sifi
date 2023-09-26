@@ -114,6 +114,13 @@ export type Token = {
   logoURI?: string;
 };
 
+export type JumpStatus = 'pending' | 'inflight' | 'success' | 'unknown';
+
+export type Jump = {
+  status: JumpStatus;
+  txhash?: string;
+};
+
 export class SifiError extends Error {
   constructor(
     message: string,
@@ -240,6 +247,16 @@ export class Sifi {
     }).toString();
 
     const response = await fetch(`${this.baseUrl}tokens?${query}`).then(handleResponse);
+
+    return response;
+  }
+
+  async getJump(txhash: string): Promise<Jump> {
+    const query = new URLSearchParams({
+      txhash,
+    });
+
+    const response = await fetch(`${this.baseUrl}jump?${query}`).then(handleResponse);
 
     return response;
   }
