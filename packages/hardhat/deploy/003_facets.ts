@@ -1,10 +1,11 @@
 import { getNamedAccounts, network } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { uniqBy } from 'lodash';
 import pMap from 'p-map';
-import { DiamondCutFacet, DiamondLoupeFacet } from '../typechain-types';
-import { FacetCutAction } from '../types/diamond.t';
 import { deploy, getFunctionSelectorsFromContract, verify } from '../deploy-helpers';
 import { networkAddresses } from '../deploy-helpers/addresses';
+import { DiamondCutFacet, DiamondLoupeFacet } from '../typechain-types';
+import { FacetCutAction } from '../types/diamond.t';
 
 const actionNames = Object.keys(FacetCutAction);
 
@@ -172,7 +173,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
   );
 
   // Init functions are only supported for added facets
-  const inits = addedFacets.map(facet => facet.init!).filter(Boolean);
+  const inits = uniqBy(addedFacets.map(facet => facet.init!).filter(Boolean), init => init.address);
 
   // Find selectors that are no longer used
   const cutsAddPerAddress = Object.entries(nextSelectorToAddress).reduce<Record<string, string[]>>(
