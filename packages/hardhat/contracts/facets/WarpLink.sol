@@ -79,7 +79,6 @@ contract WarpLink is IWarpLink, WarpLinkCommandTypes {
     uint256 amount;
     address payer;
     address token;
-    uint48 deadline;
     /**
      * 0 or 1
      */
@@ -781,7 +780,6 @@ contract WarpLink is IWarpLink, WarpLinkCommandTypes {
     t.paramSlippageBps = params.slippageBps;
     t.amount = params.amountIn;
     t.token = params.tokenIn;
-    t.deadline = params.deadline;
 
     if (params.tokenIn == address(0)) {
       if (msg.value < params.amountIn) {
