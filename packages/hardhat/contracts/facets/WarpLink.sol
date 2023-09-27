@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {LibWarp} from '../libraries/LibWarp.sol';
-import {LibKitty} from '../libraries/LibKitty.sol';
+import {LibStarVault} from '../libraries/LibStarVault.sol';
 import {Stream} from '../libraries/Stream.sol';
 import {LibUniV2Like} from '../libraries/LibUniV2Like.sol';
 import {IUniswapV2Pair} from '../interfaces/external/IUniswapV2Pair.sol';
@@ -676,7 +676,7 @@ contract WarpLink is IWarpLink, WarpLinkCommandTypes {
 
     // NOTE: It is not possible to know how many tokens were delivered. Therfore positive slippage
     // is never charged
-    t.amount = LibKitty.calculateAndRegisterFee(
+    t.amount = LibStarVault.calculateAndRegisterFee(
       t.paramPartner,
       t.token,
       t.paramFeeBps,
@@ -841,7 +841,7 @@ contract WarpLink is IWarpLink, WarpLinkCommandTypes {
     }
 
     // Collect fees
-    amountOut = LibKitty.calculateAndRegisterFee(
+    amountOut = LibStarVault.calculateAndRegisterFee(
       params.partner,
       params.tokenOut,
       params.feeBps,

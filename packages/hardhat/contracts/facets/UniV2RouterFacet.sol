@@ -7,7 +7,7 @@ import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {IUniswapV2Pair} from '../interfaces/external/IUniswapV2Pair.sol';
 import {IUniV2Router} from '../interfaces/IUniV2Router.sol';
 import {LibUniV2Router} from '../libraries/LibUniV2Router.sol';
-import {LibKitty} from '../libraries/LibKitty.sol';
+import {LibStarVault} from '../libraries/LibStarVault.sol';
 import {LibWarp} from '../libraries/LibWarp.sol';
 import {Errors} from '../libraries/Errors.sol';
 import {IUniswapV2Pair} from '../interfaces/external/IUniswapV2Pair.sol';
@@ -100,7 +100,7 @@ contract UniV2RouterFacet is IUniV2Router {
     );
 
     // NOTE: Fee is collected as WETH instead of ETH
-    amountOut = LibKitty.calculateAndRegisterFee(
+    amountOut = LibStarVault.calculateAndRegisterFee(
       params.partner,
       params.tokenOut,
       params.feeBps,
@@ -209,7 +209,7 @@ contract UniV2RouterFacet is IUniV2Router {
     }
 
     // NOTE: Fee is collected as WETH instead of ETH
-    amountOut = LibKitty.calculateAndRegisterFee(
+    amountOut = LibStarVault.calculateAndRegisterFee(
       params.partner,
       params.path[pathLengthMinusOne],
       params.feeBps,

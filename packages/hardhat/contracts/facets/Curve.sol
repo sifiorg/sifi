@@ -5,7 +5,7 @@ import {Address} from '@openzeppelin/contracts/utils/Address.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {ICurve} from '../interfaces/ICurve.sol';
-import {LibKitty} from '../libraries/LibKitty.sol';
+import {LibStarVault} from '../libraries/LibStarVault.sol';
 import {LibWarp} from '../libraries/LibWarp.sol';
 import {LibCurve} from '../libraries/LibCurve.sol';
 import {IPermit2} from '../interfaces/external/IPermit2.sol';
@@ -89,7 +89,7 @@ contract Curve is ICurve {
       revert InsufficientOutputAmount();
     }
 
-    amountOut = LibKitty.calculateAndRegisterFee(
+    amountOut = LibStarVault.calculateAndRegisterFee(
       params.partner,
       params.tokenOut,
       params.feeBps,
