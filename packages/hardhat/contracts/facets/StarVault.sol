@@ -5,18 +5,21 @@ import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {LibDiamond} from '../libraries/LibDiamond.sol';
-import {LibKitty} from '../libraries/LibKitty.sol';
+import {LibStarVault} from '../libraries/LibStarVault.sol';
 import {Errors} from '../libraries/Errors.sol';
-import {IKitty} from '../interfaces/IKitty.sol';
+import {IStarVault} from '../interfaces/IStarVault.sol';
 
-contract KittyFacet is IKitty {
+/**
+ * The StarVault estimates, collects, and tracks fees for partners
+ */
+contract StarVault is IStarVault {
   using EnumerableSet for EnumerableSet.AddressSet;
   using SafeERC20 for IERC20;
 
   error InsufficientOwnerBalance(uint256 available);
 
   function partnerTokens(address partner) external view returns (address[] memory tokens_) {
-    LibKitty.State storage s = LibKitty.state();
+    LibStarVault.State storage s = LibStarVault.state();
 
     EnumerableSet.AddressSet storage tokenSet = s.partnerTokens[partner];
     uint256 length = tokenSet.length();
@@ -29,13 +32,13 @@ contract KittyFacet is IKitty {
   }
 
   function partnerTokenBalance(address partner, address token) external view returns (uint256) {
-    LibKitty.State storage s = LibKitty.state();
+    LibStarVault.State storage s = LibStarVault.state();
 
     return s.partnerBalances[partner][token];
   }
 
   function partnerWithdraw(address token) external {
-    LibKitty.State storage s = LibKitty.state();
+    LibStarVault.State storage s = LibStarVault.state();
 
     uint256 balance = s.partnerBalances[msg.sender][token];
 
@@ -62,7 +65,7 @@ contract KittyFacet is IKitty {
   function ownerWithdraw(address token, uint256 amount, address payable to) external {
     LibDiamond.enforceIsContractOwner();
 
-    LibKitty.State storage s = LibKitty.state();
+    LibStarVault.State storage s = LibStarVault.state();
 
     uint256 partnerBalanceTotal = s.partnerBalancesTotal[token];
 

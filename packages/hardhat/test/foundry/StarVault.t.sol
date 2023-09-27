@@ -7,28 +7,28 @@ import {FacetTest} from './helpers/FacetTest.sol';
 import {Mainnet} from './helpers/Networks.sol';
 import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
 import {IUniV2Router} from 'contracts/interfaces/IUniV2Router.sol';
-import {KittyFacet} from 'contracts/facets/KittyFacet.sol';
-import {LibKitty} from 'contracts/libraries/LibKitty.sol';
+import {StarVault} from 'contracts/facets/StarVault.sol';
+import {LibStarVault} from 'contracts/libraries/LibStarVault.sol';
 
-contract KittyFacetHarness is KittyFacet {
+contract StarVaultHarness is StarVault {
   function exposed_registerCollectedFee(
     address partner,
     address token,
     uint256 amount,
     uint256 amountIn
   ) public {
-    LibKitty.registerCollectedFee(partner, token, amount, amountIn);
+    LibStarVault.registerCollectedFee(partner, token, amount, amountIn);
   }
 }
 
-contract KittyFacetTest is FacetTest {
+contract StarVaultTest is FacetTest {
   event PartnerWithdraw(address indexed partner, address indexed token, uint256 amount);
 
   address PARTNER_1 = address(0xdeadbeef9023480492001);
   address PARTNER_2 = address(0xdeadbeef9023480492002);
   address PARTNER_3 = address(0xdeadbeef9023480492003);
 
-  KittyFacetHarness internal facet;
+  StarVaultHarness internal facet;
 
   function collectFeeFromAir(address partner, address token, uint256 amount) internal {
     uint256 site = amount + 1;
@@ -48,20 +48,20 @@ contract KittyFacetTest is FacetTest {
 
     super.setUp();
 
-    // Add KittyFacet to diamond
+    // Add StarVault to diamond
     IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](1);
 
-    KittyFacetHarness kitty = new KittyFacetHarness();
+    StarVaultHarness starVault = new StarVaultHarness();
 
     facetCuts[0] = IDiamondCut.FacetCut(
-      address(kitty),
+      address(starVault),
       IDiamondCut.FacetCutAction.Add,
-      generateSelectors('KittyFacetHarness')
+      generateSelectors('StarVaultHarness')
     );
 
     IDiamondCut(address(diamond)).diamondCut(facetCuts, address(0), '');
 
-    facet = KittyFacetHarness(address(diamond));
+    facet = StarVaultHarness(address(diamond));
   }
 
   function testFork_partnerWithdrawTokens() public {

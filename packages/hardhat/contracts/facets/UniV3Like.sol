@@ -8,7 +8,7 @@ import {IWETH} from '@uniswap/v2-periphery/contracts/interfaces/IWETH.sol';
 import {IUniswapV3Pool} from '../interfaces/external/IUniswapV3Pool.sol';
 import {IUniV3Like} from '../interfaces/IUniV3Like.sol';
 import {LibUniV3Like} from '../libraries/LibUniV3Like.sol';
-import {LibKitty} from '../libraries/LibKitty.sol';
+import {LibStarVault} from '../libraries/LibStarVault.sol';
 import {LibWarp} from '../libraries/LibWarp.sol';
 import {IUniV3Callback} from './UniV3Callback.sol';
 import {IPermit2} from '../interfaces/external/IPermit2.sol';
@@ -125,7 +125,7 @@ contract UniV3Like is IUniV3Like {
     }
 
     // NOTE: Fee is collected as WETH instead of ETH
-    amountOut = LibKitty.calculateAndRegisterFee(
+    amountOut = LibStarVault.calculateAndRegisterFee(
       params.partner,
       params.tokenOut,
       params.feeBps,
@@ -258,7 +258,7 @@ contract UniV3Like is IUniV3Like {
     }
 
     // NOTE: Fee is collected as WETH instead of ETH
-    amountOut = LibKitty.calculateAndRegisterFee(
+    amountOut = LibStarVault.calculateAndRegisterFee(
       params.partner,
       params.tokens[poolLength],
       params.feeBps,

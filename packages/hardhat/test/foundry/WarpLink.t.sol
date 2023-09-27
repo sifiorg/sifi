@@ -9,7 +9,7 @@ import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
 import {IUniV2Router} from 'contracts/interfaces/IUniV2Router.sol';
 import {IWarpLink} from 'contracts/interfaces/IWarpLink.sol';
 import {WarpLink, WarpLinkCommandTypes} from 'contracts/facets/WarpLink.sol';
-import {LibKitty} from 'contracts/libraries/LibKitty.sol';
+import {LibStarVault} from 'contracts/libraries/LibStarVault.sol';
 import {InitLibWarp} from 'contracts/init/InitLibWarp.sol';
 import {IUniswapV2Factory} from 'contracts/interfaces/external/IUniswapV2Factory.sol';
 import {FacetTest} from './helpers/FacetTest.sol';
