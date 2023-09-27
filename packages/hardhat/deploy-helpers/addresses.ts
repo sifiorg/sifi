@@ -13,11 +13,11 @@ export const networkAddresses: Partial<Record<string, Partial<Record<AddressKey,
     uniswapV2Factory: '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f',
     weth: '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6',
     permit2: '0x000000000022D473030F116dDEE9F6B43aC78BA3',
-    stargateRouter: '0x7612aE2a34E5A363E137De748801FB4c86499152',
+    stargateRouter: '0x7C5B3F4865b41b9d2B6dE65fdfbB47af06AC41f0',
   },
   optimismGoerli: {
     weth: '0x4200000000000000000000000000000000000006',
-    stargateRouter: '0x95461eF0e0ecabC049a5c4a6B98Ca7B335FAF068',
+    stargateRouter: '0xb82E8737e7BA953CB4462561639f32Fd7F0974c4',
   },
   sepolia: {
     uniswapV2Router02: '0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008',

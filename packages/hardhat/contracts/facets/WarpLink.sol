@@ -17,6 +17,7 @@ import {IPermit2} from '../interfaces/external/IPermit2.sol';
 import {IAllowanceTransfer} from '../interfaces/external/IAllowanceTransfer.sol';
 import {PermitParams} from '../libraries/PermitParams.sol';
 import {IStargateRouter} from '../interfaces/external/IStargateRouter.sol';
+import {IStargateReceiver} from '../interfaces/external/IStargateReceiver.sol';
 
 abstract contract WarpLinkCommandTypes {
   uint256 internal constant COMMAND_TYPE_WRAP = 1;
@@ -30,7 +31,7 @@ abstract contract WarpLinkCommandTypes {
   uint256 internal constant COMMAND_TYPE_JUMP_STARGATE = 9;
 }
 
-contract WarpLink is IWarpLink, WarpLinkCommandTypes {
+contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
   using SafeERC20 for IERC20;
   using Stream for uint256;
 
@@ -68,6 +69,8 @@ contract WarpLink is IWarpLink, WarpLinkCommandTypes {
     uint16 dstChainId;
     uint256 srcPoolId;
     uint256 dstPoolId;
+    uint256 dstGasForCall;
+    bytes payload;
   }
 
   struct TransientState {
@@ -636,6 +639,69 @@ contract WarpLink is IWarpLink, WarpLinkCommandTypes {
   }
 
   /**
+   * Cross-chain callback from Stargate
+   *
+   * The tokens have already been received by this contract, `t.payer` is set to this contract
+   * before `sgReceive` is called by the router.
+   *
+   * The `_nonce` field is not checked since it's assumed that LayerZero will not deliver the
+   * same message more than once.
+   *
+   * The Stargate router is trusted, meaning `_token` and `amountLD` is not verified. Should the
+   * Stargate router be compromised, an attacker can drain this contract.
+   *
+   * If the payload can not be decoded, tokens are left in this contract.
+   * If execution runs out of gas, tokens are left in this contract.
+   *
+   * If an error occurs during engage, such as insufficient output amount, tokens are refunded
+   * to the recipient.
+   *
+   * See https://stargateprotocol.gitbook.io/stargate/interfaces/evm-solidity-interfaces/istargatereceiver.sol
+   */
+  function sgReceive(
+    uint16, // _srcChainId
+    bytes memory _srcAddress,
+    uint256, // _nonce
+    address _token,
+    uint256 amountLD,
+    bytes memory payload
+  ) external {
+    if (msg.sender != address(LibWarp.state().stargateRouter)) {
+      revert InvalidSgReceiverSender();
+    }
+
+    address srcAddress = abi.decode(_srcAddress, (address));
+
+    if (srcAddress != address(this)) {
+      // NOTE: This assumed that this contract is deployed at the same address on every chain
+      revert InvalidSgReceiveSrcAddress();
+    }
+
+    Params memory params = abi.decode(payload, (Params));
+
+    try
+      IWarpLink(this).warpLinkEngage(
+        Params({
+          partner: params.partner,
+          feeBps: params.feeBps,
+          slippageBps: params.slippageBps,
+          recipient: params.recipient,
+          tokenIn: _token,
+          tokenOut: params.tokenOut,
+          amountIn: amountLD,
+          amountOut: params.amountOut,
+          deadline: params.deadline,
+          commands: params.commands
+        }),
+        PermitParams({nonce: 0, signature: ''})
+      )
+    {} catch {
+      // Refund tokens to the recipient
+      IERC20(_token).safeTransfer(params.recipient, amountLD);
+    }
+  }
+
+  /**
    * Jump to another chain using the Stargate bridge
    *
    * The token must not be ETH (0)
@@ -668,20 +734,27 @@ contract WarpLink is IWarpLink, WarpLinkCommandTypes {
       revert NativeTokenNotSupported();
     }
 
+    // TODO: Does this use the same gas than (a, b, c,) = (stream.read, ...)?
     JumpStargateParams memory params;
     params.dstChainId = stream.readUint16();
     params.srcPoolId = stream.readUint8();
     params.dstPoolId = stream.readUint8();
+    params.dstGasForCall = stream.readUint32();
+    params.payload = stream.readBytes();
 
-    // NOTE: It is not possible to know how many tokens were delivered. Therfore positive slippage
-    // is never charged
-    t.amount = LibStarVault.calculateAndRegisterFee(
-      t.paramPartner,
-      t.token,
-      t.paramFeeBps,
-      t.amount,
-      t.amount
-    );
+    // If the tokens are being delivered directly to the recipient without a second
+    // WarpLink engage, the fee is charged on this chain
+    if (params.payload.length == 0) {
+      // NOTE: It is not possible to know how many tokens were delivered. Therfore positive slippage
+      // is never charged
+      t.amount = LibStarVault.calculateAndRegisterFee(
+        t.paramPartner,
+        t.token,
+        t.paramFeeBps,
+        t.amount,
+        t.amount
+      );
+    }
 
     // Enforce minimum amount/max slippage
     if (t.amount < LibWarp.applySlippage(t.paramAmountOut, t.paramSlippageBps)) {
@@ -713,12 +786,14 @@ contract WarpLink is IWarpLink, WarpLinkCommandTypes {
       // Max 5% slippage
       _minAmountLD: (t.amount * 95) / 100,
       _lzTxParams: IStargateRouter.lzTxObj({
-        dstGasForCall: 0,
+        dstGasForCall: params.dstGasForCall,
         dstNativeAmount: 0,
         dstNativeAddr: ''
       }),
-      _to: abi.encodePacked(t.paramRecipient),
-      _payload: ''
+      // NOTE: This assumes the contract is deployed at the same address on every chain.
+      // If this is not the case, a new param needs to be added with the next WarpLink address
+      _to: abi.encodePacked(params.payload.length > 0 ? address(this) : t.paramRecipient),
+      _payload: params.payload
     });
 
     t.nativeValueRemaining = 0;
@@ -775,6 +850,7 @@ contract WarpLink is IWarpLink, WarpLinkCommandTypes {
     TransientState memory t;
     t.paramPartner = params.partner;
     t.paramFeeBps = params.feeBps;
+    t.paramSlippageBps = params.slippageBps;
     t.paramRecipient = params.recipient;
     t.paramAmountOut = params.amountOut;
     t.paramSlippageBps = params.slippageBps;
@@ -797,20 +873,23 @@ contract WarpLink is IWarpLink, WarpLinkCommandTypes {
       t.nativeValueRemaining = msg.value;
 
       // Permit tokens / set allowance
-      LibWarp.state().permit2.permit(
-        msg.sender,
-        IAllowanceTransfer.PermitSingle({
-          details: IAllowanceTransfer.PermitDetails({
-            token: params.tokenIn,
-            amount: (uint160)(params.amountIn),
-            expiration: (uint48)(params.deadline),
-            nonce: (uint48)(permit.nonce)
+      // The signature is omitted when `warpLinkEngage` is called from `sgReceive`
+      if (permit.signature.length > 0) {
+        LibWarp.state().permit2.permit(
+          msg.sender,
+          IAllowanceTransfer.PermitSingle({
+            details: IAllowanceTransfer.PermitDetails({
+              token: params.tokenIn,
+              amount: (uint160)(params.amountIn),
+              expiration: (uint48)(params.deadline),
+              nonce: (uint48)(permit.nonce)
+            }),
+            spender: address(this),
+            sigDeadline: (uint256)(params.deadline)
           }),
-          spender: address(this),
-          sigDeadline: (uint256)(params.deadline)
-        }),
-        permit.signature
-      );
+          permit.signature
+        );
+      }
     }
 
     uint256 stream = Stream.createStream(params.commands);

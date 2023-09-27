@@ -20,22 +20,7 @@ import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransf
 import {IPermit2} from 'contracts/interfaces/external/IPermit2.sol';
 import {PermitParams} from 'contracts/libraries/PermitParams.sol';
 import {PermitSignature} from './helpers/PermitSignature.sol';
-
-interface IStargateRouter {
-  struct lzTxObj {
-    uint256 dstGasForCall;
-    uint256 dstNativeAmount;
-    bytes dstNativeAddr;
-  }
-
-  function quoteLayerZeroFee(
-    uint16 _dstChainId,
-    uint8 _functionType,
-    bytes calldata _toAddress,
-    bytes calldata _transferAndCallPayload,
-    lzTxObj memory _lzTxParams
-  ) external view returns (uint256, uint256);
-}
+import {IStargateRouter} from './helpers/IStargateRouter.sol';
 
 contract WarpLinkTestBase is FacetTest, PermitSignature, WarpLinkCommandTypes {
   event CollectedFee(
@@ -1105,7 +1090,9 @@ contract WarpLinkTest is WarpLinkTestBase {
       (uint8)(COMMAND_TYPE_JUMP_STARGATE),
       (uint16)(106), // dstChainId (Avalanche)
       (uint8)(1), // srcPoolId (USDC, Ethereum)
-      (uint8)(1) // dstPoolId (USDC, Avalanche)
+      (uint8)(1), // dstPoolId (USDC, Avalanche)
+      uint32(0), // dstGasForCall
+      uint256(0) // payload length
     );
 
     uint256 expectedSwapOut = 1567 * (10 ** 6);
@@ -1168,7 +1155,9 @@ contract WarpLinkTest is WarpLinkTestBase {
       (uint8)(COMMAND_TYPE_JUMP_STARGATE),
       (uint16)(106), // dstChainId (Avalanche)
       (uint8)(1), // srcPoolId (USDC, Ethereum)
-      (uint8)(1) // dstPoolId (USDC, Avalanche)
+      (uint8)(1), // dstPoolId (USDC, Avalanche)
+      uint32(0), // dstGasForCall
+      uint256(0) // payload length
     );
 
     uint256 expectedSwapOut = 1000 * (10 ** 6);
@@ -1222,6 +1211,118 @@ contract WarpLinkTest is WarpLinkTestBase {
       }),
       PermitParams({nonce: permit.details.nonce, signature: sig})
     );
+  }
+
+  /**
+   * Bridge USDC from Ethereum to Arbitrum. Then simuilate the USD being received, but on the
+   * Ethereum chain, and swap it to USDT
+   */
+  function testFork_jumpAndBridge() public {
+    bytes memory destCommands = abi.encodePacked(
+      (uint8)(1), // Command count
+      encoder.encodeWarpUniV3LikeExactInputSingle({
+        tokenOut: address(Mainnet.USDT),
+        pool: 0x7858E59e0C01EA06Df3aF3D20aC7B0003275D4Bf
+      })
+    );
+
+    IWarpLink.Params memory destParams = IWarpLink.Params({
+      tokenIn: address(0), // Unused
+      tokenOut: address(Mainnet.WETH),
+      commands: destCommands,
+      amountIn: 0, // Unused
+      amountOut: 990 * (10 ** 6), // TODO
+      recipient: USER,
+      partner: address(0),
+      feeBps: 0,
+      slippageBps: 0,
+      deadline: deadline
+    });
+
+    bytes memory destParamsEncoded = abi.encode(destParams);
+
+    uint256 srcAmountIn = 1000 * (10 ** 6);
+    address srcTokenIn = address(Mainnet.USDC);
+    uint256 dstGasForCall = 500_000;
+
+    bytes memory sourceCommands = bytes.concat(
+      abi.encodePacked(
+        (uint8)(1), // Command count
+        (uint8)(COMMAND_TYPE_JUMP_STARGATE),
+        (uint16)(111), // dstChainId (Optimism)
+        (uint8)(1), // srcPoolId (USDC, Ethereum)
+        (uint8)(1), // dstPoolId (USDC, Optimism),
+        uint32(dstGasForCall), // dstGasForCall, 500K
+        uint256(destParamsEncoded.length) // NOTE: Unnecessarily large type
+      ),
+      destParamsEncoded
+    );
+
+    (uint256 nativeWei, ) = IStargateRouter(Mainnet.STARGATE_ROUTER_ADDR).quoteLayerZeroFee({
+      _dstChainId: 111, // Optimism
+      _functionType: 1, // Swap remote
+      _toAddress: abi.encodePacked(address(diamond)),
+      _transferAndCallPayload: destParamsEncoded,
+      _lzTxParams: IStargateRouter.lzTxObj({
+        dstGasForCall: dstGasForCall,
+        dstNativeAmount: 0,
+        dstNativeAddr: ''
+      })
+    });
+
+    vm.deal(USER, nativeWei);
+    deal(srcTokenIn, USER, srcAmountIn);
+
+    console2.log('Native fee: %s', nativeWei);
+
+    vm.prank(USER);
+    IERC20(srcTokenIn).approve(address(Addresses.PERMIT2), srcAmountIn);
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: srcTokenIn,
+        amount: uint160(srcAmountIn),
+        expiration: deadline,
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
+
+    vm.prank(USER);
+    facet.warpLinkEngage{value: nativeWei}(
+      IWarpLink.Params({
+        tokenIn: srcTokenIn,
+        tokenOut: srcTokenIn,
+        commands: sourceCommands,
+        amountIn: srcAmountIn,
+        amountOut: 0, // TODO
+        recipient: USER, // Unused
+        partner: address(0), // Unused
+        feeBps: 0, // Unused
+        slippageBps: 0,
+        deadline: deadline
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
+    );
+
+    // The router delivers 999 USDC to the diamond
+    deal(address(Mainnet.USDC), address(diamond), 999 * (10 ** 6));
+
+    // And calls sgReceive
+    vm.prank(Mainnet.STARGATE_ROUTER_ADDR);
+    facet.sgReceive(
+      uint16(Mainnet.CHAIN_ID), // _srcChain
+      abi.encode(address(diamond)), // _srcAddress
+      0, // _nonce
+      address(Mainnet.USDC), // _token
+      990 * (10 ** 6), // amountLD
+      destParamsEncoded // payload
+    );
+
+    assertApproxEqRel(Mainnet.USDC.balanceOf(USER), 990 * (10 ** 6), 0.001 ether);
   }
 }
 
@@ -1587,7 +1688,9 @@ contract WarpLinkGoerliTest is WarpLinkTestBase {
       (uint8)(COMMAND_TYPE_JUMP_STARGATE),
       (uint16)(10132), // dstChainId: Optimism-Goerli
       (uint8)(1), // srcPoolId: USDC, Ethereum-Goerli
-      (uint8)(1) // dstPoolId: USDC, Optimism-Goerli
+      (uint8)(1), // dstPoolId: USDC, Optimism-Goerli
+      uint32(0), // dstGasForCall
+      uint256(0) // payload length
     );
 
     uint256 expectedSwapOut = 1000 * (10 ** 6);
