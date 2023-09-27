@@ -62,8 +62,8 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
         address: initDeployment.address,
         calldata: initContract.interface.encodeFunctionData('init', [
           addresses.uniswapV2Router02,
-          addresses.uniswapV2Factory,
-          addresses.permit2,
+          addresses.uniswapV2Factory ?? ethers.ZeroAddress,
+          addresses.permit2 ?? ethers.ZeroAddress,
         ]),
       };
     },
@@ -83,9 +83,9 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
       return {
         address: initDeployment.address,
         calldata: initContract.interface.encodeFunctionData('init', [
-          addresses.weth,
-          addresses.permit2,
-          addresses.stargateRouter ?? '0x0000000000000000000000000000000000000000',
+          addresses.weth ?? ethers.ZeroAddress,
+          addresses.permit2 ?? ethers.ZeroAddress,
+          addresses.stargateRouter ?? ethers.ZeroAddress,
         ]),
       };
     },

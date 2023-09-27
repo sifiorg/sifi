@@ -15,6 +15,10 @@ export const networkAddresses: Partial<Record<string, Partial<Record<AddressKey,
     permit2: '0x000000000022D473030F116dDEE9F6B43aC78BA3',
     stargateRouter: '0x7612aE2a34E5A363E137De748801FB4c86499152',
   },
+  optimismGoerli: {
+    weth: '0x4200000000000000000000000000000000000006',
+    stargateRouter: '0x95461eF0e0ecabC049a5c4a6B98Ca7B335FAF068',
+  },
   sepolia: {
     uniswapV2Router02: '0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008',
     uniswapV2Factory: '0x7E0987E5b3a30e3f2828572Bb659A548460a3003',
