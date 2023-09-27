@@ -12,4 +12,5 @@ gas-report.txt
 solidity-files-cache.json
 deployments/sepolia
 deployments/goerli
+deployments/optimismGoerli
 results.sarif

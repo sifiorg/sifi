@@ -30,7 +30,15 @@ function getNetworkUrl(name: string): string {
   }
 
   // Testnet sepolia is named sepolia. EVM forks are named fork-mainnet
-  const infuraNetworkName = name === 'sepolia' ? name : `${name}-mainnet`;
+  let infuraNetworkName: string;
+
+  if (name === 'sepolia') {
+    infuraNetworkName = name;
+  } else if (name === 'optimismGoerli') {
+    infuraNetworkName = 'optimism-goerli';
+  } else {
+    infuraNetworkName = `${name}-mainnet`;
+  }
 
   return getNetworkUrl('mainnet').replace('mainnet', infuraNetworkName);
 }
@@ -70,6 +78,12 @@ const config = {
       chainId: 5,
       gasMultiplier: 2,
     },
+    optimismGoerli: {
+      url: getNetworkUrl('optimismGoerli'),
+      accounts: { mnemonic: '' },
+      chainId: 420,
+      gasMultiplier: 10,
+    },
     sepolia: {
       url: getNetworkUrl('sepolia'),
       accounts: { mnemonic: '' },
@@ -98,10 +112,11 @@ if (ETHERSCAN_API_KEY) {
     apiKey: {
       mainnet: ETHERSCAN_API_KEY,
       goerli: ETHERSCAN_API_KEY,
+      optimismGoerli: ETHERSCAN_API_KEY,
       sepolia: ETHERSCAN_API_KEY,
       polygon: POLYGON_SCAN_API_KEY,
       arbitrumOne: ARBITRUM_SCAN_API_KEY,
-      optimisticEthereum: OPTIMISM_SCAN_API_KEY,
+      optimisticGoerli: OPTIMISM_SCAN_API_KEY,
     },
   };
 }
@@ -136,6 +151,13 @@ if (DEV_MNEMONIC) {
 
   config.networks.goerli = {
     ...config.networks.goerli,
+    accounts: {
+      mnemonic: DEV_MNEMONIC,
+    },
+  };
+
+  config.networks.optimismGoerli = {
+    ...config.networks.optimismGoerli,
     accounts: {
       mnemonic: DEV_MNEMONIC,
     },
