@@ -9,9 +9,9 @@ import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
 import {IUniV2Router} from 'contracts/interfaces/IUniV2Router.sol';
 import {UniV2RouterFacet} from 'contracts/facets/UniV2RouterFacet.sol';
 import {InitUniV2Router} from 'contracts/init/InitUniV2Router.sol';
-import {IKitty} from 'contracts/interfaces/IKitty.sol';
-import {KittyFacet} from 'contracts/facets/KittyFacet.sol';
-import {LibKitty} from 'contracts/libraries/LibKitty.sol';
+import {IStarVault} from 'contracts/interfaces/IStarVault.sol';
+import {StarVault} from 'contracts/facets/StarVault.sol';
+import {LibStarVault} from 'contracts/libraries/LibStarVault.sol';
 import {Errors} from 'contracts/libraries/Errors.sol';
 import {IPermit2} from 'contracts/interfaces/external/IPermit2.sol';
 import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransfer.sol';
@@ -27,7 +27,7 @@ contract UniV2RouterIntegrationTest is FacetTest, PermitSignature {
   address VAULT = makeAddr('VAULT');
 
   IUniV2Router internal uniV2Router;
-  IKitty internal kitty;
+  IStarVault internal starVault;
   IPermit2 internal permit2;
 
   uint256 private deadline;
@@ -44,7 +44,7 @@ contract UniV2RouterIntegrationTest is FacetTest, PermitSignature {
     IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](2);
 
     UniV2RouterFacet uniV2RouterFacet = new UniV2RouterFacet();
-    KittyFacet kittyFacet = new KittyFacet();
+    StarVault starVaultFacet = new StarVault();
 
     facetCuts[0] = IDiamondCut.FacetCut(
       address(uniV2RouterFacet),
@@ -53,9 +53,9 @@ contract UniV2RouterIntegrationTest is FacetTest, PermitSignature {
     );
 
     facetCuts[1] = IDiamondCut.FacetCut(
-      address(kittyFacet),
+      address(starVaultFacet),
       IDiamondCut.FacetCutAction.Add,
-      generateSelectors('KittyFacet')
+      generateSelectors('StarVault')
     );
 
     IDiamondCut(address(diamond)).diamondCut(
@@ -69,7 +69,7 @@ contract UniV2RouterIntegrationTest is FacetTest, PermitSignature {
       )
     );
 
-    kitty = IKitty(address(diamond));
+    starVault = IStarVault(address(diamond));
     uniV2Router = IUniV2Router(address(diamond));
     permit2 = IPermit2(Addresses.PERMIT2);
   }
@@ -121,7 +121,7 @@ contract UniV2RouterIntegrationTest is FacetTest, PermitSignature {
     assertEq(Mainnet.USDC.balanceOf(USER), 1826340000, 'swapper usdc after');
     assertEq(Mainnet.USDC.balanceOf(address(diamond)), expectedFeeTotal, 'diamond usdc after');
     assertEq(
-      kitty.partnerTokenBalance(PARTNER, address(Mainnet.USDC)),
+      starVault.partnerTokenBalance(PARTNER, address(Mainnet.USDC)),
       expectedFeeTotal / 2,
       'partner usdc after'
     );
@@ -129,14 +129,14 @@ contract UniV2RouterIntegrationTest is FacetTest, PermitSignature {
     vm.prank(PARTNER);
     vm.expectEmit(true, true, true, false);
     emit PartnerWithdraw(PARTNER, address(Mainnet.USDC), 100);
-    kitty.partnerWithdraw(address(Mainnet.USDC));
+    starVault.partnerWithdraw(address(Mainnet.USDC));
 
     assertApproxEqRel(Mainnet.USDC.balanceOf(PARTNER), expectedFeeTotal / 2, 0.05 ether);
 
-    vm.expectRevert(abi.encodeWithSelector(KittyFacet.InsufficientOwnerBalance.selector, 1911752));
-    kitty.ownerWithdraw(address(Mainnet.USDC), (expectedFeeTotal / 2) + 10, payable(VAULT));
+    vm.expectRevert(abi.encodeWithSelector(StarVault.InsufficientOwnerBalance.selector, 1911752));
+    starVault.ownerWithdraw(address(Mainnet.USDC), (expectedFeeTotal / 2) + 10, payable(VAULT));
 
-    kitty.ownerWithdraw(address(Mainnet.USDC), (expectedFeeTotal / 2) - 1, payable(VAULT));
+    starVault.ownerWithdraw(address(Mainnet.USDC), (expectedFeeTotal / 2) - 1, payable(VAULT));
     assertApproxEqRel(Mainnet.USDC.balanceOf(VAULT), (expectedFeeTotal / 2) - 1, 0.05 ether);
   }
 
@@ -186,7 +186,7 @@ contract UniV2RouterIntegrationTest is FacetTest, PermitSignature {
 
     assertApproxEqRel(balAfter - balBefore, 1.08 ether, 0.05 ether);
     assertApproxEqRel(
-      kitty.partnerTokenBalance(PARTNER, address(Mainnet.WETH)),
+      starVault.partnerTokenBalance(PARTNER, address(Mainnet.WETH)),
       0.004 ether,
       0.05 ether
     );
@@ -195,15 +195,15 @@ contract UniV2RouterIntegrationTest is FacetTest, PermitSignature {
     vm.prank(PARTNER);
     vm.expectEmit(true, true, true, false);
     emit PartnerWithdraw(PARTNER, address(Mainnet.WETH), 100);
-    kitty.partnerWithdraw(address(Mainnet.WETH));
+    starVault.partnerWithdraw(address(Mainnet.WETH));
     assertApproxEqRel(Mainnet.WETH.balanceOf(PARTNER), 0.004 ether, 0.05 ether);
 
     vm.expectRevert(
-      abi.encodeWithSelector(KittyFacet.InsufficientOwnerBalance.selector, 4137565610928260)
+      abi.encodeWithSelector(StarVault.InsufficientOwnerBalance.selector, 4137565610928260)
     );
-    kitty.ownerWithdraw(address(Mainnet.WETH), 0.005 ether, payable(VAULT));
+    starVault.ownerWithdraw(address(Mainnet.WETH), 0.005 ether, payable(VAULT));
 
-    kitty.ownerWithdraw(address(Mainnet.WETH), 0.003 ether, payable(VAULT));
+    starVault.ownerWithdraw(address(Mainnet.WETH), 0.003 ether, payable(VAULT));
     assertApproxEqRel(Mainnet.WETH.balanceOf(VAULT), 0.003 ether, 0.05 ether);
   }
 
@@ -251,7 +251,7 @@ contract UniV2RouterIntegrationTest is FacetTest, PermitSignature {
     assertApproxEqRel(Mainnet.DAI.balanceOf(USER), 1900 * (10 ** 18), 0.05 ether);
     assertApproxEqRel(Mainnet.DAI.balanceOf(address(diamond)), 100 * (10 ** 18), 0.05 ether);
     assertApproxEqRel(
-      kitty.partnerTokenBalance(PARTNER, address(Mainnet.DAI)),
+      starVault.partnerTokenBalance(PARTNER, address(Mainnet.DAI)),
       50 * (10 ** 18),
       0.05 ether
     );
@@ -259,16 +259,16 @@ contract UniV2RouterIntegrationTest is FacetTest, PermitSignature {
     vm.prank(PARTNER);
     vm.expectEmit(true, true, true, false);
     emit PartnerWithdraw(PARTNER, address(Mainnet.DAI), 50 * (10 ** 18));
-    kitty.partnerWithdraw(address(Mainnet.DAI));
+    starVault.partnerWithdraw(address(Mainnet.DAI));
 
     assertApproxEqRel(Mainnet.DAI.balanceOf(PARTNER), 50 * (10 ** 18), 0.05 ether);
 
     vm.expectRevert(
-      abi.encodeWithSelector(KittyFacet.InsufficientOwnerBalance.selector, 47823223316479588619)
+      abi.encodeWithSelector(StarVault.InsufficientOwnerBalance.selector, 47823223316479588619)
     );
-    kitty.ownerWithdraw(address(Mainnet.DAI), 50 * (10 ** 18), payable(VAULT));
+    starVault.ownerWithdraw(address(Mainnet.DAI), 50 * (10 ** 18), payable(VAULT));
 
-    kitty.ownerWithdraw(address(Mainnet.DAI), 45 * (10 ** 18), payable(VAULT));
+    starVault.ownerWithdraw(address(Mainnet.DAI), 45 * (10 ** 18), payable(VAULT));
     assertApproxEqRel(Mainnet.DAI.balanceOf(VAULT), 45 * (10 ** 18), 0.05 ether);
   }
 

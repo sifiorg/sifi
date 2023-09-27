@@ -1,18 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
-import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
-import {LibDiamond} from './LibDiamond.sol';
 
-library LibKitty {
+library LibStarVault {
   using EnumerableSet for EnumerableSet.AddressSet;
 
   /**
    * The swap fee is over the maximum allowed
    */
-  error FeeTooHigh(uint16 maxFeeBps);
+  error FeeTooHigh(uint256 maxFeeBps);
 
   event CollectedFee(
     address indexed partner,
@@ -44,10 +41,10 @@ library LibKitty {
     mapping(address => uint256) partnerBalancesTotal;
   }
 
-  uint16 private constant MAX_FEE_BPS = 2_000;
+  uint256 private constant MAX_FEE_BPS = 2_000;
 
   function state() internal pure returns (State storage s) {
-    bytes32 storagePosition = keccak256('diamond.storage.LibKitty');
+    bytes32 storagePosition = keccak256('diamond.storage.LibStarVault');
 
     assembly {
       s.slot := storagePosition
@@ -83,7 +80,7 @@ library LibKitty {
   function calculateAndRegisterFee(
     address partner,
     address token,
-    uint16 feeBps,
+    uint256 feeBps,
     uint256 amountOutQuoted,
     uint256 amountOutActual
   ) internal returns (uint256 amountOutUser_) {
