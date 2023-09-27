@@ -20,6 +20,8 @@ interface IWarpLink {
   error DeadlineExpired();
   error IllegalJumpInSplit();
   error JumpMustBeLastCommand();
+  error InvalidSgReceiverSender();
+  error InvalidSgReceiveSrcAddress();
 
   struct Params {
     address partner;

@@ -9,3 +9,11 @@ allow_paths = ["../../node_modules"]
 # See https://github.com/foundry-rs/foundry/issues/4988#issuecomment-1556331314
 evm_version = 'paris'
 solc_version = '0.8.19'
+
+[rpc_endpoints]
+goerli = "${GOERLI_RPC_URL}"
+optimism_goerli = "${OPTIMISM_GOERLI_RPC_URL}"
+
+[etherscan]
+goerli = { key = "${ETHERSCAN_API_KEY}" }
+optimism_goerli = { key = "${ETHERSCAN_API_KEY}" }
