@@ -778,6 +778,7 @@ contract WarpLink is IWarpLink, WarpLinkCommandTypes {
     t.paramFeeBps = params.feeBps;
     t.paramRecipient = params.recipient;
     t.paramAmountOut = params.amountOut;
+    t.paramSlippageBps = params.slippageBps;
     t.amount = params.amountIn;
     t.token = params.tokenIn;
     t.deadline = params.deadline;
