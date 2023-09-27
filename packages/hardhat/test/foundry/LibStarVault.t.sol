@@ -5,10 +5,10 @@ pragma solidity ^0.8.19;
 
 import 'forge-std/Test.sol';
 import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
-import {LibKitty} from 'contracts/libraries/LibKitty.sol';
+import {LibStarVault} from 'contracts/libraries/LibStarVault.sol';
 import {Mainnet} from './helpers/Networks.sol';
 
-contract LibKittyTest is Test {
+contract LibStarVaultTest is Test {
   using EnumerableSet for EnumerableSet.AddressSet;
 
   event CollectedFee(
@@ -20,7 +20,7 @@ contract LibKittyTest is Test {
 
   function test_registerCollectedFee_Vector1() public {
     // NOTE: The storage is this test contract
-    LibKitty.State storage s = LibKitty.state();
+    LibStarVault.State storage s = LibStarVault.state();
 
     address PARTNER_1 = address(0x1);
     address PARTNER_2 = address(0x2);
@@ -28,7 +28,7 @@ contract LibKittyTest is Test {
     // Collect 101 units of USDC for partner PARTNER_1
     vm.expectEmit(true, true, true, true);
     emit CollectedFee(PARTNER_1, address(Mainnet.USDC), 50, 51);
-    LibKitty.registerCollectedFee(PARTNER_1, address(Mainnet.USDC), 50, 51);
+    LibStarVault.registerCollectedFee(PARTNER_1, address(Mainnet.USDC), 50, 51);
 
     assertEq(s.partners.length(), 1);
     assertEq(s.partners.at(0), address(PARTNER_1));
@@ -36,7 +36,7 @@ contract LibKittyTest is Test {
     assertEq(s.partnerBalancesTotal[address(Mainnet.USDC)], 50);
 
     // Collect 22 units of USDC for partner PARTNER_2
-    LibKitty.registerCollectedFee(PARTNER_2, address(Mainnet.USDC), 11, 11);
+    LibStarVault.registerCollectedFee(PARTNER_2, address(Mainnet.USDC), 11, 11);
 
     assertEq(s.partners.length(), 2);
     assertEq(s.partners.at(0), address(PARTNER_1));
@@ -46,7 +46,7 @@ contract LibKittyTest is Test {
     assertEq(s.partnerBalancesTotal[address(Mainnet.USDC)], 61);
 
     // Collect 33 units of ETH for partner PARTNER_1
-    LibKitty.registerCollectedFee(PARTNER_1, address(0), 33, 0);
+    LibStarVault.registerCollectedFee(PARTNER_1, address(0), 33, 0);
 
     assertEq(s.partners.length(), 2);
     assertEq(s.partners.at(0), address(PARTNER_1));
@@ -67,7 +67,7 @@ contract LibKittyTest is Test {
 
     // The total fee is 0.15% of the actual output 95_000000, 142500 (0.1425 USDC)
     // Site and partner gets half, 71250 units each
-    uint256 amountOutUser = LibKitty.calculateAndRegisterFee(
+    uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
       PARTNER,
       address(Mainnet.USDC),
       15, // 0.15% fee
@@ -90,7 +90,7 @@ contract LibKittyTest is Test {
     vm.expectEmit(true, true, true, true);
     emit CollectedFee(PARTNER, address(Mainnet.USDC), expectedFeeTotal / 2, expectedFeeTotal / 2);
 
-    uint256 amountOutUser = LibKitty.calculateAndRegisterFee(
+    uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
       PARTNER,
       address(Mainnet.USDC),
       23, // 0.23% fee
@@ -111,7 +111,7 @@ contract LibKittyTest is Test {
     vm.expectEmit(true, true, true, true);
     emit CollectedFee(PARTNER, address(Mainnet.USDC), expectedFeeTotal / 2, expectedFeeTotal / 2);
 
-    uint256 amountOutUser = LibKitty.calculateAndRegisterFee(
+    uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
       PARTNER,
       address(Mainnet.USDC),
       0, // 0% fee
@@ -131,7 +131,7 @@ contract LibKittyTest is Test {
     vm.expectEmit(true, true, true, true);
     emit CollectedFee(PARTNER, address(Mainnet.USDC), expectedFeeTotal / 2, expectedFeeTotal / 2);
 
-    uint256 amountOutUser = LibKitty.calculateAndRegisterFee(
+    uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
       PARTNER,
       address(Mainnet.USDC),
       15, // 0.15% fee
@@ -149,7 +149,7 @@ contract LibKittyTest is Test {
     vm.expectEmit(true, true, true, true);
     emit CollectedFee(address(0), address(Mainnet.USDC), 0, expectedFeeTotal);
 
-    uint256 amountOutUser = LibKitty.calculateAndRegisterFee(
+    uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
       address(0),
       address(Mainnet.USDC),
       15, // 0.15% fee
@@ -166,7 +166,7 @@ contract LibKittyTest is Test {
 
     vm.recordLogs();
 
-    uint256 amountOutUser = LibKitty.calculateAndRegisterFee(
+    uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
       address(0),
       address(Mainnet.USDC),
       0,
@@ -188,7 +188,7 @@ contract LibKittyTest is Test {
     vm.expectEmit(true, true, true, true);
     emit CollectedFee(address(0), address(Mainnet.USDC), 0, expectedFeeTotal);
 
-    uint256 amountOutUser = LibKitty.calculateAndRegisterFee(
+    uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
       address(0),
       address(Mainnet.USDC),
       15, // 0.15% fee
@@ -205,7 +205,7 @@ contract LibKittyTest is Test {
 
     vm.recordLogs();
 
-    uint256 amountOutUser = LibKitty.calculateAndRegisterFee(
+    uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
       address(0),
       address(Mainnet.USDC),
       5,
@@ -231,7 +231,7 @@ contract LibKittyTest is Test {
       expectedFeeTotal / 2 + 1
     );
 
-    uint256 amountOutUser = LibKitty.calculateAndRegisterFee(
+    uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
       PARTNER,
       address(Mainnet.USDC),
       25, // 0.25% fee
@@ -245,9 +245,9 @@ contract LibKittyTest is Test {
   function test_calculateAndRegisterFee_PartnerFeeTooHigh() public {
     address PARTNER = makeAddr('PARTNER');
 
-    vm.expectRevert(abi.encodeWithSelector(LibKitty.FeeTooHigh.selector, 2000));
+    vm.expectRevert(abi.encodeWithSelector(LibStarVault.FeeTooHigh.selector, 2000));
 
-    uint256 amountOutUser = LibKitty.calculateAndRegisterFee(
+    uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
       PARTNER,
       address(Mainnet.USDC),
       20_000, // 200%

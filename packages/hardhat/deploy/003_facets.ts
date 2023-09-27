@@ -19,7 +19,7 @@ let FACET_NAMES = [
   'DiamondCutFacet',
   'DiamondLoupeFacet',
   'OwnershipFacet',
-  'KittyFacet',
+  'StarVault',
   'UniV2LikeFacet',
   // NOTE: Used by UniV3Like and WarpLink
   'UniV3Callback',
