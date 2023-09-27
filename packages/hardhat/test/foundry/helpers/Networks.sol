@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IPermit2} from '../../../contracts/interfaces/external/IPermit2.sol';
 
@@ -43,6 +46,13 @@ library Optimism {
   address public constant STARGATE_ROUTER_ADDR = 0x53Bf833A5d6c4ddA888F69c22C88C9f356a41614;
 }
 
+library OptimismGoerli {
+  uint256 public constant CHAIN_ID = 420;
+  address public constant STARGATE_ROUTER_ADDR = 0xb82E8737e7BA953CB4462561639f32Fd7F0974c4;
+  address public constant STARGATE_MOCK_USDC_ADDR = 0x0CEDBAF2D0bFF895C861c5422544090EEdC653Bf;
+  uint16 public constant STARGATE_CHAIN_ID = 10132;
+}
+
 library Avalanche {
   uint256 public constant CHAIN_ID = 43114;
   address public constant STARGATE_ROUTER_ADDR = 0x45A01E4e04F14f7A4a6702c74187c5F6222033cd;
@@ -50,7 +60,9 @@ library Avalanche {
 
 library Goerli {
   uint256 public constant CHAIN_ID = 5;
-  address public constant STARGATE_ROUTER_ADDR = 0x7612aE2a34E5A363E137De748801FB4c86499152;
+  address public constant STARGATE_ROUTER_ADDR = 0x7C5B3F4865b41b9d2B6dE65fdfbB47af06AC41f0;
+  address public constant STARGATE_MOCK_USDC_ADDR = 0xDf0360Ad8C5ccf25095Aa97ee5F2785c8d848620;
+  uint16 public constant STARGATE_CHAIN_ID = 10121;
 }
 
 library Addresses {
