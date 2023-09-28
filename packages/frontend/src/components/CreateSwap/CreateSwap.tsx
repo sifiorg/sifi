@@ -54,7 +54,8 @@ const CreateSwap = () => {
   );
   const { data: toBalance, refetch: refetchToBalance } = useTokenBalance(toToken, toChain.id);
   const { getPermit2Params } = usePermit2();
-  const isSameTokenPair = fromToken && toToken && fromToken.address === toToken.address;
+  const isSameTokenPair =
+    fromToken && toToken && fromToken.address === toToken.address && fromChain === toChain;
 
   const isToSwapInputLoading = isFetchingQuote;
 
