@@ -15,12 +15,12 @@ const useApprove = () => {
   const { data: walletClient } = useWalletClient();
   const [isLoading, setIsLoading] = useState(false);
   const { quote } = useQuote();
-  const { tokens } = useTokens();
+  const { fromTokens } = useTokens();
   const approveAddress = (quote?.permit2Address || quote?.approveAddress) as `0x${string}`;
 
   const { fromToken: fromTokenSymbol } = useSwapFormValues();
 
-  const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
+  const fromToken = getTokenBySymbol(fromTokenSymbol, fromTokens);
 
   const closeModal = () => {
     setIsApprovalModalOpen(false);

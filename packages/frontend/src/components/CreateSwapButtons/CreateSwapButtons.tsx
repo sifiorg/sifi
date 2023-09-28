@@ -21,7 +21,7 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
   const { isConnected } = useAccount();
   const { quote, isFetching: isFetchingQuote } = useQuote();
   const { chain } = useNetwork();
-  const { tokens } = useTokens();
+  const { fromTokens, toTokens } = useTokens();
   const { isLoading: isApproving } = useApprove();
   const { allowance, isAllowanceAboveFromAmount, isFetching: isFetchingAllowance } = useAllowance();
   const [fromTokenSymbol, toTokenSymbol, fromAmount] = useWatch({
@@ -29,12 +29,14 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
   });
   const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
   const toToken = getTokenBySymbol(toTokenSymbol, tokens);
+  const fromToken = getTokenBySymbol(fromTokenSymbol, fromTokens);
+  const toToken = getTokenBySymbol(toTokenSymbol, toTokens);
   const isFromEthereum = fromToken?.address === ETH_CONTRACT_ADDRESS;
   const userIsConnectedToWrongNetwork = Boolean(
     chain?.id && fromToken?.chainId && chain.id !== fromToken.chainId
   );
   const { data: fromBalance } = useTokenBalance(fromToken);
-  const fromAmountInWei =  fromToken ? parseUnits(fromAmount || '0', fromToken.decimals) : BigInt(0);
+  const fromAmountInWei = fromToken ? parseUnits(fromAmount || '0', fromToken.decimals) : BigInt(0);
   const hasSufficientBalance = quote && fromBalance && fromBalance.value >= fromAmountInWei;
 
   const isShiftButtonLoading = isLoading || isFetchingAllowance || isFetchingQuote;

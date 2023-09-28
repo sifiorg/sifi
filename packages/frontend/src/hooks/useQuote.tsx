@@ -14,9 +14,9 @@ const useQuote = () => {
   const sifi = useSifi();
   const { fromToken: fromTokenSymbol, toToken: toTokenSymbol, fromAmount } = useSwapFormValues();
   const { setValue } = useFormContext();
-  const { tokens } = useTokens();
-  const { fromChain } = useSwapFormValues();
-  const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
+  const { fromTokens, toTokens } = useTokens();
+  const fromToken = getTokenBySymbol(fromTokenSymbol, fromTokens);
+  const toToken = getTokenBySymbol(toTokenSymbol, toTokens);
   const toToken = getTokenBySymbol(toTokenSymbol, tokens);
   const isSameTokenPair = fromToken?.address === toToken?.address;
 

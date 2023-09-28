@@ -39,7 +39,7 @@ const CreateSwap = () => {
   const publicClient = usePublicClient({ chainId: fromChain.id });
   const { data: walletClient } = useWalletClient();
   const { handleSubmit } = useForm();
-  const { tokens } = useTokens();
+  const { fromTokens, toTokens } = useTokens();
   const { balanceMap, refetch: refetchTokenBalances } = useMultiCallTokenBalance(
     tokens as MulticallToken[]
   );
@@ -153,8 +153,8 @@ const CreateSwap = () => {
 
   const fromTokenKey = SwapFormKeyHelper.getTokenKey('from');
   const toTokenKey = SwapFormKeyHelper.getTokenKey('to');
-  const selectedFromToken = getTokenBySymbol(watch(fromTokenKey), tokens) || undefined;
-  const selectedToToken = getTokenBySymbol(watch(toTokenKey), tokens) || undefined;
+  const selectedFromToken = getTokenBySymbol(watch(fromTokenKey), fromTokens) || undefined;
+  const selectedToToken = getTokenBySymbol(watch(toTokenKey), toTokens) || undefined;
   const fromId = SwapFormKeyHelper.getAmountKey('from');
   const toId = SwapFormKeyHelper.getAmountKey('to');
   const spendableBalance = useSpendableBalance({ token: fromToken });
@@ -169,11 +169,13 @@ const CreateSwap = () => {
   };
 
   useEffect(() => {
-    if (tokens.length > 1) {
-      setValue(fromTokenKey, tokens[0].symbol);
-      setValue(toTokenKey, tokens[1].symbol);
+    if (fromTokens.length > 1) {
+      setValue(fromTokenKey, fromTokens[0].symbol);
     }
-  }, [tokens]);
+    if (toTokens.length > 1) {
+      setValue(toTokenKey, toTokens[1].symbol);
+    }
+  }, [fromTokens, toTokens]);
 
   useEffect(() => {
     if (isSameTokenPair) {
