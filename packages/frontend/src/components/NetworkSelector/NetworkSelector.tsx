@@ -1,22 +1,27 @@
 import { Fragment } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import { ReactComponent as DownCaret } from 'src/assets/down-caret.svg';
-import { useSelectedChain } from 'src/providers/SelectedChainProvider';
 import { enableMultipleChains } from 'src/utils/featureFlags';
 import { SUPPORTED_CHAINS, getChainIcon } from 'src/utils/chains';
 import { Chain, useNetwork, useSwitchNetwork } from 'wagmi';
+import { SwapFormKey } from 'src/providers/SwapFormProvider';
+import { useFormContext } from 'react-hook-form';
+import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 
 const NetworkSelector: React.FC = () => {
-  const { selectedChain, setSelectedChain } = useSelectedChain();
   const { chain: activeChain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
+  const { setValue } = useFormContext();
+  const { fromChain } = useSwapFormValues();
 
   const chains = enableMultipleChains
     ? Object.values(SUPPORTED_CHAINS)
     : Object.values(SUPPORTED_CHAINS).filter(chain => chain.id === 1);
 
   const handleChange = (chain: Chain) => {
-    setSelectedChain(chain);
+    setValue(SwapFormKey.FromChain, chain);
+    // TODO: Remove when cross-chain is enabled
+    setValue(SwapFormKey.ToChain, chain);
 
     if (!switchNetwork) return;
 
@@ -25,7 +30,7 @@ const NetworkSelector: React.FC = () => {
 
   return (
     <div className="font-text relative inline-block">
-      <Listbox value={selectedChain} onChange={handleChange}>
+      <Listbox value={fromChain} onChange={handleChange}>
         <div className="relative pr-0 sm:pr-4">
           <Listbox.Button
             role="button"
@@ -33,8 +38,8 @@ const NetworkSelector: React.FC = () => {
             items-center gap-3 rounded-md border-0 px-4 py-2 text-sm max-[340px]:gap-3 sm:border-2 md:text-base"
             aria-busy="true"
           >
-            {selectedChain && (
-              <img src={getChainIcon(selectedChain.id)} alt={selectedChain.name} className="w-6" />
+            {fromChain && (
+              <img src={getChainIcon(fromChain.id)} alt={fromChain.name} className="w-6" />
             )}
             <DownCaret
               className={`text-new-black dark:text-flashbang-white w-4

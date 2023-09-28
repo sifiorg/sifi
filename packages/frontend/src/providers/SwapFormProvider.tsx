@@ -1,4 +1,6 @@
 import { FormProvider, useForm } from 'react-hook-form';
+import { SUPPORTED_CHAINS } from 'src/utils/chains';
+import { Chain } from 'viem';
 
 export enum SwapFormKey {
   FromAmount = 'fromAmount',
@@ -13,11 +15,11 @@ export enum SwapFormKey {
 
 export type SwapFormValues = {
   [SwapFormKey.FromAmount]: string;
-  [SwapFormKey.FromChain]: number;
+  [SwapFormKey.FromChain]: Chain;
   [SwapFormKey.FromToken]: string;
   [SwapFormKey.ToAmount]: string;
   [SwapFormKey.ToAddress]: string;
-  [SwapFormKey.ToChain]: number;
+  [SwapFormKey.ToChain]: Chain;
   [SwapFormKey.ToToken]: string;
   [SwapFormKey.TokenSearchFilter]: string;
 };
@@ -26,11 +28,11 @@ export type SwapFormType = 'from' | 'to';
 
 export const formDefaultValues = {
   [SwapFormKey.FromAmount]: '',
-  [SwapFormKey.FromChain]: 1, // Temporarily restricted ot ETH chain
+  [SwapFormKey.FromChain]: SUPPORTED_CHAINS[0],
   [SwapFormKey.FromToken]: null,
   [SwapFormKey.ToAmount]: '',
   [SwapFormKey.ToAddress]: '',
-  [SwapFormKey.ToChain]: 1, // Temporarily restricted ot ETH chain;
+  [SwapFormKey.ToChain]: SUPPORTED_CHAINS[0],
   [SwapFormKey.ToToken]: null,
   [SwapFormKey.TokenSearchFilter]: '',
 };
