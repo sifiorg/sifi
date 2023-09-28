@@ -54,7 +54,7 @@ importers:
         specifier: ^2.0.12
         version: 2.0.13(react@18.2.0)
       '@sifi/sdk':
-        specifier: ^1.8.0
+        specifier: ^1.9.0
         version: link:../sdk
       '@sifi/shared-ui':
         specifier: ^1.7.5
@@ -11529,6 +11529,7 @@ packages:
 
   /eip1193-provider@1.0.1:
     resolution: {integrity: sha512-kSuqwQ26d7CzuS/t3yRXo2Su2cVH0QfvyKbr2H7Be7O5YDyIq4hQGCNTo5wRdP07bt+E2R/8nPCzey4ojBHf7g==}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     dependencies:
       '@json-rpc-tools/provider': 1.7.6
     transitivePeerDependencies:
