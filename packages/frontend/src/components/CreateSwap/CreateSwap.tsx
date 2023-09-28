@@ -48,8 +48,11 @@ const CreateSwap = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { quote, isFetching: isFetchingQuote } = useQuote();
   const ShiftInputLabel = { from: 'From', to: 'To' } as const;
-  const { data: fromBalance, refetch: refetchFromBalance } = useTokenBalance(fromToken);
-  const { data: toBalance, refetch: refetchToBalance } = useTokenBalance(toToken);
+  const { data: fromBalance, refetch: refetchFromBalance } = useTokenBalance(
+    fromToken,
+    fromChain.id
+  );
+  const { data: toBalance, refetch: refetchToBalance } = useTokenBalance(toToken, toChain.id);
   const { getPermit2Params } = usePermit2();
   const isSameTokenPair = fromToken && toToken && fromToken.address === toToken.address;
 
@@ -127,7 +130,8 @@ const CreateSwap = () => {
 
         refetchFromBalance();
         refetchToBalance();
-        refetchTokenBalances();
+        refetchFromTokenBalances();
+        refetchToTokenBalances();
         setValue(SwapFormKey.FromAmount, '');
       },
     }
