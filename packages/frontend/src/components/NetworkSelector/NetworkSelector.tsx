@@ -1,7 +1,6 @@
 import { Fragment } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import { ReactComponent as DownCaret } from 'src/assets/down-caret.svg';
-import { enableMultipleChains } from 'src/utils/featureFlags';
 import { SUPPORTED_CHAINS, getChainIcon } from 'src/utils/chains';
 import { Chain, useNetwork, useSwitchNetwork } from 'wagmi';
 import { SwapFormKey } from 'src/providers/SwapFormProvider';
@@ -14,14 +13,8 @@ const NetworkSelector: React.FC = () => {
   const { setValue } = useFormContext();
   const { fromChain } = useSwapFormValues();
 
-  const chains = enableMultipleChains
-    ? Object.values(SUPPORTED_CHAINS)
-    : Object.values(SUPPORTED_CHAINS).filter(chain => chain.id === 1);
-
   const handleChange = (chain: Chain) => {
     setValue(SwapFormKey.FromChain, chain);
-    // TODO: Remove when cross-chain is enabled
-    setValue(SwapFormKey.ToChain, chain);
 
     if (!switchNetwork) return;
 
@@ -63,7 +56,7 @@ const NetworkSelector: React.FC = () => {
               aria-busy="true"
             >
               <div className="font-display bg-flashbang-white flex flex-col gap-y-2 p-6 text-sm dark:bg-darkest-gray mr-3  rounded-sm">
-                {Object.values(chains).map(chain => (
+                {Object.values(SUPPORTED_CHAINS).map(chain => (
                   <Listbox.Option
                     key={chain.name}
                     className={() =>
