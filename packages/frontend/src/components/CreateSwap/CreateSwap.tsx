@@ -20,7 +20,9 @@ import { SwapInformation } from '../SwapInformation';
 import { MulticallToken } from 'src/types';
 import { useMultiCallTokenBalance } from 'src/hooks/useMulticallTokenBalance';
 import { usePermit2 } from 'src/hooks/usePermit2';
+import { getChainIcon } from 'src/utils/chains';
 import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
+import { ChainSelector } from 'src/components/ChainSelector/ChainSelector';
 import { getTokenWithNetwork } from 'src/utils/getTokenWithNetwork';
 
 const CreateSwap = () => {
@@ -45,7 +47,7 @@ const CreateSwap = () => {
   const toToken = getTokenBySymbol(toTokenSymbol, tokens);
   const [isLoading, setIsLoading] = useState(false);
   const { quote, isFetching: isFetchingQuote } = useQuote();
-  const ShiftInputLabel = { from: 'You pay', to: 'You receive' } as const;
+  const ShiftInputLabel = { from: 'From', to: 'To' } as const;
   const { data: fromBalance, refetch: refetchFromBalance } = useTokenBalance(fromToken);
   const { data: toBalance, refetch: refetchToBalance } = useTokenBalance(toToken);
   const { getPermit2Params } = usePermit2();
@@ -188,6 +190,10 @@ const CreateSwap = () => {
           <div>
             <div className="py-4">
               <div className="mb-2">
+                <div className="flex justify-between align-bottom items-end">
+                  <div className="font-display text-smoke">{ShiftInputLabel.from}</div>
+                  <ChainSelector chainToSet={SwapFormKey.FromChain} />
+                </div>
                 <ShiftInput
                   label={ShiftInputLabel.from}
                   balance={fromBalance?.formatted}
@@ -197,7 +203,12 @@ const CreateSwap = () => {
                   formMethods={methods}
                   disabled={Boolean(isSameTokenPair)}
                   max={depositMax}
+                  hideLabel
                 />
+              </div>
+              <div className="flex justify-between align-bottom items-end">
+                <div className="font-display text-smoke">{ShiftInputLabel.to}</div>
+                <ChainSelector chainToSet={SwapFormKey.ToChain} />
               </div>
               <ShiftInput
                 label={ShiftInputLabel.to}
@@ -208,6 +219,7 @@ const CreateSwap = () => {
                 disabled
                 openSelector={() => openTokenSelector('to')}
                 formMethods={methods}
+                hideLabel
               />
               <TokenSelector
                 balanceMap={balanceMap}
