@@ -39,7 +39,6 @@ const CreateSwap = () => {
   const { balanceMap, refetch: refetchTokenBalances } = useMultiCallTokenBalance(
     tokens as MulticallToken[]
   );
-  const { fromToken: fromTokenSymbol, toToken: toTokenSymbol, fromAmount } = useSwapFormValues();
   const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
   const toToken = getTokenBySymbol(toTokenSymbol, tokens);
   const [isLoading, setIsLoading] = useState(false);
