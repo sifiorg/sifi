@@ -1,4 +1,3 @@
-import { useWatch } from 'react-hook-form';
 import { useAccount, useNetwork } from 'wagmi';
 import { parseUnits } from 'viem';
 import { useCullQueries } from 'src/hooks/useCullQueries';
@@ -6,7 +5,6 @@ import { useAllowance } from 'src/hooks/useAllowance';
 import { useApprove } from 'src/hooks/useApprove';
 import { useTokens } from 'src/hooks/useTokens';
 import { useQuote } from 'src/hooks/useQuote';
-import { SwapFormKey } from 'src/providers/SwapFormProvider';
 import { getTokenBySymbol, isValidTokenAmount } from 'src/utils';
 import { ETH_CONTRACT_ADDRESS } from 'src/constants';
 import { useTokenBalance } from 'src/hooks/useTokenBalance';
@@ -14,6 +12,7 @@ import { ApproveButton } from './ApproveButton';
 import { SwitchNetworkButton } from './SwitchNetworkButton';
 import { Button } from '../Button';
 import { ConnectWallet } from '../ConnectWallet/ConnectWallet';
+import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 
 const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
   useCullQueries('routes');
@@ -24,11 +23,13 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
   const { fromTokens, toTokens } = useTokens();
   const { isLoading: isApproving } = useApprove();
   const { allowance, isAllowanceAboveFromAmount, isFetching: isFetchingAllowance } = useAllowance();
-  const [fromTokenSymbol, toTokenSymbol, fromAmount] = useWatch({
-    name: [SwapFormKey.FromToken, SwapFormKey.ToToken, SwapFormKey.FromAmount],
-  });
-  const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
-  const toToken = getTokenBySymbol(toTokenSymbol, tokens);
+  const {
+    fromToken: fromTokenSymbol,
+    toToken: toTokenSymbol,
+    fromAmount,
+    fromChain,
+    toChain,
+  } = useSwapFormValues();
   const fromToken = getTokenBySymbol(fromTokenSymbol, fromTokens);
   const toToken = getTokenBySymbol(toTokenSymbol, toTokens);
   const isFromEthereum = fromToken?.address === ETH_CONTRACT_ADDRESS;
