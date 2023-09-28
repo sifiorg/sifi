@@ -7,7 +7,7 @@ import { SwapFormKey } from 'src/providers/SwapFormProvider';
 import { useFormContext } from 'react-hook-form';
 import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 
-const NetworkSelector: React.FC = () => {
+const HeaderChainSelector: React.FC = () => {
   const { chain: activeChain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
   const { setValue } = useFormContext();
@@ -96,4 +96,4 @@ const NetworkSelector: React.FC = () => {
   );
 };
 
-export { NetworkSelector };
+export { HeaderChainSelector };
