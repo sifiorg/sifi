@@ -40,11 +40,11 @@ const CreateSwap = () => {
   const { data: walletClient } = useWalletClient();
   const { handleSubmit } = useForm();
   const { fromTokens, toTokens } = useTokens();
-  const { balanceMap, refetch: refetchTokenBalances } = useMultiCallTokenBalance(
-    tokens as MulticallToken[]
-  );
-  const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
-  const toToken = getTokenBySymbol(toTokenSymbol, tokens);
+  const { balanceMap: fromBalanceMap, refetch: refetchFromTokenBalances } =
+    useMultiCallTokenBalance(fromTokens as MulticallToken[], fromChain.id);
+
+  const { balanceMap: toTokenBalanceMap, refetch: refetchToTokenBalances } =
+    useMultiCallTokenBalance(toTokens as MulticallToken[], toChain.id);
   const [isLoading, setIsLoading] = useState(false);
   const { quote, isFetching: isFetchingQuote } = useQuote();
   const ShiftInputLabel = { from: 'From', to: 'To' } as const;
@@ -229,7 +229,7 @@ const CreateSwap = () => {
                 hideLabel
               />
               <TokenSelector
-                balanceMap={balanceMap}
+                balanceMap={tokenSelectorType === 'from' ? fromBalanceMap : toTokenBalanceMap}
                 close={closeTokenSelector}
                 isOpen={isTokenSelectorOpen}
                 type={tokenSelectorType}
