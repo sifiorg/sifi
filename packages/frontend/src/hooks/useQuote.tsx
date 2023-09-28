@@ -12,12 +12,17 @@ import { useSwapFormValues } from './useSwapFormValues';
 
 const useQuote = () => {
   const sifi = useSifi();
-  const { fromToken: fromTokenSymbol, toToken: toTokenSymbol, fromAmount } = useSwapFormValues();
+  const {
+    fromToken: fromTokenSymbol,
+    toToken: toTokenSymbol,
+    fromAmount,
+    fromChain,
+    toChain,
+  } = useSwapFormValues();
   const { setValue } = useFormContext();
   const { fromTokens, toTokens } = useTokens();
   const fromToken = getTokenBySymbol(fromTokenSymbol, fromTokens);
   const toToken = getTokenBySymbol(toTokenSymbol, toTokens);
-  const toToken = getTokenBySymbol(toTokenSymbol, tokens);
   const isSameTokenPair = fromToken?.address === toToken?.address;
 
   const quoteRequest = {
@@ -28,7 +33,7 @@ const useQuote = () => {
       fromToken?.decimals || 0
     ).toString(),
     fromChain: fromChain.id,
-    toChain: fromChain.id,
+    toChain: toChain.id,
   };
 
   const handleSuccesfulQuoteFetch = (quote: Quote): void => {
