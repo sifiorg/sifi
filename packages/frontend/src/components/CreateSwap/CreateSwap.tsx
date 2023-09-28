@@ -45,6 +45,8 @@ const CreateSwap = () => {
 
   const { balanceMap: toTokenBalanceMap, refetch: refetchToTokenBalances } =
     useMultiCallTokenBalance(toTokens as MulticallToken[], toChain.id);
+  const fromToken = getTokenBySymbol(fromTokenSymbol, fromTokens);
+  const toToken = getTokenBySymbol(toTokenSymbol, toTokens);
   const [isLoading, setIsLoading] = useState(false);
   const { quote, isFetching: isFetchingQuote } = useQuote();
   const ShiftInputLabel = { from: 'From', to: 'To' } as const;
