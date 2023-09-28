@@ -36,7 +36,7 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
   const userIsConnectedToWrongNetwork = Boolean(
     chain?.id && fromToken?.chainId && chain.id !== fromToken.chainId
   );
-  const { data: fromBalance } = useTokenBalance(fromToken);
+  const { data: fromBalance } = useTokenBalance(fromToken, fromChain.id);
   const fromAmountInWei = fromToken ? parseUnits(fromAmount || '0', fromToken.decimals) : BigInt(0);
   const hasSufficientBalance = quote && fromBalance && fromBalance.value >= fromAmountInWei;
 
