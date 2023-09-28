@@ -32,7 +32,7 @@ export const formDefaultValues = {
   [SwapFormKey.FromToken]: null,
   [SwapFormKey.ToAmount]: '',
   [SwapFormKey.ToAddress]: '',
-  [SwapFormKey.ToChain]: SUPPORTED_CHAINS[0],
+  [SwapFormKey.ToChain]: SUPPORTED_CHAINS[1],
   [SwapFormKey.ToToken]: null,
   [SwapFormKey.TokenSearchFilter]: '',
 };
