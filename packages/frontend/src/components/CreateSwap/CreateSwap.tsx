@@ -116,7 +116,7 @@ const CreateSwap = () => {
         setIsLoading(false);
       },
       onSuccess: async hash => {
-        const explorerLink = getEvmTxUrl(fromChain, hash);
+        const explorerLink = toChain ? getEvmTxUrl(toChain, hash) : undefined;
 
         showToast({
           text: 'Your swap has been confirmed. Please stand by.',
