@@ -1,11 +1,10 @@
 import { erc20ABI, useAccount, useContractRead } from 'wagmi';
 import { parseUnits } from 'viem';
 import { getTokenBySymbol } from 'src/utils';
-import { SwapFormKey } from 'src/providers/SwapFormProvider';
 import { ETH_CONTRACT_ADDRESS, MIN_ALLOWANCE } from 'src/constants';
-import { useWatch } from 'react-hook-form';
 import { useQuote } from './useQuote';
 import { useTokens } from './useTokens';
+import { useSwapFormValues } from './useSwapFormValues';
 
 const useAllowance = () => {
   const { quote, isFetching: isFetchingQuote } = useQuote();
@@ -14,9 +13,7 @@ const useAllowance = () => {
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const approveAddress = (quote?.permit2Address || quote?.approveAddress) as `0x${string}`;
 
-  const [fromTokenSymbol, fromAmount] = useWatch({
-    name: [SwapFormKey.FromToken, SwapFormKey.FromAmount],
-  });
+  const { fromToken: fromTokenSymbol, fromAmount } = useSwapFormValues();
 
   const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
 
@@ -40,8 +37,7 @@ const useAllowance = () => {
   // TODO: Display errors in a toast
 
   const fromAmountInWei = fromToken ? parseUnits(fromAmount || '0', fromToken.decimals) : BigInt(0);
-  const isAllowanceAboveFromAmount =
-    allowance !== undefined && allowance >= fromAmountInWei;
+  const isAllowanceAboveFromAmount = allowance !== undefined && allowance >= fromAmountInWei;
 
   return { allowance, isAllowanceAboveFromAmount, ...rest };
 };

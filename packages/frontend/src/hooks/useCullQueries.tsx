@@ -1,15 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { useWatch } from 'react-hook-form';
-import { SwapFormKey } from 'src/providers/SwapFormProvider';
 import { getQueryKey, getTokenBySymbol } from 'src/utils';
 import { useTokens } from './useTokens';
+import { useSwapFormValues } from './useSwapFormValues';
 
 const useCullQueries = (primaryKey: string) => {
   const queryClient = useQueryClient();
-  const [fromTokenSymbol, toTokenSymbol, fromAmount] = useWatch({
-    name: [SwapFormKey.FromToken, SwapFormKey.ToToken, SwapFormKey.FromAmount],
-  });
+  const { fromToken: fromTokenSymbol, fromToken: toTokenSymbol, fromAmount } = useSwapFormValues();
   const { tokens } = useTokens();
 
   useEffect(() => {
