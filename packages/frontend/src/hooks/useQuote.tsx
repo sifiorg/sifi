@@ -2,19 +2,18 @@ import { useEffect } from 'react';
 import type { Quote } from '@sifi/sdk';
 import { parseUnits } from 'viem';
 import { useQuery } from '@tanstack/react-query';
-import { useFormContext, useWatch } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 import { useSifi } from 'src/providers/SDKProvider';
 import { SwapFormKey } from 'src/providers/SwapFormProvider';
 import { useSelectedChain } from 'src/providers/SelectedChainProvider';
 import { formatTokenAmount, getQueryKey, getTokenBySymbol, isValidTokenAmount } from 'src/utils';
 import { ETH_CONTRACT_ADDRESS } from 'src/constants';
 import { useTokens } from './useTokens';
+import { useSwapFormValues } from './useSwapFormValues';
 
 const useQuote = () => {
   const sifi = useSifi();
-  const [fromTokenSymbol, toTokenSymbol, fromAmount] = useWatch({
-    name: [SwapFormKey.FromToken, SwapFormKey.ToToken, SwapFormKey.FromAmount],
-  });
+  const { fromToken: fromTokenSymbol, toToken: toTokenSymbol, fromAmount } = useSwapFormValues();
   const { setValue } = useFormContext();
   const { tokens } = useTokens();
   const { selectedChain } = useSelectedChain();

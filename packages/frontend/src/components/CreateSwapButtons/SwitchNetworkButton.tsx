@@ -1,16 +1,13 @@
-import { useWatch } from 'react-hook-form';
 import { useSwitchNetwork } from 'wagmi';
 import { useTokens } from 'src/hooks/useTokens';
-import { SwapFormKey } from 'src/providers/SwapFormProvider';
 import { getTokenBySymbol } from 'src/utils';
 import { Button } from '../Button';
+import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 
 const SwitchNetworkButton = () => {
   const { switchNetwork, isLoading: isSwitchingNetwork } = useSwitchNetwork();
   const { tokens } = useTokens();
-  const [fromTokenSymbol] = useWatch({
-    name: [SwapFormKey.FromToken, SwapFormKey.ToToken, SwapFormKey.FromAmount],
-  });
+  const { fromToken: fromTokenSymbol } = useSwapFormValues();
   const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
 
   const handleSwitchNetwork = () => {
