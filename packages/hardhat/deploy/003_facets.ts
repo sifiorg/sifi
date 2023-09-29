@@ -88,7 +88,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
         calldata: initContract.interface.encodeFunctionData('init', [
           addresses.weth ?? ethers.ZeroAddress,
           addresses.permit2 ?? ethers.ZeroAddress,
-          addresses.stargateRouter ?? ethers.ZeroAddress,
+          addresses.stargateComposer ?? ethers.ZeroAddress,
         ]),
       };
     },

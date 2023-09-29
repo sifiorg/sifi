@@ -7,23 +7,20 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IWarpLink} from 'contracts/interfaces/IWarpLink.sol';
 import {WarpLinkCommandTypes} from 'contracts/facets/WarpLink.sol';
-import {IStargateRouter} from 'test/foundry/helpers/IStargateRouter.sol';
+import {IStargateComposer} from 'test/foundry/helpers/IStargateComposer.sol';
+import {IStargateRouter} from 'contracts/interfaces/external/IStargateRouter.sol';
 import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransfer.sol';
 import {PermitParams} from 'contracts/libraries/PermitParams.sol';
 import {Goerli, OptimismGoerli, Addresses} from '../test/foundry/helpers/Networks.sol';
 import {PermitSignature} from 'test/foundry/helpers/PermitSignature.sol';
 
 /**
- * Bridge mock USDC from Goerli to Optimism-Goerli and invoke WarpLink on the other
- * side, but with no commands.
- *
- * Adding commands would be even more interesting, but
- * there are no actions that can be made using Statgate mock USDC.
+ * Bridge mock USDC from Goerli to Optimism-Goerli.
  *
  * Invoke this script using:
- * forge script script/jump.sol --rpc-url goerli --no-storage-caching -vvvv --broadcast
+ * forge script script/jumpGoerli.sol --rpc-url goerli --no-storage-caching -vvvv --broadcast
  */
-contract JumpGoerli is Script, WarpLinkCommandTypes, PermitSignature {
+contract JumpAndEngageGoerli is Script, WarpLinkCommandTypes, PermitSignature {
   address goerliDiamondAddr = 0x2A104392321e978495dBC91b68914eDbA3126D9c;
 
   function setUp() public {}
@@ -36,25 +33,7 @@ contract JumpGoerli is Script, WarpLinkCommandTypes, PermitSignature {
 
     uint48 deadline = uint48(block.timestamp) + 60 * 60 * 24 * 365;
 
-    IWarpLink.Params memory destParams = IWarpLink.Params({
-      tokenIn: address(0), // Unused
-      tokenOut: OptimismGoerli.STARGATE_MOCK_USDC_ADDR,
-      commands: abi.encodePacked(
-        (uint8)(0) // Command count
-      ),
-      amountIn: 0, // Unused
-      amountOut: 0, // TODO
-      recipient: user,
-      partner: address(0),
-      feeBps: 0,
-      slippageBps: 0,
-      deadline: deadline
-    });
-
-    bytes memory destParamsEncoded = abi.encode(destParams);
-
     uint256 srcAmountIn = 100 * (10 ** 6);
-    uint256 dstGasForCall = 500_000;
     uint16 dstChainId = OptimismGoerli.STARGATE_CHAIN_ID;
 
     bytes memory sourceCommands = bytes.concat(
@@ -64,19 +43,18 @@ contract JumpGoerli is Script, WarpLinkCommandTypes, PermitSignature {
         (uint16)(dstChainId), // dstChainId
         (uint8)(1), // srcPoolId (USDC)
         (uint8)(1), // dstPoolId (USDC),
-        uint32(dstGasForCall), // dstGasForCall
-        uint256(destParamsEncoded.length) // NOTE: Unnecessarily large type
-      ),
-      destParamsEncoded
+        uint32(0), // dstGasForCall
+        uint256(0) // NOTE: Unnecessarily large type
+      )
     );
 
-    (uint256 nativeWei, ) = IStargateRouter(Goerli.STARGATE_ROUTER_ADDR).quoteLayerZeroFee({
+    (uint256 nativeWei, ) = IStargateComposer(Goerli.STARGATE_COMPOSER_ADDR).quoteLayerZeroFee({
       _dstChainId: dstChainId, // Goerli
       _functionType: 1, // Swap remote
       _toAddress: abi.encodePacked(goerliDiamondAddr),
-      _transferAndCallPayload: destParamsEncoded,
+      _transferAndCallPayload: '',
       _lzTxParams: IStargateRouter.lzTxObj({
-        dstGasForCall: dstGasForCall,
+        dstGasForCall: 0,
         dstNativeAmount: 0,
         dstNativeAddr: ''
       })
@@ -142,11 +120,11 @@ contract JumpGoerli is Script, WarpLinkCommandTypes, PermitSignature {
         tokenOut: Goerli.STARGATE_MOCK_USDC_ADDR,
         commands: sourceCommands,
         amountIn: srcAmountIn,
-        amountOut: 0, // TODO
-        recipient: address(0), // Unused
+        amountOut: (srcAmountIn * 995) / 1000,
+        recipient: user,
         partner: address(0), // Unused
         feeBps: 0, // Unused
-        slippageBps: 0,
+        slippageBps: 100,
         deadline: deadline
       }),
       permitParams
