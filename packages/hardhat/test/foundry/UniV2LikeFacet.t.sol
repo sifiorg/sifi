@@ -56,7 +56,7 @@ contract UniV2LikeFacetTestBase is FacetTest, PermitSignature {
         InitLibWarp.init.selector,
         Addresses.weth(chainId),
         Addresses.PERMIT2,
-        Addresses.stargateRouter(chainId)
+        Addresses.stargateComposer(chainId)
       )
     );
 

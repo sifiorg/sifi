@@ -54,7 +54,7 @@ contract CurveTest is FacetTest, PermitSignature {
         InitLibWarp.init.selector,
         Addresses.weth(1),
         Addresses.PERMIT2,
-        Addresses.stargateRouter(1)
+        Addresses.stargateComposer(1)
       )
     );
 
