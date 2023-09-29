@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useWatch, useForm, useFormContext } from 'react-hook-form';
+import { useForm, useFormContext } from 'react-hook-form';
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
 import { showToast, ShiftInput } from '@sifi/shared-ui';
 import { useTokens } from 'src/hooks/useTokens';
@@ -21,6 +21,7 @@ import { useMultiCallTokenBalance } from 'src/hooks/useMulticallTokenBalance';
 import { usePermit2 } from 'src/hooks/usePermit2';
 import { parseUnits } from 'viem';
 import { useSelectedChain } from 'src/providers/SelectedChainProvider';
+import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 
 const CreateSwap = () => {
   useCullQueries('quote');
@@ -34,9 +35,7 @@ const CreateSwap = () => {
   const { balanceMap, refetch: refetchTokenBalances } = useMultiCallTokenBalance(
     tokens as MulticallToken[]
   );
-  const [fromTokenSymbol, toTokenSymbol, fromAmount] = useWatch({
-    name: [SwapFormKey.FromToken, SwapFormKey.ToToken, SwapFormKey.FromAmount],
-  });
+  const { fromToken: fromTokenSymbol, toToken: toTokenSymbol, fromAmount } = useSwapFormValues();
   const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
   const toToken = getTokenBySymbol(toTokenSymbol, tokens);
   const [isLoading, setIsLoading] = useState(false);
@@ -172,7 +171,7 @@ const CreateSwap = () => {
     if (fromToken) {
       setValue(SwapFormKey.FromAmount, '');
     }
-  }, [fromToken])
+  }, [fromToken]);
 
   return (
     <div className="m:w-full py-2 sm:max-w-md">

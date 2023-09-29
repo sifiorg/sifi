@@ -1,11 +1,10 @@
 import { showToast } from '@sifi/shared-ui';
-import { useWatch } from 'react-hook-form';
 import { useApprove } from 'src/hooks/useApprove';
 import { useAllowance } from 'src/hooks/useAllowance';
-import { SwapFormKey } from 'src/providers/SwapFormProvider';
 import { ApprovalModal } from 'src/modals';
 import { Button } from '../Button';
 import { getViemErrorMessage } from 'src/utils';
+import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 
 const ApproveButton = () => {
   const {
@@ -16,9 +15,7 @@ const ApproveButton = () => {
     openModal,
   } = useApprove();
   const { refetch: refetchAllowance } = useAllowance();
-  const [fromTokenSymbol] = useWatch({
-    name: [SwapFormKey.FromToken],
-  });
+  const { fromToken: fromTokenSymbol } = useSwapFormValues();
 
   const handleClick = async () => {
     try {

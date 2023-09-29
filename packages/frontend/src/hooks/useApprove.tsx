@@ -2,13 +2,12 @@ import { useState } from 'react';
 import { showToast } from '@sifi/shared-ui';
 import { useMutation } from '@tanstack/react-query';
 import { erc20ABI, usePublicClient, useWalletClient } from 'wagmi';
-import { useWatch } from 'react-hook-form';
 import { MAX_ALLOWANCE } from 'src/constants';
-import { SwapFormKey } from 'src/providers/SwapFormProvider';
 import { getEvmTxUrl, getTokenBySymbol } from 'src/utils';
 import { useSelectedChain } from 'src/providers/SelectedChainProvider';
 import { useQuote } from './useQuote';
 import { useTokens } from './useTokens';
+import { useSwapFormValues } from './useSwapFormValues';
 
 const useApprove = () => {
   const { selectedChain } = useSelectedChain();
@@ -20,9 +19,7 @@ const useApprove = () => {
   const { tokens } = useTokens();
   const approveAddress = (quote?.permit2Address || quote?.approveAddress) as `0x${string}`;
 
-  const [fromTokenSymbol] = useWatch({
-    name: [SwapFormKey.FromToken],
-  });
+  const { fromToken: fromTokenSymbol } = useSwapFormValues();
 
   const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
 
