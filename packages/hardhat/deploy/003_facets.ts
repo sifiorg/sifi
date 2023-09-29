@@ -221,7 +221,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
   // Flatten to a single action since all remove actions use `address(0)`
   const cutsRemoveActions = Object.values(cutsRemovePerAddress).flatMap(selectors => ({
     action: FacetCutAction.Remove,
-    facetAddress: '0x0000000000000000000000000000000000000000',
+    facetAddress: ethers.ZeroAddress,
     functionSelectors: selectors,
   }));
 
@@ -320,7 +320,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
 
   await diamondCutFacet.diamondCut(
     cuts,
-    init?.address ?? '0x0000000000000000000000000000000000000000',
+    init?.address ?? ethers.ZeroAddress,
     init?.calldata ?? Buffer.from([])
   );
 
