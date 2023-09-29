@@ -1,4 +1,9 @@
-type AddressKey = 'uniswapV2Router02' | 'uniswapV2Factory' | 'weth' | 'permit2' | 'stargateRouter';
+type AddressKey =
+  | 'uniswapV2Router02'
+  | 'uniswapV2Factory'
+  | 'weth'
+  | 'permit2'
+  | 'stargateComposer';
 
 export const networkAddresses: Partial<Record<string, Partial<Record<AddressKey, string>>>> = {
   mainnet: {
@@ -6,18 +11,18 @@ export const networkAddresses: Partial<Record<string, Partial<Record<AddressKey,
     uniswapV2Factory: '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f',
     weth: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
     permit2: '0x000000000022D473030F116dDEE9F6B43aC78BA3',
-    stargateRouter: '0x8731d54E9D02c286767d56ac03e8037C07e01e98',
+    stargateComposer: '0xeCc19E177d24551aA7ed6Bc6FE566eCa726CC8a9',
   },
   goerli: {
     uniswapV2Router02: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
     uniswapV2Factory: '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f',
     weth: '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6',
     permit2: '0x000000000022D473030F116dDEE9F6B43aC78BA3',
-    stargateRouter: '0x7C5B3F4865b41b9d2B6dE65fdfbB47af06AC41f0',
+    stargateComposer: '0x7C5B3F4865b41b9d2B6dE65fdfbB47af06AC41f0',
   },
   optimismGoerli: {
     weth: '0x4200000000000000000000000000000000000006',
-    stargateRouter: '0xb82E8737e7BA953CB4462561639f32Fd7F0974c4',
+    stargateComposer: '0xb82E8737e7BA953CB4462561639f32Fd7F0974c4',
   },
   sepolia: {
     uniswapV2Router02: '0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008',
@@ -28,16 +33,16 @@ export const networkAddresses: Partial<Record<string, Partial<Record<AddressKey,
   polygon: {
     weth: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
     permit2: '0x000000000022D473030F116dDEE9F6B43aC78BA3',
-    stargateRouter: '0x45A01E4e04F14f7A4a6702c74187c5F6222033cd',
+    stargateComposer: '0xeCc19E177d24551aA7ed6Bc6FE566eCa726CC8a9',
   },
   arbitrum: {
     weth: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
     permit2: '0x000000000022D473030F116dDEE9F6B43aC78BA3',
-    stargateRouter: '0x53Bf833A5d6c4ddA888F69c22C88C9f356a41614',
+    stargateComposer: '0xeCc19E177d24551aA7ed6Bc6FE566eCa726CC8a9',
   },
   optimism: {
     weth: '0x4200000000000000000000000000000000000006',
     permit2: '0x000000000022D473030F116dDEE9F6B43aC78BA3',
-    stargateRouter: '0x53Bf833A5d6c4ddA888F69c22C88C9f356a41614',
+    stargateComposer: '0xeCc19E177d24551aA7ed6Bc6FE566eCa726CC8a9',
   },
 };

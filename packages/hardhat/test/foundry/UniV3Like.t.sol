@@ -57,7 +57,7 @@ abstract contract UniV3LikeTestBase is FacetTest, PermitSignature {
         InitLibWarp.init.selector,
         Addresses.weth(chainId),
         Addresses.PERMIT2,
-        Addresses.stargateRouter(chainId)
+        Addresses.stargateComposer(chainId)
       )
     );
 

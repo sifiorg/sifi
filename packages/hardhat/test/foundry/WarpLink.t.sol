@@ -14,13 +14,14 @@ import {InitLibWarp} from 'contracts/init/InitLibWarp.sol';
 import {IUniswapV2Factory} from 'contracts/interfaces/external/IUniswapV2Factory.sol';
 import {FacetTest} from './helpers/FacetTest.sol';
 import {UniV3Callback} from 'contracts/facets/UniV3Callback.sol';
-import {Addresses, Mainnet, Polygon, Arbitrum, Optimism, Goerli} from './helpers/Networks.sol';
+import {Addresses, Mainnet, Polygon, Arbitrum, Optimism, Goerli, OptimismGoerli} from './helpers/Networks.sol';
 import {WarpLinkEncoder} from './helpers/WarpLinkEncoder.sol';
 import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransfer.sol';
 import {IPermit2} from 'contracts/interfaces/external/IPermit2.sol';
 import {PermitParams} from 'contracts/libraries/PermitParams.sol';
 import {PermitSignature} from './helpers/PermitSignature.sol';
-import {IStargateRouter} from './helpers/IStargateRouter.sol';
+import {IStargateComposer} from './helpers/IStargateComposer.sol';
+import {IStargateRouter} from 'contracts/interfaces/external/IStargateRouter.sol';
 
 contract WarpLinkTestBase is FacetTest, PermitSignature, WarpLinkCommandTypes {
   event CollectedFee(
@@ -73,7 +74,7 @@ contract WarpLinkTestBase is FacetTest, PermitSignature, WarpLinkCommandTypes {
         initLibWarp.init.selector,
         Addresses.weth(chainId),
         Addresses.PERMIT2,
-        Addresses.stargateRouter(chainId)
+        Addresses.stargateComposer(chainId)
       )
     );
 
@@ -1074,6 +1075,14 @@ contract WarpLinkTest is WarpLinkTestBase {
 
     assertEq(Mainnet.FRXETH.balanceOf(USER), 1000867499582465464, 'balance');
   }
+}
+
+// Block on 2023-09-29
+// Stargate switched to requiring the composer
+contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
+  function setUp() public override {
+    setUpOn(1, 18240282);
+  }
 
   function testFork_jumpStargate_EthToUsdc() public {
     uint256 amountIn = 1 ether;
@@ -1097,7 +1106,7 @@ contract WarpLinkTest is WarpLinkTestBase {
 
     uint256 expectedSwapOut = 1567 * (10 ** 6);
 
-    (uint256 nativeWei, ) = IStargateRouter(Mainnet.STARGATE_ROUTER_ADDR).quoteLayerZeroFee({
+    (uint256 nativeWei, ) = IStargateComposer(Mainnet.STARGATE_COMPOSER_ADDR).quoteLayerZeroFee({
       _dstChainId: 106,
       _functionType: 1, // swap remote
       _toAddress: abi.encodePacked(USER),
@@ -1162,7 +1171,7 @@ contract WarpLinkTest is WarpLinkTestBase {
 
     uint256 expectedSwapOut = 1000 * (10 ** 6);
 
-    (uint256 nativeWei, ) = IStargateRouter(Mainnet.STARGATE_ROUTER_ADDR).quoteLayerZeroFee({
+    (uint256 nativeWei, ) = IStargateComposer(Mainnet.STARGATE_COMPOSER_ADDR).quoteLayerZeroFee({
       _dstChainId: 106,
       _functionType: 1, // swap remote
       _toAddress: abi.encodePacked(USER),
@@ -1217,7 +1226,7 @@ contract WarpLinkTest is WarpLinkTestBase {
    * Bridge USDC from Ethereum to Arbitrum. Then simuilate the USD being received, but on the
    * Ethereum chain, and swap it to USDT
    */
-  function testFork_jumpAndBridge() public {
+  function testFork_jumpAndSwap() public {
     bytes memory destCommands = abi.encodePacked(
       (uint8)(1), // Command count
       encoder.encodeWarpUniV3LikeExactInputSingle({
@@ -1258,7 +1267,7 @@ contract WarpLinkTest is WarpLinkTestBase {
       destParamsEncoded
     );
 
-    (uint256 nativeWei, ) = IStargateRouter(Mainnet.STARGATE_ROUTER_ADDR).quoteLayerZeroFee({
+    (uint256 nativeWei, ) = IStargateComposer(Mainnet.STARGATE_COMPOSER_ADDR).quoteLayerZeroFee({
       _dstChainId: 111, // Optimism
       _functionType: 1, // Swap remote
       _toAddress: abi.encodePacked(address(diamond)),
@@ -1312,10 +1321,10 @@ contract WarpLinkTest is WarpLinkTestBase {
     deal(address(Mainnet.USDC), address(diamond), 999 * (10 ** 6));
 
     // And calls sgReceive
-    vm.prank(Mainnet.STARGATE_ROUTER_ADDR);
+    vm.prank(Mainnet.STARGATE_COMPOSER_ADDR);
     facet.sgReceive(
       uint16(Mainnet.CHAIN_ID), // _srcChain
-      abi.encode(address(diamond)), // _srcAddress
+      abi.encodePacked(address(diamond)), // _srcAddress
       0, // _nonce
       address(Mainnet.USDC), // _token
       990 * (10 ** 6), // amountLD
@@ -1695,7 +1704,7 @@ contract WarpLinkGoerliTest is WarpLinkTestBase {
 
     uint256 expectedSwapOut = 1000 * (10 ** 6);
 
-    (uint256 nativeWei, ) = IStargateRouter(Goerli.STARGATE_ROUTER_ADDR).quoteLayerZeroFee({
+    (uint256 nativeWei, ) = IStargateComposer(Goerli.STARGATE_COMPOSER_ADDR).quoteLayerZeroFee({
       _dstChainId: 10132,
       _functionType: 1, // swap remote
       _toAddress: abi.encodePacked(USER),

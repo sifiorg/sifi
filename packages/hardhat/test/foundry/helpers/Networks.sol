@@ -20,14 +20,15 @@ library Mainnet {
   address public constant UNISWAP_V2_FACTORY_ADDR = 0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f;
   address public constant SUSHISWAP_V2_FACTORY = 0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac;
   address public constant PANCAKESWAP_V2_FACTORY = 0x1097053Fd2ea711dad45caCcc45EfF7548fCB362;
-  address public constant STARGATE_ROUTER_ADDR = 0x8731d54E9D02c286767d56ac03e8037C07e01e98;
+  address public constant STARGATE_COMPOSER_ADDR = 0xeCc19E177d24551aA7ed6Bc6FE566eCa726CC8a9;
 }
 
 library Arbitrum {
   uint256 public constant CHAIN_ID = 42161;
   IERC20 public constant WETH = IERC20(0x82aF49447D8a07e3bd95BD0d56f35241523fBab1);
   IERC20 public constant USDC = IERC20(0xaf88d065e77c8cC2239327C5EDb3A432268e5831);
-  address public constant STARGATE_ROUTER_ADDR = 0x53Bf833A5d6c4ddA888F69c22C88C9f356a41614;
+  address public constant STARGATE_COMPOSER_ADDR = 0xeCc19E177d24551aA7ed6Bc6FE566eCa726CC8a9;
+  uint16 public constant STARGATE_CHAIN_ID = 110;
 }
 
 library Polygon {
@@ -35,7 +36,7 @@ library Polygon {
   IERC20 public constant WMATIC = IERC20(0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270);
   IERC20 public constant USDC = IERC20(0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174);
   IERC20 public constant USDT = IERC20(0xc2132D05D31c914a87C6611C10748AEb04B58e8F);
-  address public constant STARGATE_ROUTER_ADDR = 0x45A01E4e04F14f7A4a6702c74187c5F6222033cd;
+  address public constant STARGATE_COMPOSER_ADDR = 0x45A01E4e04F14f7A4a6702c74187c5F6222033cd;
 }
 
 library Optimism {
@@ -43,24 +44,24 @@ library Optimism {
   IERC20 public constant WETH = IERC20(0x4200000000000000000000000000000000000006);
   IERC20 public constant USDC = IERC20(0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85);
   IERC20 public constant USDT = IERC20(0x94b008aA00579c1307B0EF2c499aD98a8ce58e58);
-  address public constant STARGATE_ROUTER_ADDR = 0x53Bf833A5d6c4ddA888F69c22C88C9f356a41614;
+  address public constant STARGATE_COMPOSER_ADDR = 0xeCc19E177d24551aA7ed6Bc6FE566eCa726CC8a9;
 }
 
 library OptimismGoerli {
   uint256 public constant CHAIN_ID = 420;
-  address public constant STARGATE_ROUTER_ADDR = 0xb82E8737e7BA953CB4462561639f32Fd7F0974c4;
+  address public constant STARGATE_COMPOSER_ADDR = 0xb82E8737e7BA953CB4462561639f32Fd7F0974c4;
   address public constant STARGATE_MOCK_USDC_ADDR = 0x0CEDBAF2D0bFF895C861c5422544090EEdC653Bf;
   uint16 public constant STARGATE_CHAIN_ID = 10132;
 }
 
 library Avalanche {
   uint256 public constant CHAIN_ID = 43114;
-  address public constant STARGATE_ROUTER_ADDR = 0x45A01E4e04F14f7A4a6702c74187c5F6222033cd;
+  address public constant STARGATE_COMPOSER_ADDR = 0xeCc19E177d24551aA7ed6Bc6FE566eCa726CC8a9;
 }
 
 library Goerli {
   uint256 public constant CHAIN_ID = 5;
-  address public constant STARGATE_ROUTER_ADDR = 0x7C5B3F4865b41b9d2B6dE65fdfbB47af06AC41f0;
+  address public constant STARGATE_COMPOSER_ADDR = 0x7C5B3F4865b41b9d2B6dE65fdfbB47af06AC41f0;
   address public constant STARGATE_MOCK_USDC_ADDR = 0xDf0360Ad8C5ccf25095Aa97ee5F2785c8d848620;
   uint16 public constant STARGATE_CHAIN_ID = 10121;
 }
@@ -82,19 +83,21 @@ library Addresses {
     }
   }
 
-  function stargateRouter(uint256 chainId) internal pure returns (address) {
+  function stargateComposer(uint256 chainId) internal pure returns (address) {
     if (chainId == Mainnet.CHAIN_ID) {
-      return Mainnet.STARGATE_ROUTER_ADDR;
+      return Mainnet.STARGATE_COMPOSER_ADDR;
     } else if (chainId == Optimism.CHAIN_ID) {
-      return Optimism.STARGATE_ROUTER_ADDR;
+      return Optimism.STARGATE_COMPOSER_ADDR;
     } else if (chainId == Avalanche.CHAIN_ID) {
-      return Avalanche.STARGATE_ROUTER_ADDR;
+      return Avalanche.STARGATE_COMPOSER_ADDR;
+    } else if (chainId == OptimismGoerli.CHAIN_ID) {
+      return OptimismGoerli.STARGATE_COMPOSER_ADDR;
     } else if (chainId == Goerli.CHAIN_ID) {
-      return Goerli.STARGATE_ROUTER_ADDR;
+      return Goerli.STARGATE_COMPOSER_ADDR;
     } else if (chainId == Polygon.CHAIN_ID) {
-      return Polygon.STARGATE_ROUTER_ADDR;
+      return Polygon.STARGATE_COMPOSER_ADDR;
     } else if (chainId == Arbitrum.CHAIN_ID) {
-      return Arbitrum.STARGATE_ROUTER_ADDR;
+      return Arbitrum.STARGATE_COMPOSER_ADDR;
     } else {
       return address(0);
     }
