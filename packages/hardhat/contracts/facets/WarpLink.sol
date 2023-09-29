@@ -18,6 +18,7 @@ import {IAllowanceTransfer} from '../interfaces/external/IAllowanceTransfer.sol'
 import {PermitParams} from '../libraries/PermitParams.sol';
 import {IStargateRouter} from '../interfaces/external/IStargateRouter.sol';
 import {IStargateReceiver} from '../interfaces/external/IStargateReceiver.sol';
+import {IStargateComposer} from '../interfaces/external/IStargateComposer.sol';
 
 abstract contract WarpLinkCommandTypes {
   uint256 internal constant COMMAND_TYPE_WRAP = 1;
@@ -647,8 +648,8 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
    * The `_nonce` field is not checked since it's assumed that LayerZero will not deliver the
    * same message more than once.
    *
-   * The Stargate router is trusted, meaning `_token` and `amountLD` is not verified. Should the
-   * Stargate router be compromised, an attacker can drain this contract.
+   * The Stargate composer is trusted, meaning `_token` and `amountLD` is not verified. Should the
+   * Stargate composer be compromised, an attacker can drain this contract.
    *
    * If the payload can not be decoded, tokens are left in this contract.
    * If execution runs out of gas, tokens are left in this contract.
@@ -666,14 +667,20 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     uint256 amountLD,
     bytes memory payload
   ) external {
-    if (msg.sender != address(LibWarp.state().stargateRouter)) {
+    if (msg.sender != address(LibWarp.state().stargateComposer)) {
       revert InvalidSgReceiverSender();
     }
 
-    address srcAddress = abi.decode(_srcAddress, (address));
+    // NOTE: Addresses cannot be decode from bytes using `abi.decode`
+    // From https://ethereum.stackexchange.com/a/50528
+    address srcAddress;
+
+    assembly {
+      srcAddress := mload(add(_srcAddress, 20))
+    }
 
     if (srcAddress != address(this)) {
-      // NOTE: This assumed that this contract is deployed at the same address on every chain
+      // NOTE: This assumes that this contract is deployed at the same address on every chain
       revert InvalidSgReceiveSrcAddress();
     }
 
@@ -761,6 +768,8 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       revert InsufficientOutputAmount();
     }
 
+    IStargateComposer stargateComposer = LibWarp.state().stargateComposer;
+
     if (t.token != address(0)) {
       if (t.payer != address(this)) {
         // Transfer tokens from the sender to this contract
@@ -770,13 +779,19 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
         t.payer = address(this);
       }
 
-      // Allow Stargate to transfer the tokens
-      IERC20(t.token).forceApprove(address(LibWarp.state().stargateRouter), t.amount);
+      // Allow Stargate to transfer the tokens. When there is a payload, the composer is used, else the router
+      IERC20(t.token).forceApprove(
+        params.payload.length == 0 ? stargateComposer.stargateRouter() : address(stargateComposer),
+        t.amount
+      );
     }
 
     t.jumped = 1;
 
-    LibWarp.state().stargateRouter.swap{value: t.nativeValueRemaining}({
+    // Swap on the composer if there is a payload, else the router
+    IStargateRouter(
+      params.payload.length == 0 ? stargateComposer.stargateRouter() : address(stargateComposer)
+    ).swap{value: t.nativeValueRemaining}({
       _dstChainId: params.dstChainId,
       _srcPoolId: params.srcPoolId,
       _dstPoolId: params.dstPoolId,
