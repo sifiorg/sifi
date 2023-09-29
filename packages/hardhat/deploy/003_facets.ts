@@ -12,6 +12,7 @@ const actionNames = Object.keys(FacetCutAction);
 const addresses = networkAddresses[network.name];
 
 type Init = {
+  name: string;
   address: string;
   calldata: string;
 };
@@ -59,6 +60,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
       const initContract = await ethers.getContractAt('InitUniV2Router', initDeployment.address);
 
       return {
+        name: 'InitUniV2Router',
         address: initDeployment.address,
         calldata: initContract.interface.encodeFunctionData('init', [
           addresses.uniswapV2Router02,
@@ -81,6 +83,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
       const initContract = await ethers.getContractAt('InitLibWarp', initDeployment.address);
 
       return {
+        name: 'InitLibWarp',
         address: initDeployment.address,
         calldata: initContract.interface.encodeFunctionData('init', [
           addresses.weth ?? ethers.ZeroAddress,
@@ -293,6 +296,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
     );
 
     init = {
+      name: 'DiamondMultiInit',
       address: multiInitDeployment.address,
       calldata: multiInitContract.interface.encodeFunctionData('multiInit', [
         inits.map(init => init.address),
@@ -304,7 +308,8 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
   }
 
   if (init) {
-    console.log(`Init: ${init.address} (${init.calldata})`);
+    console.log(`Init: ${inits.map(i => i.name).join(', ')}`);
+    console.log(`Address: ${init.address}; Calldata: (${init.calldata})`);
   }
 
   if (process.env.DRY_RUN) {
