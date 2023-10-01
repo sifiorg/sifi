@@ -927,6 +927,10 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       amountOut
     );
 
+    if (amountOut == 0) {
+      revert InsufficientOutputAmount();
+    }
+
     // Deliver tokens
     if (tokenOut == address(0)) {
       payable(params.recipient).transfer(amountOut);
