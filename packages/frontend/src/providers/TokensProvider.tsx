@@ -1,4 +1,3 @@
-import { QueryObserverResult, useQuery } from '@tanstack/react-query';
 import {
   type FunctionComponent,
   type ReactNode,
@@ -8,11 +7,11 @@ import {
   useMemo,
 } from 'react';
 import { showToast } from '@sifi/shared-ui';
-import { getOrderedTokenList } from 'src/utils/tokens';
 import { enableUnlistedTokenTrading } from 'src/utils/featureFlags';
 import { useSifi } from './SDKProvider';
 import type { Token } from '@sifi/sdk';
 import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
+import { useFetchTokens } from 'src/hooks/useFetchTokens';
 import { Chain } from 'viem';
 import { firstAndLast } from 'src/utils';
 
@@ -33,44 +32,16 @@ const TokensProvider: FunctionComponent<{ children: ReactNode }> = ({ children }
   const { fromChain, toChain } = useSwapFormValues();
   const [fromTokens, setFromTokens] = useState<Token[]>([]);
   const [toTokens, setToTokens] = useState<Token[]>([]);
+  const { fetchTokens: fetchFromTokens } = useFetchTokens(fromChain.id);
+  const { fetchTokens: fetchToTokens } = useFetchTokens(toChain.id);
 
-  const { refetch: refetchFromTokens } = useQuery(
-    ['tokens'],
-    async () => {
-      const data = await sifi.getTokens(fromChain.id);
+  useEffect(() => {
+    fetchFromTokens().then(setFromTokens);
+  }, [fromChain, fetchFromTokens]);
 
-      return getOrderedTokenList(data);
-    },
-    { enabled: false }
-  );
-
-  const { refetch: refetchToTokens } = useQuery(
-    ['tokens'],
-    async () => {
-      const data = await sifi.getTokens(toChain.id);
-
-      return getOrderedTokenList(data);
-    },
-    { enabled: false }
-  );
-
-  const fetchTokens = async (
-    chain: Chain,
-    setTokens: React.Dispatch<React.SetStateAction<Token[]>>,
-    refetchTokens: () => Promise<QueryObserverResult<Token[], unknown>>
-  ) => {
-    try {
-      const { data: tokensData } = await refetchTokens();
-      if (tokensData) {
-        setTokens(tokensData);
-      }
-    } catch (error) {
-      showToast({
-        text: `Failed to fetch tokens for ${chain.name}`,
-        type: 'error',
-      });
-    }
-  };
+  useEffect(() => {
+    fetchToTokens().then(setToTokens);
+  }, [toChain, fetchToTokens]);
 
   const appendTokenFetchedByAddress = async (
     chain: Chain,
@@ -93,14 +64,6 @@ const TokensProvider: FunctionComponent<{ children: ReactNode }> = ({ children }
       }
     }
   };
-
-  useEffect(() => {
-    fetchTokens(fromChain, setFromTokens, refetchFromTokens);
-  }, [fromChain, setFromTokens, refetchFromTokens]);
-
-  useEffect(() => {
-    fetchTokens(toChain, setToTokens, refetchToTokens);
-  }, [toChain, setToTokens, refetchToTokens]);
 
   const value = useMemo(() => {
     return {
