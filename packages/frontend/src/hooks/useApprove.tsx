@@ -4,15 +4,14 @@ import { useMutation } from '@tanstack/react-query';
 import { erc20ABI, usePublicClient, useWalletClient } from 'wagmi';
 import { MAX_ALLOWANCE } from 'src/constants';
 import { getEvmTxUrl, getTokenBySymbol } from 'src/utils';
-import { useSelectedChain } from 'src/providers/SelectedChainProvider';
 import { useQuote } from './useQuote';
 import { useTokens } from './useTokens';
 import { useSwapFormValues } from './useSwapFormValues';
 
 const useApprove = () => {
-  const { selectedChain } = useSelectedChain();
+  const { fromChain } = useSwapFormValues();
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
-  const publicClient = usePublicClient({ chainId: selectedChain.id });
+  const publicClient = usePublicClient({ chainId: fromChain.id });
   const { data: walletClient } = useWalletClient();
   const [isLoading, setIsLoading] = useState(false);
   const { quote } = useQuote();
@@ -40,7 +39,7 @@ const useApprove = () => {
     // TODO: Handle case when account already has allowance but it's not sufficient
 
     const hash = await walletClient.writeContract({
-      chain: selectedChain,
+      chain: fromChain,
       address: fromToken.address as `0x${string}`,
       abi: erc20ABI,
       functionName: 'approve',
@@ -50,7 +49,7 @@ const useApprove = () => {
     setIsApprovalModalOpen(false);
 
     await publicClient.waitForTransactionReceipt({ hash });
-    const explorerLink = getEvmTxUrl(selectedChain, hash);
+    const explorerLink = getEvmTxUrl(fromChain, hash);
     showToast({
       type: 'success',
       text: `Approved ${fromTokenSymbol} for trading`,
