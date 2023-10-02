@@ -9,9 +9,9 @@ import {
 } from 'react';
 import { getOrderedTokenList } from 'src/utils/tokens';
 import { enableUnlistedTokenTrading } from 'src/utils/featureFlags';
-import { useSelectedChain } from 'src/providers/SelectedChainProvider';
 import { useSifi } from './SDKProvider';
 import type { Token } from '@sifi/sdk';
+import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 
 const TokensContext = createContext<{
   tokens: Token[];
@@ -24,13 +24,13 @@ const TokensContext = createContext<{
 
 const TokensProvider: FunctionComponent<{ children: ReactNode }> = ({ children }) => {
   const sifi = useSifi();
-  const { selectedChain } = useSelectedChain();
+  const { fromChain } = useSwapFormValues();
   const [tokens, setTokens] = useState<Token[]>([]);
 
   const { refetch } = useQuery(
     ['tokens'],
     async () => {
-      const data = await sifi.getTokens(selectedChain.id);
+      const data = await sifi.getTokens(fromChain.id);
 
       return getOrderedTokenList(data);
     },
@@ -48,7 +48,7 @@ const TokensProvider: FunctionComponent<{ children: ReactNode }> = ({ children }
   const appendTokenFetchedByAddress = async (address: `0x${string}`) => {
     const token = tokens?.find(token => token.address.toLowerCase() === address.toLowerCase());
     if (!token) {
-      const fetchedToken = await sifi.getToken(selectedChain.id, address);
+      const fetchedToken = await sifi.getToken(fromChain.id, address);
       if (fetchedToken) {
         setTokens(tokens => [...tokens, fetchedToken]);
       }
@@ -58,7 +58,7 @@ const TokensProvider: FunctionComponent<{ children: ReactNode }> = ({ children }
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     fetchTokens();
-  }, [selectedChain]);
+  }, [fromChain]);
 
   const value = useMemo(() => {
     return {

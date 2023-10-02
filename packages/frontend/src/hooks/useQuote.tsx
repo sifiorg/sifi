@@ -5,7 +5,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useFormContext } from 'react-hook-form';
 import { useSifi } from 'src/providers/SDKProvider';
 import { SwapFormKey } from 'src/providers/SwapFormProvider';
-import { useSelectedChain } from 'src/providers/SelectedChainProvider';
 import { formatTokenAmount, getQueryKey, getTokenBySymbol, isValidTokenAmount } from 'src/utils';
 import { ETH_CONTRACT_ADDRESS } from 'src/constants';
 import { useTokens } from './useTokens';
@@ -16,7 +15,7 @@ const useQuote = () => {
   const { fromToken: fromTokenSymbol, toToken: toTokenSymbol, fromAmount } = useSwapFormValues();
   const { setValue } = useFormContext();
   const { tokens } = useTokens();
-  const { selectedChain } = useSelectedChain();
+  const { fromChain } = useSwapFormValues();
   const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
   const toToken = getTokenBySymbol(toTokenSymbol, tokens);
   const isSameTokenPair = fromToken?.address === toToken?.address;
@@ -28,8 +27,8 @@ const useQuote = () => {
       fromAmount?.endsWith('.') ? `${fromAmount}0` : fromAmount || '0',
       fromToken?.decimals || 0
     ).toString(),
-    fromChain: selectedChain.id,
-    toChain: selectedChain.id,
+    fromChain: fromChain.id,
+    toChain: fromChain.id,
   };
 
   const handleSuccesfulQuoteFetch = (quote: Quote): void => {
