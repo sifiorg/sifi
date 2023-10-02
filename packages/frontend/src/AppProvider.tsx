@@ -9,7 +9,6 @@ import { SDKProvider } from './providers/SDKProvider';
 import { SwapFormProvider } from './providers/SwapFormProvider';
 import { WagmiProvider } from './providers/WagmiProvider';
 import { TokensProvider } from './providers/TokensProvider';
-import { SelectedChainProvider } from './providers/SelectedChainProvider';
 
 const QueryProvider = QueryClientProvider;
 const queryClient = new QueryClient();
@@ -21,14 +20,12 @@ export const AppProvider: FC<PropsWithChildren> = ({ children }) => {
         <AnalyticsProvider>
           <SDKProvider>
             <WagmiProvider>
-            <SelectedChainProvider>
-              <TokensProvider>
-                <SwapFormProvider>
-                    {children}
-                    <CustomToastContainer />
-                </SwapFormProvider>
-              </TokensProvider>
-              </SelectedChainProvider>
+              <SwapFormProvider>
+                <TokensProvider>
+                  {children}
+                  <CustomToastContainer />
+                </TokensProvider>
+              </SwapFormProvider>
             </WagmiProvider>
           </SDKProvider>
         </AnalyticsProvider>

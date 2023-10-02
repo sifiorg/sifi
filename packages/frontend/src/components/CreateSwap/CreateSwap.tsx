@@ -20,22 +20,25 @@ import { MulticallToken } from 'src/types';
 import { useMultiCallTokenBalance } from 'src/hooks/useMulticallTokenBalance';
 import { usePermit2 } from 'src/hooks/usePermit2';
 import { parseUnits } from 'viem';
-import { useSelectedChain } from 'src/providers/SelectedChainProvider';
 import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 
 const CreateSwap = () => {
   useCullQueries('quote');
   const { address, isConnected } = useAccount();
   const sifi = useSifi();
-  const { selectedChain } = useSelectedChain();
-  const publicClient = usePublicClient({ chainId: selectedChain.id });
+  const {
+    fromToken: fromTokenSymbol,
+    toToken: toTokenSymbol,
+    fromAmount,
+    fromChain,
+  } = useSwapFormValues();
+  const publicClient = usePublicClient({ chainId: fromChain.id });
   const { data: walletClient } = useWalletClient();
   const { handleSubmit } = useForm();
   const { tokens } = useTokens();
   const { balanceMap, refetch: refetchTokenBalances } = useMultiCallTokenBalance(
     tokens as MulticallToken[]
   );
-  const { fromToken: fromTokenSymbol, toToken: toTokenSymbol, fromAmount } = useSwapFormValues();
   const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
   const toToken = getTokenBySymbol(toTokenSymbol, tokens);
   const [isLoading, setIsLoading] = useState(false);
@@ -81,7 +84,7 @@ const CreateSwap = () => {
         feeBps: partnerFeeBps && partnerAddress ? Number(partnerFeeBps) : undefined,
       });
       const res = await walletClient.sendTransaction({
-        chain: selectedChain,
+        chain: fromChain,
         data: tx.data as `0x${string}`,
         account: tx.from as `0x${string}`,
         to: tx.to as `0x${string}`,
@@ -103,7 +106,7 @@ const CreateSwap = () => {
         setIsLoading(false);
       },
       onSuccess: async hash => {
-        const explorerLink = getEvmTxUrl(selectedChain, hash);
+        const explorerLink = getEvmTxUrl(fromChain, hash);
 
         showToast({
           text: 'Your swap has been confirmed. Please stand by.',

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { ERC20_ABI, ETH_CONTRACT_ADDRESS } from "src/constants";
 import type { BalanceMap, MulticallToken } from 'src/types';
 import { formatTokenAmount } from "src/utils";
-import { useSelectedChain } from 'src/providers/SelectedChainProvider';
+import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 
 type UseMultiCallTokenBalance = {
   balanceMap: BalanceMap | null;
@@ -11,10 +11,10 @@ type UseMultiCallTokenBalance = {
 }
 
 const useMultiCallTokenBalance = (tokens: MulticallToken[]): UseMultiCallTokenBalance => {
-  const { selectedChain } = useSelectedChain();
+  const { fromChain } = useSwapFormValues();
   const { address } = useAccount();
   const [addressBalanceMap, setAddressBalanceMap] = useState<BalanceMap | null>(null)
-  const publicClient = usePublicClient({ chainId: selectedChain.id });
+  const publicClient = usePublicClient({ chainId: fromChain.id });
 
   const balanceReadContracts = address?.startsWith('0x') ? tokens.map(token => ({
     address: token.address,
