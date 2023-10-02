@@ -146,22 +146,19 @@ const CreateSwap = () => {
     setIsLoading(true);
     mutation.mutate();
   };
-
   const { closeTokenSelector, openTokenSelector, tokenSelectorType, isTokenSelectorOpen } =
     useTokenSelector();
 
-  const { setValue, watch } = useFormContext();
+  const { setValue } = useFormContext();
   const methods = useFormContext();
-
   const fromTokenKey = SwapFormKeyHelper.getTokenKey('from');
   const toTokenKey = SwapFormKeyHelper.getTokenKey('to');
-  const selectedFromToken = getTokenBySymbol(watch(fromTokenKey), fromTokens) || undefined;
-  const selectedToToken = getTokenBySymbol(watch(toTokenKey), toTokens) || undefined;
+  const selectedFromToken = getTokenBySymbol(fromTokenSymbol, fromTokens) || undefined;
+  const selectedToToken = getTokenBySymbol(toTokenSymbol, toTokens) || undefined;
   const fromId = SwapFormKeyHelper.getAmountKey('from');
   const toId = SwapFormKeyHelper.getAmountKey('to');
   const spendableBalance = useSpendableBalance({ token: fromToken });
   const depositMax = isConnected ? spendableBalance : undefined;
-
   const selectedFromTokenWithNetwork = getTokenWithNetwork(selectedFromToken, fromChain);
   const selectedToTokenWithNetwork = getTokenWithNetwork(selectedToToken, toChain);
 
