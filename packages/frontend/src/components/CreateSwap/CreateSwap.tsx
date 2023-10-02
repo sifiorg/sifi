@@ -20,7 +20,6 @@ import { SwapInformation } from '../SwapInformation';
 import { MulticallToken } from 'src/types';
 import { useMultiCallTokenBalance } from 'src/hooks/useMulticallTokenBalance';
 import { usePermit2 } from 'src/hooks/usePermit2';
-import { getChainIcon } from 'src/utils/chains';
 import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 import { ChainSelector } from 'src/components/ChainSelector/ChainSelector';
 import { getTokenWithNetwork } from 'src/utils/getTokenWithNetwork';
@@ -116,7 +115,7 @@ const CreateSwap = () => {
         setIsLoading(false);
       },
       onSuccess: async hash => {
-        const explorerLink = toChain ? getEvmTxUrl(toChain, hash) : undefined;
+        const explorerLink = fromChain ? getEvmTxUrl(fromChain, hash) : undefined;
 
         showToast({
           text: 'Your swap has been confirmed. Please stand by.',
