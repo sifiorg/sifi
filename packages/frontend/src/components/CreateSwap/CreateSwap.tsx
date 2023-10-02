@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useForm, useFormContext } from 'react-hook-form';
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
+import { parseUnits } from 'viem';
 import { showToast, ShiftInput } from '@sifi/shared-ui';
 import { useTokens } from 'src/hooks/useTokens';
 import { useTokenBalance } from 'src/hooks/useTokenBalance';
@@ -19,8 +20,8 @@ import { SwapInformation } from '../SwapInformation';
 import { MulticallToken } from 'src/types';
 import { useMultiCallTokenBalance } from 'src/hooks/useMulticallTokenBalance';
 import { usePermit2 } from 'src/hooks/usePermit2';
-import { parseUnits } from 'viem';
 import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
+import { getTokenWithNetwork } from 'src/utils/getTokenWithNetwork';
 
 const CreateSwap = () => {
   useCullQueries('quote');
@@ -31,6 +32,7 @@ const CreateSwap = () => {
     toToken: toTokenSymbol,
     fromAmount,
     fromChain,
+    toChain,
   } = useSwapFormValues();
   const publicClient = usePublicClient({ chainId: fromChain.id });
   const { data: walletClient } = useWalletClient();
@@ -152,6 +154,9 @@ const CreateSwap = () => {
   const spendableBalance = useSpendableBalance({ token: fromToken });
   const depositMax = isConnected ? spendableBalance : undefined;
 
+  const selectedFromTokenWithNetwork = getTokenWithNetwork(selectedFromToken, fromChain);
+  const selectedToTokenWithNetwork = getTokenWithNetwork(selectedToToken, toChain);
+
   const resetTokenAmounts = () => {
     setValue(SwapFormKey.FromAmount, '');
     setValue(SwapFormKey.ToAmount, '');
@@ -186,7 +191,7 @@ const CreateSwap = () => {
                 <ShiftInput
                   label={ShiftInputLabel.from}
                   balance={fromBalance?.formatted}
-                  selected={selectedFromToken}
+                  selected={selectedFromTokenWithNetwork}
                   id={fromId}
                   openSelector={() => openTokenSelector('from')}
                   formMethods={methods}
@@ -198,7 +203,7 @@ const CreateSwap = () => {
                 label={ShiftInputLabel.to}
                 isLoading={isToSwapInputLoading}
                 balance={toBalance?.formatted}
-                selected={selectedToToken}
+                selected={selectedToTokenWithNetwork}
                 id={toId}
                 disabled
                 openSelector={() => openTokenSelector('to')}
