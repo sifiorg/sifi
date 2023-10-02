@@ -1,5 +1,5 @@
-export const firstAndLast = (value: string, first = 4, last = 4, middle = '...') => {
-  if (value.length < first + last) {
+const firstAndLast = (value: string, first = 4, last = 4, middle = '...') => {
+  if (value.length <= first + last) {
     return value;
   }
 
@@ -8,3 +8,5 @@ export const firstAndLast = (value: string, first = 4, last = 4, middle = '...')
 
   return `${beginning}${middle}${end}`;
 };
+
+export { firstAndLast };
