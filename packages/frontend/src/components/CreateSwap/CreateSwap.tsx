@@ -23,6 +23,7 @@ import { usePermit2 } from 'src/hooks/usePermit2';
 import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 import { ChainSelector } from 'src/components/ChainSelector/ChainSelector';
 import { getTokenWithNetwork } from 'src/utils/getTokenWithNetwork';
+import { useDefaultTokens } from 'src/hooks/useDefaultTokens';
 
 const CreateSwap = () => {
   useCullQueries('quote');
@@ -61,6 +62,7 @@ const CreateSwap = () => {
   const isToSwapInputLoading = isFetchingQuote;
 
   useReferrer();
+  useDefaultTokens();
 
   const mutation = useMutation(
     async () => {
@@ -151,8 +153,6 @@ const CreateSwap = () => {
 
   const { setValue } = useFormContext();
   const methods = useFormContext();
-  const fromTokenKey = SwapFormKeyHelper.getTokenKey('from');
-  const toTokenKey = SwapFormKeyHelper.getTokenKey('to');
   const selectedFromToken = getTokenBySymbol(fromTokenSymbol, fromTokens) || undefined;
   const selectedToToken = getTokenBySymbol(toTokenSymbol, toTokens) || undefined;
   const fromId = SwapFormKeyHelper.getAmountKey('from');
@@ -166,15 +166,6 @@ const CreateSwap = () => {
     setValue(SwapFormKey.FromAmount, '');
     setValue(SwapFormKey.ToAmount, '');
   };
-
-  useEffect(() => {
-    if (fromTokens.length > 1) {
-      setValue(fromTokenKey, fromTokens[0].symbol);
-    }
-    if (toTokens.length > 1) {
-      setValue(toTokenKey, toTokens[1].symbol);
-    }
-  }, [fromTokens, toTokens]);
 
   useEffect(() => {
     if (isSameTokenPair) {
