@@ -9,3 +9,4 @@ export * from './isValidTokenAmount';
 export * from './getViemErrorMessage';
 export * from './viemToEthersAdapters';
 export * from './uniswapPermitSigning';
+export * from './firstAndLast';

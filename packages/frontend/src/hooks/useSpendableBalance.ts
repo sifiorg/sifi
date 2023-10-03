@@ -3,6 +3,7 @@ import { formatEther } from 'viem';
 import { Token } from '@sifi/sdk';
 import { ETH_CONTRACT_ADDRESS, SWAP_MAX_GAS_UNITS } from 'src/constants';
 import { useTokenBalance } from './useTokenBalance';
+import { useSwapFormValues } from './useSwapFormValues';
 
 type UseSpendableBalanceOptions = {
   token: Token | null;
@@ -10,9 +11,10 @@ type UseSpendableBalanceOptions = {
 
 const useSpendableBalance = ({ token }: UseSpendableBalanceOptions): string | undefined => {
   const { chain } = useNetwork();
+  const { fromChain } = useSwapFormValues();
   const { data: feeData } = useFeeData({ chainId: chain?.id, formatUnits: 'wei' });
   const isNativeToken = token?.address === ETH_CONTRACT_ADDRESS;
-  const { data: fromTokenBalanceData } = useTokenBalance(token);
+  const { data: fromTokenBalanceData } = useTokenBalance(token, fromChain.id);
 
   if (!feeData?.maxFeePerGas || !fromTokenBalanceData) {
     return '0';

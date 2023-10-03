@@ -1,45 +1,51 @@
 import { Fragment } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import { ReactComponent as DownCaret } from 'src/assets/down-caret.svg';
-import { enableMultipleChains } from 'src/utils/featureFlags';
 import { SUPPORTED_CHAINS, getChainIcon } from 'src/utils/chains';
 import { Chain, useNetwork, useSwitchNetwork } from 'wagmi';
 import { SwapFormKey } from 'src/providers/SwapFormProvider';
 import { useFormContext } from 'react-hook-form';
 import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 
-const NetworkSelector: React.FC = () => {
+type ChainSelectorProps = {
+  chainToSet: SwapFormKey.FromChain | SwapFormKey.ToChain;
+};
+
+const ChainSelector: React.FC<ChainSelectorProps> = ({ chainToSet }) => {
   const { chain: activeChain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
   const { setValue } = useFormContext();
-  const { fromChain } = useSwapFormValues();
+  const { fromChain, toChain } = useSwapFormValues();
 
-  const chains = enableMultipleChains
-    ? Object.values(SUPPORTED_CHAINS)
-    : Object.values(SUPPORTED_CHAINS).filter(chain => chain.id === 1);
+  const selectedChain = chainToSet === SwapFormKey.FromChain ? fromChain : toChain;
 
   const handleChange = (chain: Chain) => {
-    setValue(SwapFormKey.FromChain, chain);
-    // TODO: Remove when cross-chain is enabled
-    setValue(SwapFormKey.ToChain, chain);
+    setValue(chainToSet, chain);
 
-    if (!switchNetwork) return;
+    if (chainToSet === SwapFormKey.ToChain || !switchNetwork) return;
 
     switchNetwork(chain.id);
   };
 
   return (
-    <div className="font-text relative inline-block">
+    <div className="font-text relative flex justify-end top-[1rem]">
       <Listbox value={fromChain} onChange={handleChange}>
-        <div className="relative pr-0 sm:pr-4">
+        <div className="relative pr-0">
           <Listbox.Button
             role="button"
             className="dark:text-flashbang-white text-new-black border-new-black dark:border-darker-gray font-display flex h-12
             items-center gap-3 rounded-md border-0 px-4 py-2 text-sm max-[340px]:gap-3 sm:border-2 md:text-base"
             aria-busy="true"
           >
-            {fromChain && (
-              <img src={getChainIcon(fromChain.id)} alt={fromChain.name} className="w-6" />
+            {selectedChain && (
+              <div className="flex items-center">
+                <img
+                  src={getChainIcon(selectedChain.id)}
+                  alt={selectedChain.name}
+                  className="w-6 mr-2"
+                />
+                <span>{selectedChain.name} </span>
+              </div>
             )}
             <DownCaret
               className={`text-new-black dark:text-flashbang-white w-4
@@ -63,7 +69,7 @@ const NetworkSelector: React.FC = () => {
               aria-busy="true"
             >
               <div className="font-display bg-flashbang-white flex flex-col gap-y-2 p-6 text-sm dark:bg-darkest-gray mr-3  rounded-sm">
-                {Object.values(chains).map(chain => (
+                {Object.values(SUPPORTED_CHAINS).map(chain => (
                   <Listbox.Option
                     key={chain.name}
                     className={() =>
@@ -83,7 +89,7 @@ const NetworkSelector: React.FC = () => {
                           <div className="mr-3">
                             <img src={getChainIcon(chain.id)} alt={chain.name} className="w-6" />
                           </div>
-                          <span>{chain.name} </span>
+                          <span>{chain.name}</span>
                         </div>
                         {chain.id === activeChain?.id && (
                           <div>
@@ -103,4 +109,4 @@ const NetworkSelector: React.FC = () => {
   );
 };
 
-export { NetworkSelector };
+export { ChainSelector };
