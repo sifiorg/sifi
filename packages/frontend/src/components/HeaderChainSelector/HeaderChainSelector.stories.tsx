@@ -1,16 +1,16 @@
 import { userEvent, within } from '@storybook/testing-library';
-import { NetworkSelector } from './NetworkSelector';
+import { HeaderChainSelector } from './HeaderChainSelector';
 import { MockWagmiDecorator } from '../../../.storybook/decorators/wagmiDecorator';
 
 export default {
-  title: 'Components/NetworkSelector',
-  component: NetworkSelector,
+  title: 'Components/HeaderChainSelector',
+  component: HeaderChainSelector,
   decorators: [MockWagmiDecorator()],
 };
 
-const Default = () => <NetworkSelector />;
+const Default = () => <HeaderChainSelector />;
 
-const Open = () => <NetworkSelector />;
+const Open = () => <HeaderChainSelector />;
 
 Open.play = async ({ canvasElement }: { canvasElement: HTMLElement }) => {
   const canvas = within(canvasElement);

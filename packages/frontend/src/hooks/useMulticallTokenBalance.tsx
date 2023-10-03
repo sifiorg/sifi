@@ -10,11 +10,14 @@ type UseMultiCallTokenBalance = {
   refetch: () => void;
 }
 
-const useMultiCallTokenBalance = (tokens: MulticallToken[]): UseMultiCallTokenBalance => {
+const useMultiCallTokenBalance = (
+  tokens: MulticallToken[],
+  chainId: number
+): UseMultiCallTokenBalance => {
   const { fromChain } = useSwapFormValues();
   const { address } = useAccount();
   const [addressBalanceMap, setAddressBalanceMap] = useState<BalanceMap | null>(null)
-  const publicClient = usePublicClient({ chainId: fromChain.id });
+  const publicClient = usePublicClient({ chainId });
 
   const balanceReadContracts = address?.startsWith('0x') ? tokens.map(token => ({
     address: token.address,

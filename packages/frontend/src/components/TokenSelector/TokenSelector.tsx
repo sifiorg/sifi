@@ -15,7 +15,9 @@ const TokenSelector: FunctionComponent<{
 }> = ({ isOpen, close, type, balanceMap }) => {
   const selectId = SwapFormKeyHelper.getTokenKey(type);
   const { address } = useAccount();
-  const { tokens, fetchTokenByAddress } = useTokens();
+  const { fromTokens, toTokens, fetchFromTokenByAddress, fetchToTokenByAddress } = useTokens();
+  const tokens = type === 'from' ? fromTokens : toTokens;
+  const fetchTokenByAddress = type === 'from' ? fetchFromTokenByAddress : fetchToTokenByAddress;
   const { setValue, watch } = useFormContext();
   const selectedToken = getTokenBySymbol(watch(selectId), tokens);
 
@@ -26,21 +28,21 @@ const TokenSelector: FunctionComponent<{
     setValue(selectId, newToken.symbol);
   };
 
-  const formattedTokens = useMemo(
-    () =>{
-      return tokens?.map(token => {
-        const balance = balanceMap?.get(token.address.toLowerCase() as `0x${string}`)?.toString() || undefined;
-        return {
-          id: token.address as `0x${string}`,
-          logoURI: token.logoURI,
-          name: token.name,
-          networkDisplayName: null,
-          symbol: token.symbol,
-          networkLogoURI: null,
-          balance,
-        }})},
-    [tokens, balanceMap, address]
-  );
+  const formattedTokens = useMemo(() => {
+    return tokens?.map(token => {
+      const balance =
+        balanceMap?.get(token.address.toLowerCase() as `0x${string}`)?.toString() || undefined;
+      return {
+        id: token.address as `0x${string}`,
+        logoURI: token.logoURI,
+        name: token.name,
+        networkDisplayName: null,
+        symbol: token.symbol,
+        networkLogoURI: null,
+        balance,
+      };
+    });
+  }, [tokens, balanceMap, address]);
 
   if (!formattedTokens) return null;
 

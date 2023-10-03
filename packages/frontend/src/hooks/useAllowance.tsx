@@ -8,14 +8,14 @@ import { useSwapFormValues } from './useSwapFormValues';
 
 const useAllowance = () => {
   const { quote, isFetching: isFetchingQuote } = useQuote();
-  const { tokens } = useTokens();
+  const { fromTokens } = useTokens();
   const { isConnected, address } = useAccount();
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const approveAddress = (quote?.permit2Address || quote?.approveAddress) as `0x${string}`;
 
   const { fromToken: fromTokenSymbol, fromAmount } = useSwapFormValues();
 
-  const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
+  const fromToken = getTokenBySymbol(fromTokenSymbol, fromTokens);
 
   const enabled =
     !!fromToken &&
