@@ -7,11 +7,11 @@ import { useSwapFormValues } from './useSwapFormValues';
 const useCullQueries = (primaryKey: string) => {
   const queryClient = useQueryClient();
   const { fromToken: fromTokenSymbol, fromToken: toTokenSymbol, fromAmount } = useSwapFormValues();
-  const { tokens } = useTokens();
+  const { fromTokens, toTokens } = useTokens();
 
   useEffect(() => {
-    const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
-    const toToken = getTokenBySymbol(toTokenSymbol, tokens);
+    const fromToken = getTokenBySymbol(fromTokenSymbol, fromTokens);
+    const toToken = getTokenBySymbol(toTokenSymbol, toTokens);
 
     queryClient
       .invalidateQueries({

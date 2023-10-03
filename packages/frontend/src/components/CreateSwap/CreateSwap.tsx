@@ -21,7 +21,9 @@ import { MulticallToken } from 'src/types';
 import { useMultiCallTokenBalance } from 'src/hooks/useMulticallTokenBalance';
 import { usePermit2 } from 'src/hooks/usePermit2';
 import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
+import { ChainSelector } from 'src/components/ChainSelector/ChainSelector';
 import { getTokenWithNetwork } from 'src/utils/getTokenWithNetwork';
+import { useDefaultTokens } from 'src/hooks/useDefaultTokens';
 
 const CreateSwap = () => {
   useCullQueries('quote');
@@ -37,23 +39,30 @@ const CreateSwap = () => {
   const publicClient = usePublicClient({ chainId: fromChain.id });
   const { data: walletClient } = useWalletClient();
   const { handleSubmit } = useForm();
-  const { tokens } = useTokens();
-  const { balanceMap, refetch: refetchTokenBalances } = useMultiCallTokenBalance(
-    tokens as MulticallToken[]
-  );
-  const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
-  const toToken = getTokenBySymbol(toTokenSymbol, tokens);
+  const { fromTokens, toTokens } = useTokens();
+  const { balanceMap: fromBalanceMap, refetch: refetchFromTokenBalances } =
+    useMultiCallTokenBalance(fromTokens as MulticallToken[], fromChain.id);
+
+  const { balanceMap: toTokenBalanceMap, refetch: refetchToTokenBalances } =
+    useMultiCallTokenBalance(toTokens as MulticallToken[], toChain.id);
+  const fromToken = getTokenBySymbol(fromTokenSymbol, fromTokens);
+  const toToken = getTokenBySymbol(toTokenSymbol, toTokens);
   const [isLoading, setIsLoading] = useState(false);
   const { quote, isFetching: isFetchingQuote } = useQuote();
-  const ShiftInputLabel = { from: 'You pay', to: 'You receive' } as const;
-  const { data: fromBalance, refetch: refetchFromBalance } = useTokenBalance(fromToken);
-  const { data: toBalance, refetch: refetchToBalance } = useTokenBalance(toToken);
+  const ShiftInputLabel = { from: 'From', to: 'To' } as const;
+  const { data: fromBalance, refetch: refetchFromBalance } = useTokenBalance(
+    fromToken,
+    fromChain.id
+  );
+  const { data: toBalance, refetch: refetchToBalance } = useTokenBalance(toToken, toChain.id);
   const { getPermit2Params } = usePermit2();
-  const isSameTokenPair = fromToken && toToken && fromToken.address === toToken.address;
+  const isSameTokenPair =
+    fromToken && toToken && fromToken.address === toToken.address && fromChain === toChain;
 
   const isToSwapInputLoading = isFetchingQuote;
 
   useReferrer();
+  useDefaultTokens();
 
   const mutation = useMutation(
     async () => {
@@ -108,7 +117,7 @@ const CreateSwap = () => {
         setIsLoading(false);
       },
       onSuccess: async hash => {
-        const explorerLink = getEvmTxUrl(fromChain, hash);
+        const explorerLink = fromChain ? getEvmTxUrl(fromChain, hash) : undefined;
 
         showToast({
           text: 'Your swap has been confirmed. Please stand by.',
@@ -125,7 +134,8 @@ const CreateSwap = () => {
 
         refetchFromBalance();
         refetchToBalance();
-        refetchTokenBalances();
+        refetchFromTokenBalances();
+        refetchToTokenBalances();
         setValue(SwapFormKey.FromAmount, '');
       },
     }
@@ -138,22 +148,17 @@ const CreateSwap = () => {
     setIsLoading(true);
     mutation.mutate();
   };
-
   const { closeTokenSelector, openTokenSelector, tokenSelectorType, isTokenSelectorOpen } =
     useTokenSelector();
 
-  const { setValue, watch } = useFormContext();
+  const { setValue } = useFormContext();
   const methods = useFormContext();
-
-  const fromTokenKey = SwapFormKeyHelper.getTokenKey('from');
-  const toTokenKey = SwapFormKeyHelper.getTokenKey('to');
-  const selectedFromToken = getTokenBySymbol(watch(fromTokenKey), tokens) || undefined;
-  const selectedToToken = getTokenBySymbol(watch(toTokenKey), tokens) || undefined;
+  const selectedFromToken = getTokenBySymbol(fromTokenSymbol, fromTokens) || undefined;
+  const selectedToToken = getTokenBySymbol(toTokenSymbol, toTokens) || undefined;
   const fromId = SwapFormKeyHelper.getAmountKey('from');
   const toId = SwapFormKeyHelper.getAmountKey('to');
   const spendableBalance = useSpendableBalance({ token: fromToken });
   const depositMax = isConnected ? spendableBalance : undefined;
-
   const selectedFromTokenWithNetwork = getTokenWithNetwork(selectedFromToken, fromChain);
   const selectedToTokenWithNetwork = getTokenWithNetwork(selectedToToken, toChain);
 
@@ -161,13 +166,6 @@ const CreateSwap = () => {
     setValue(SwapFormKey.FromAmount, '');
     setValue(SwapFormKey.ToAmount, '');
   };
-
-  useEffect(() => {
-    if (tokens.length > 1) {
-      setValue(fromTokenKey, tokens[0].symbol);
-      setValue(toTokenKey, tokens[1].symbol);
-    }
-  }, [tokens]);
 
   useEffect(() => {
     if (isSameTokenPair) {
@@ -188,6 +186,10 @@ const CreateSwap = () => {
           <div>
             <div className="py-4">
               <div className="mb-2">
+                <div className="flex justify-between align-bottom items-end">
+                  <div className="font-display text-smoke">{ShiftInputLabel.from}</div>
+                  <ChainSelector chainToSet={SwapFormKey.FromChain} />
+                </div>
                 <ShiftInput
                   label={ShiftInputLabel.from}
                   balance={fromBalance?.formatted}
@@ -197,7 +199,12 @@ const CreateSwap = () => {
                   formMethods={methods}
                   disabled={Boolean(isSameTokenPair)}
                   max={depositMax}
+                  hideLabel
                 />
+              </div>
+              <div className="flex justify-between align-bottom items-end">
+                <div className="font-display text-smoke">{ShiftInputLabel.to}</div>
+                <ChainSelector chainToSet={SwapFormKey.ToChain} />
               </div>
               <ShiftInput
                 label={ShiftInputLabel.to}
@@ -208,9 +215,10 @@ const CreateSwap = () => {
                 disabled
                 openSelector={() => openTokenSelector('to')}
                 formMethods={methods}
+                hideLabel
               />
               <TokenSelector
-                balanceMap={balanceMap}
+                balanceMap={tokenSelectorType === 'from' ? fromBalanceMap : toTokenBalanceMap}
                 close={closeTokenSelector}
                 isOpen={isTokenSelectorOpen}
                 type={tokenSelectorType}

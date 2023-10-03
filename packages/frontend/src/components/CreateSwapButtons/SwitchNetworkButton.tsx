@@ -6,9 +6,9 @@ import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 
 const SwitchNetworkButton = () => {
   const { switchNetwork, isLoading: isSwitchingNetwork } = useSwitchNetwork();
-  const { tokens } = useTokens();
+  const { fromTokens } = useTokens();
   const { fromToken: fromTokenSymbol } = useSwapFormValues();
-  const fromToken = getTokenBySymbol(fromTokenSymbol, tokens);
+  const fromToken = getTokenBySymbol(fromTokenSymbol, fromTokens);
 
   const handleSwitchNetwork = () => {
     if (!fromToken || !switchNetwork) return;
