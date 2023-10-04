@@ -68,7 +68,7 @@ const useSyncTokenUrlParams = () => {
       };
     }
 
-    if (defaultToToken.chainId && defaultToToken.chainId !== toChain.id) {
+    if (!isSynchronised && defaultToToken.chainId) {
       const defaultToChain = getChainById(defaultToToken.chainId);
       
       if (defaultToChain) {
@@ -88,7 +88,7 @@ const useSyncTokenUrlParams = () => {
 
   useEffect(() => {
     const tokenlistMatchesParamChainId = toTokens[0]?.chainId === defaultToToken.chainId;
-    if (!hasSetDefaultToToken && defaultToToken.address && tokenlistMatchesParamChainId) {
+    if (!isSynchronised && !hasSetDefaultToToken && defaultToToken.address && tokenlistMatchesParamChainId) {
       setValue(SwapFormKey.ToToken, getTokenByAddress(defaultToToken.address, toTokens));
       setHasSetDefaultToToken(true);
     }
