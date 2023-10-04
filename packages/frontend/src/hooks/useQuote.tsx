@@ -57,7 +57,7 @@ const useQuote = () => {
     enabled,
     onSuccess: handleSuccesfulQuoteFetch,
     staleTime: 60_000,
-    retry: false,
+    retry: failureCount => failureCount < 1, // Retry once on failure
   });
 
   // To avoid showing the last quote
