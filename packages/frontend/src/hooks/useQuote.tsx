@@ -46,7 +46,7 @@ const useQuote = () => {
     Boolean(fromAmount) &&
     !isSameTokenPair &&
     isValidTokenAmount(fromAmount);
-  const queryKey = getQueryKey('quote', fromAmount, toToken?.address, fromToken?.address);
+  const queryKey = getQueryKey('quote', fromAmount, fromToken, toToken);
 
   // TODO: Quote gets fetched 4 times
   const {
