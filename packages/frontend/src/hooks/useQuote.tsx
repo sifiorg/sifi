@@ -57,14 +57,13 @@ const useQuote = () => {
     enabled,
     onSuccess: handleSuccesfulQuoteFetch,
     staleTime: 60_000,
+    retry: false,
   });
 
-  // To avoid showing the last qoute when the user clears fromAmount
+  // To avoid showing the last quote
   useEffect(() => {
-    if (!fromAmount) {
       setValue(SwapFormKey.ToAmount, '');
-    }
-  }, [fromAmount]);
+  }, [fromAmount, fromToken, toToken]);
 
   return {
     quote,
