@@ -1,11 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useFormContext } from "react-hook-form";
 import { SUPPORTED_CHAINS, getChainById } from "src/utils/chains";
 import { isAddress } from "viem";
 import { useSwapFormValues } from "./useSwapFormValues";
 import { SwapFormKey } from "src/providers/SwapFormProvider";
-import { getTokenBySymbol } from "src/utils";
+import { getTokenByAddress, getTokenBySymbol } from "src/utils";
 import { useTokens } from "./useTokens";
 
 const TOKEN_ADDRESS_LENGTH = 42;
@@ -13,6 +13,8 @@ const MIN_CHAIN_ID_LENGTH = 1;
 const MIN_TOKEN_PARAM_LENGTH = TOKEN_ADDRESS_LENGTH + MIN_CHAIN_ID_LENGTH;
 
 const useSyncTokenUrlParams = () => {
+  const [hasSetDefaultFromToken, setHasSetDefaultFromToken] = useState(false);
+  const [hasSetDefaultToToken, setHasSetDefaultToToken] = useState(false);
   const { fromToken: fromURLParam , toToken: toURLParam } = useParams();
   const navigate = useNavigate();
   const { fromChain, toChain, toToken: toTokenSymbol, fromToken: fromTokenSymbol } = useSwapFormValues();
@@ -56,18 +58,41 @@ const useSyncTokenUrlParams = () => {
     defaultFromToken.chainId === fromChain.id &&
     defaultToToken.chainId === toChain.id;
 
-  // Set default from and to chains on mount
+  // Set default to & from chains on mount
   useEffect(() => {
     if (!isSynchronised && defaultFromToken.chainId) {
-      setValue(SwapFormKey.FromChain, getChainById(defaultFromToken.chainId));
-    } 
+      const defaultFromChain = getChainById(defaultFromToken.chainId);
+
+      if (defaultFromChain) {
+        setValue(SwapFormKey.FromChain, defaultFromChain)
+      };
+    }
+
+    if (defaultToToken.chainId && defaultToToken.chainId !== toChain.id) {
+      const defaultToChain = getChainById(defaultToToken.chainId);
+      
+      if (defaultToChain) {
+        setValue(SwapFormKey.ToChain, defaultToChain);
+      };
+    }
   }, []);
 
+  // Set default to & from tokens on correct tokenlist load. Run once.
   useEffect(() => {
-    if (defaultToToken.chainId && defaultToToken.chainId !== toChain.id) {
-      setValue(SwapFormKey.ToChain, getChainById(defaultToToken.chainId));
-    } 
-  }, []);
+    const tokenlistMatchesParamChainId = fromTokens[0]?.chainId === defaultFromToken.chainId;
+    if (!hasSetDefaultFromToken && defaultFromToken.address && tokenlistMatchesParamChainId) {
+      setValue(SwapFormKey.FromToken, getTokenByAddress(defaultFromToken.address, fromTokens));
+      setHasSetDefaultFromToken(true);
+    }
+  }, [fromTokens]);
+
+  useEffect(() => {
+    const tokenlistMatchesParamChainId = toTokens[0]?.chainId === defaultToToken.chainId;
+    if (!hasSetDefaultToToken && defaultToToken.address && tokenlistMatchesParamChainId) {
+      setValue(SwapFormKey.ToToken, getTokenByAddress(defaultToToken.address, toTokens));
+      setHasSetDefaultToToken(true);
+    }
+  }, [toTokens])
 
   // Update url params if the user changes the from or to token
   useEffect(() => {
