@@ -17,7 +17,7 @@ const useCullQueries = (primaryKey: string) => {
       .invalidateQueries({
         predicate: query =>
           query.queryKey !==
-          getQueryKey(primaryKey, fromAmount, fromToken?.address, toToken?.address),
+          getQueryKey(primaryKey, fromAmount, fromToken, toToken),
       })
       .catch(error => console.log(error.message));
   }, [fromAmount, fromTokenSymbol, toTokenSymbol]);
