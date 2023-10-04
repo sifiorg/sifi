@@ -1100,8 +1100,7 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
       (uint16)(106), // dstChainId (Avalanche)
       (uint8)(1), // srcPoolId (USDC, Ethereum)
       (uint8)(1), // dstPoolId (USDC, Avalanche)
-      uint32(0), // dstGasForCall
-      uint256(0) // payload length
+      uint32(0) // dstGasForCall
     );
 
     uint256 expectedSwapOut = 1567 * (10 ** 6);
@@ -1165,8 +1164,7 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
       (uint16)(106), // dstChainId (Avalanche)
       (uint8)(1), // srcPoolId (USDC, Ethereum)
       (uint8)(1), // dstPoolId (USDC, Avalanche)
-      uint32(0), // dstGasForCall
-      uint256(0) // payload length
+      uint32(0) // dstGasForCall
     );
 
     uint256 expectedSwapOut = 1000 * (10 ** 6);
@@ -1262,9 +1260,11 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
         (uint8)(1), // srcPoolId (USDC, Ethereum)
         (uint8)(1), // dstPoolId (USDC, Optimism),
         uint32(dstGasForCall), // dstGasForCall, 500K
-        uint256(destParamsEncoded.length) // NOTE: Unnecessarily large type
-      ),
-      destParamsEncoded
+        address(Mainnet.WETH), // destParams.tokenOut
+        uint256(990 * (10 ** 6)), // destParams.amountOut
+        uint256(destCommands.length), // destParams.commands.length
+        destCommands // destParams.commands
+      )
     );
 
     (uint256 nativeWei, ) = IStargateComposer(Mainnet.STARGATE_COMPOSER_ADDR).quoteLayerZeroFee({
@@ -1698,8 +1698,7 @@ contract WarpLinkGoerliTest is WarpLinkTestBase {
       (uint16)(10132), // dstChainId: Optimism-Goerli
       (uint8)(1), // srcPoolId: USDC, Ethereum-Goerli
       (uint8)(1), // dstPoolId: USDC, Optimism-Goerli
-      uint32(0), // dstGasForCall
-      uint256(0) // payload length
+      uint32(0) // dstGasForCall
     );
 
     uint256 expectedSwapOut = 1000 * (10 ** 6);

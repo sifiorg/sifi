@@ -43,8 +43,7 @@ contract JumpAndEngageGoerli is Script, WarpLinkCommandTypes, PermitSignature {
         (uint16)(dstChainId), // dstChainId
         (uint8)(1), // srcPoolId (USDC)
         (uint8)(1), // dstPoolId (USDC),
-        uint32(0), // dstGasForCall
-        uint256(0) // NOTE: Unnecessarily large type
+        uint32(0) // dstGasForCall
       )
     );
 
