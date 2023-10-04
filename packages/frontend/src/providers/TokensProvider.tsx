@@ -52,7 +52,7 @@ const TokensProvider: FunctionComponent<{ children: ReactNode }> = ({ children }
     const token = tokens?.find(token => token.address.toLowerCase() === address.toLowerCase());
     if (!token) {
       try {
-        const fetchedToken = await sifi.getToken(chain.id, address);
+        const fetchedToken = await sifi.getToken(chain.id, address.toLowerCase());
         if (fetchedToken) {
           setTokens(tokens => [...tokens, fetchedToken]);
         }
@@ -78,7 +78,7 @@ const TokensProvider: FunctionComponent<{ children: ReactNode }> = ({ children }
         ? (address: string) => appendTokenFetchedByAddress(toChain, address, toTokens, setToTokens)
         : undefined,
     };
-  }, [fromTokens, toTokens]);
+  }, [fromTokens, toTokens, appendTokenFetchedByAddress, enableUnlistedTokenTrading]);
 
   return <TokensContext.Provider value={value}>{children}</TokensContext.Provider>;
 };

@@ -1,1 +1,1 @@
-export const enableUnlistedTokenTrading = false;
+export const enableUnlistedTokenTrading = true;
