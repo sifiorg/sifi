@@ -37,22 +37,19 @@ contract JumpAndEngageGoerli is Script, WarpLinkCommandTypes, PermitSignature {
 
     uint48 deadline = uint48(block.timestamp) + 60 * 60 * 24 * 365;
 
-    IWarpLink.Params memory destParams = IWarpLink.Params({
-      tokenIn: address(0), // Unused
-      tokenOut: OptimismGoerli.STARGATE_MOCK_USDC_ADDR,
-      commands: abi.encodePacked(
-        (uint8)(0) // Command count
-      ),
-      amountIn: 0, // Unused
-      amountOut: 0, // TODO
-      recipient: user,
-      partner: address(0),
-      feeBps: 0,
-      slippageBps: 0,
-      deadline: deadline
-    });
+    bytes memory destCommands = abi.encodePacked(
+      (uint8)(0) // Command count
+    );
 
-    bytes memory destParamsEncoded = abi.encode(destParams);
+    // NOTE: Only including vartiable length field
+    bytes memory destParamsEncoded;
+
+    {
+      IWarpLink.Params memory destParams;
+      destParams.commands = destCommands;
+
+      destParamsEncoded = abi.encode(destParams);
+    }
 
     uint256 srcAmountIn = 100 * (10 ** 6);
     uint256 dstGasForCall = 500_000;
@@ -66,13 +63,15 @@ contract JumpAndEngageGoerli is Script, WarpLinkCommandTypes, PermitSignature {
         (uint8)(1), // srcPoolId (USDC)
         (uint8)(1), // dstPoolId (USDC),
         uint32(dstGasForCall), // dstGasForCall
-        uint256(destParamsEncoded.length) // NOTE: Unnecessarily large type
+        address(OptimismGoerli.STARGATE_MOCK_USDC_ADDR), // destParams.tokenOut
+        uint256(99 * (10 ** 6)), // destParams.amountOut
+        uint256(destCommands.length) // destParams.commands.length
       ),
-      destParamsEncoded
+      destCommands // destParams.commands
     );
 
     (uint256 nativeWei, ) = IStargateComposer(Goerli.STARGATE_COMPOSER_ADDR).quoteLayerZeroFee({
-      _dstChainId: dstChainId, // Goerli
+      _dstChainId: dstChainId,
       _functionType: 1, // Swap remote
       _toAddress: abi.encodePacked(goerliDiamondAddr),
       _transferAndCallPayload: destParamsEncoded,
@@ -144,9 +143,9 @@ contract JumpAndEngageGoerli is Script, WarpLinkCommandTypes, PermitSignature {
         commands: sourceCommands,
         amountIn: srcAmountIn,
         amountOut: (srcAmountIn * 995) / 1000,
-        recipient: address(0), // Unused
-        partner: address(0), // Unused
-        feeBps: 0, // Unused
+        recipient: user,
+        partner: address(0),
+        feeBps: 0,
         slippageBps: 100,
         deadline: deadline
       }),

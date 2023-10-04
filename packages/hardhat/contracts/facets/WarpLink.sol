@@ -80,6 +80,7 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     address paramRecipient;
     uint256 paramAmountOut;
     uint16 paramSlippageBps;
+    uint48 paramDeadline;
     uint256 amount;
     address payer;
     address token;
@@ -731,6 +732,10 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
    *   - dstChainId (uint16)
    *   - srcPoolId (uint8)
    *   - dstPoolId (uint8)
+   *   - dstGasForCall (uint32)
+   *   - tokenOut (address) when `dstGasForCall` > 0
+   *   - amountOut (uint256) when `dstGasForCall` > 0
+   *   - commands (uint256 length, ...bytes) when `dstGasForCall` > 0
    */
   function processJumpStargate(
     uint256 stream,
@@ -747,7 +752,20 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     params.srcPoolId = stream.readUint8();
     params.dstPoolId = stream.readUint8();
     params.dstGasForCall = stream.readUint32();
-    params.payload = stream.readBytes();
+
+    if (params.dstGasForCall > 0) {
+      // NOTE: `tokenIn`, `amountIn` are not required
+      Params memory destParams;
+      destParams.partner = t.paramPartner;
+      destParams.feeBps = t.paramFeeBps;
+      destParams.slippageBps = t.paramSlippageBps;
+      destParams.recipient = t.paramRecipient;
+      destParams.tokenOut = stream.readAddress();
+      destParams.amountOut = stream.readUint256();
+      destParams.deadline = t.paramDeadline;
+      destParams.commands = stream.readBytes();
+      params.payload = abi.encode(destParams);
+    }
 
     // If the tokens are being delivered directly to the recipient without a second
     // WarpLink engage, the fee is charged on this chain
@@ -796,6 +814,7 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       _srcPoolId: params.srcPoolId,
       _dstPoolId: params.dstPoolId,
       //  NOTE: There is no guarantee that `msg.sender` can handle receiving tokens/ETH
+      // TODO: Use `msg.sender` if it's EOA, else use this contract
       _refundAddress: payable(address(this)),
       _amountLD: t.amount,
       // Max 5% slippage
@@ -869,6 +888,7 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     t.paramRecipient = params.recipient;
     t.paramAmountOut = params.amountOut;
     t.paramSlippageBps = params.slippageBps;
+    t.paramDeadline = params.deadline;
     t.amount = params.amountIn;
     t.token = params.tokenIn;
 
@@ -923,13 +943,11 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       revert InsufficientOutputAmount();
     }
 
-    if (t.nativeValueRemaining > 0) {
-      // TODO: Is this the correct recipient?
-      payable(msg.sender).transfer(t.nativeValueRemaining);
-    }
-
     if (t.jumped == 1) {
-      // The coins have jumped away from this chain. Fees were collected before the jump
+      // The coins have jumped away from this chain. Fees are colelcted before
+      // the jump or on the other chain.
+      //
+      // `t.nativeValueRemaining` is not checked since it should be zero
       return;
     }
 
@@ -951,6 +969,11 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       payable(params.recipient).transfer(amountOut);
     } else {
       IERC20(tokenOut).safeTransfer(params.recipient, amountOut);
+    }
+
+    if (t.nativeValueRemaining > 0) {
+      // TODO: Is this the correct recipient?
+      payable(msg.sender).transfer(t.nativeValueRemaining);
     }
   }
 }
