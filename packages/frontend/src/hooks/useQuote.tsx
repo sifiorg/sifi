@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
 import type { Quote } from '@sifi/sdk';
+import { showToast } from '@sifi/shared-ui';
 import { parseUnits } from 'viem';
 import { useQuery } from '@tanstack/react-query';
 import { useFormContext } from 'react-hook-form';
 import { useSifi } from 'src/providers/SDKProvider';
 import { SwapFormKey } from 'src/providers/SwapFormProvider';
-import { formatTokenAmount, getQueryKey, getTokenBySymbol, isValidTokenAmount } from 'src/utils';
+import { formatTokenAmount, getQueryKey, getTokenBySymbol, isValidTokenAmount, parseSifiErrorMessage } from 'src/utils';
 import { ETH_CONTRACT_ADDRESS } from 'src/constants';
 import { useTokens } from './useTokens';
 import { useSwapFormValues } from './useSwapFormValues';
@@ -40,6 +41,16 @@ const useQuote = () => {
     setValue(SwapFormKey.ToAmount, formatTokenAmount(quote.toAmount.toString(), toToken?.decimals));
   };
 
+  const handleQuoteFetchError = (error: unknown): void => {
+    if (error instanceof Error) {
+      showToast({
+        text: parseSifiErrorMessage(error.message, { fromToken, toToken }),
+        type: 'error',
+        toastId: `quote-error-${fromToken?.symbol}-${fromChain.id}-${toToken?.symbol}-${toChain.id}`,
+      });
+    }
+  };
+
   const enabled =
     Boolean(fromToken) &&
     Boolean(toToken) &&
@@ -56,6 +67,7 @@ const useQuote = () => {
   } = useQuery(queryKey, async () => sifi.getQuote(quoteRequest), {
     enabled,
     onSuccess: handleSuccesfulQuoteFetch,
+    onError: handleQuoteFetchError,
     staleTime: 60_000,
     retry: failureCount => failureCount < 1, // Retry once on failure
   });
