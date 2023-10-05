@@ -17,3 +17,9 @@ export const getTokenBySymbol = (symbol: string, tokenList: Token[]) => {
 
   return tokenList.find(token => token.symbol === symbol) || null;
 };
+
+export const getTokenByAddress = (address: string, tokenList: Token[]) => {
+  if (!tokenList) return null;
+
+  return tokenList.find(token => token.address.toLowerCase() === address.toLowerCase()) || null;
+};

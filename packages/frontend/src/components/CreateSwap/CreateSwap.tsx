@@ -24,9 +24,11 @@ import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 import { ChainSelector } from 'src/components/ChainSelector/ChainSelector';
 import { getTokenWithNetwork } from 'src/utils/getTokenWithNetwork';
 import { useDefaultTokens } from 'src/hooks/useDefaultTokens';
+import { useSyncTokenUrlParams } from 'src/hooks/useSyncTokenUrlParams';
 
 const CreateSwap = () => {
   useCullQueries('quote');
+  useSyncTokenUrlParams();
   const { address, isConnected } = useAccount();
   const sifi = useSifi();
   const {

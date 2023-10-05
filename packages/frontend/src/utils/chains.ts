@@ -36,4 +36,12 @@ function getChainIcon(chainId: number) {
   }
 }
 
-export { SUPPORTED_CHAINS, getChainIcon };
+const getChainById = (chainId: number): Chain => {
+  const chain = SUPPORTED_CHAINS.find((chain) => chain.id === chainId);
+
+  if (!chain) throw new Error(`Chain not found for chainId: ${chainId}`);
+
+  return chain;
+}
+
+export { SUPPORTED_CHAINS, getChainIcon, getChainById };
