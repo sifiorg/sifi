@@ -72,7 +72,7 @@
     "babel-loader": "^8.3.0",
     "buffer": "^6.0.3",
     "chromatic": "^6.14.0",
-    "eth-testing": "^1.9.1",
+    "eth-testing": "^1.14.0",
     "msw": "^0.48.2",
     "msw-storybook-addon": "^1.6.3",
     "postcss": "^8.4.18",
