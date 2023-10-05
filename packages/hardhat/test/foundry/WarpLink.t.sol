@@ -1147,7 +1147,7 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
         recipient: USER,
         partner: address(0),
         feeBps: 0,
-        slippageBps: 0,
+        slippageBps: 100,
         deadline: deadline
       }),
       PermitParams({nonce: permit.details.nonce, signature: sig})
@@ -1213,7 +1213,7 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
         recipient: USER,
         partner: address(0),
         feeBps: 0,
-        slippageBps: 0,
+        slippageBps: 200,
         deadline: deadline
       }),
       PermitParams({nonce: permit.details.nonce, signature: sig})
@@ -1234,7 +1234,7 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
     );
 
     IWarpLink.Params memory destParams = IWarpLink.Params({
-      tokenIn: address(0), // Unused
+      tokenIn: address(Mainnet.USDT),
       tokenOut: address(Mainnet.WETH),
       commands: destCommands,
       amountIn: 0, // Unused
@@ -1308,10 +1308,10 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
         commands: sourceCommands,
         amountIn: srcAmountIn,
         amountOut: 0, // TODO
-        recipient: USER, // Unused
-        partner: address(0), // Unused
-        feeBps: 0, // Unused
-        slippageBps: 0,
+        recipient: USER,
+        partner: address(0),
+        feeBps: 0,
+        slippageBps: 100,
         deadline: deadline
       }),
       PermitParams({nonce: permit.details.nonce, signature: sig})
@@ -1332,6 +1332,101 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
     );
 
     assertApproxEqRel(Mainnet.USDC.balanceOf(USER), 990 * (10 ** 6), 0.001 ether);
+  }
+
+  function testFork_jumpAndSwapEth() public {
+    bytes memory destCommands = abi.encodePacked(
+      (uint8)(2), // Command count
+      (uint8)(COMMAND_TYPE_WRAP),
+      encoder.encodeWarpUniV3LikeExactInputSingle({
+        tokenOut: address(Mainnet.USDT),
+        pool: 0x4e68Ccd3E89f51C3074ca5072bbAC773960dFa36 // WETH/USDT 0.3%
+      })
+    );
+
+    IWarpLink.Params memory destParams = IWarpLink.Params({
+      tokenIn: address(0),
+      tokenOut: address(Mainnet.USDT),
+      commands: destCommands,
+      amountIn: 0, // Unused
+      amountOut: 1657900441, // USDT
+      recipient: USER,
+      partner: address(0),
+      feeBps: 0,
+      slippageBps: 100,
+      deadline: deadline
+    });
+
+    bytes memory destParamsEncoded = abi.encode(destParams);
+
+    uint256 srcAmountIn = 1 ether;
+    address srcTokenIn = address(0);
+    uint256 dstGasForCall = 500_000;
+
+    bytes memory sourceCommands = bytes.concat(
+      abi.encodePacked(
+        (uint8)(1), // Command count
+        (uint8)(COMMAND_TYPE_JUMP_STARGATE),
+        (uint16)(111), // dstChainId, Optimism
+        (uint8)(13), // srcPoolId, SGETH
+        (uint8)(13), // dstPoolId, SGETH
+        uint32(dstGasForCall), // dstGasForCall, 500K
+        address(0), // destParams.tokenOut
+        uint256(0.9 ether), // destParams.amountOut
+        uint256(destCommands.length), // destParams.commands.length
+        destCommands // destParams.commands
+      )
+    );
+
+    (uint256 nativeWei, ) = IStargateComposer(Mainnet.STARGATE_COMPOSER_ADDR).quoteLayerZeroFee({
+      _dstChainId: 111, // Optimism
+      _functionType: 1, // Swap remote
+      _toAddress: abi.encodePacked(address(diamond)),
+      _transferAndCallPayload: destParamsEncoded,
+      _lzTxParams: IStargateRouter.lzTxObj({
+        dstGasForCall: dstGasForCall,
+        dstNativeAmount: 0,
+        dstNativeAddr: ''
+      })
+    });
+
+    vm.deal(USER, nativeWei + 1 ether);
+
+    console2.log('Native fee: %s', nativeWei);
+
+    PermitParams memory permitParams;
+
+    vm.prank(USER);
+    facet.warpLinkEngage{value: nativeWei + srcAmountIn}(
+      IWarpLink.Params({
+        tokenIn: srcTokenIn,
+        tokenOut: srcTokenIn,
+        commands: sourceCommands,
+        amountIn: srcAmountIn,
+        amountOut: 0, // TODO
+        recipient: USER,
+        partner: address(0),
+        feeBps: 0, // Unused
+        slippageBps: 100,
+        deadline: deadline
+      }),
+      permitParams
+    );
+
+    vm.deal(address(facet), (srcAmountIn * 99) / 100);
+
+    // And calls sgReceive
+    vm.prank(Mainnet.STARGATE_COMPOSER_ADDR);
+    facet.sgReceive(
+      uint16(Mainnet.CHAIN_ID), // _srcChain
+      abi.encodePacked(address(diamond)), // _srcAddress
+      0, // _nonce
+      address(0x72E2F4830b9E45d52F80aC08CB2bEC0FeF72eD9c), // _token, SGETH
+      (srcAmountIn * 99) / 100, // amountLD
+      destParamsEncoded // payload
+    );
+
+    assertEq(Mainnet.USDT.balanceOf(USER), 1657900441, 'usdt balance');
   }
 }
 
@@ -1745,7 +1840,8 @@ contract WarpLinkGoerliTest is WarpLinkTestBase {
         recipient: USER,
         partner: address(0),
         feeBps: 0,
-        slippageBps: 0,
+        // NOTE: There is massive slippage on the testnet
+        slippageBps: 100 * 20,
         deadline: deadline
       }),
       PermitParams({nonce: permit.details.nonce, signature: sig})
