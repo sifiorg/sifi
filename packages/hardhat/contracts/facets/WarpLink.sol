@@ -687,8 +687,14 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
 
     Params memory params = abi.decode(payload, (Params));
 
+    if (params.tokenIn == address(0)) {
+      // Distinguish between receiving ETH and SGETH. Note that the `params.tokenIn` address is useless
+      // otherwise because `_token` may be different on this chain
+      _token = address(0);
+    }
+
     try
-      IWarpLink(this).warpLinkEngage(
+      IWarpLink(this).warpLinkEngage{value: _token == address(0) ? amountLD : 0}(
         Params({
           partner: params.partner,
           feeBps: params.feeBps,
@@ -705,14 +711,16 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       )
     {} catch {
       // Refund tokens to the recipient
-      IERC20(_token).safeTransfer(params.recipient, amountLD);
+      if (_token == address(0)) {
+        payable(params.recipient).transfer(amountLD);
+      } else {
+        IERC20(_token).safeTransfer(params.recipient, amountLD);
+      }
     }
   }
 
   /**
    * Jump to another chain using the Stargate bridge
-   *
-   * The token must not be ETH (0)
    *
    * After this operation, the token will be unchanged and `t.amount` will
    * be how much was sent. `t.jumped` will be set to `1` to indicate
@@ -741,11 +749,6 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     uint256 stream,
     TransientState memory t
   ) internal returns (TransientState memory) {
-    if (t.token == address(0)) {
-      // NOTE: There is a WETH pool
-      revert NativeTokenNotSupported();
-    }
-
     // TODO: Does this use the same gas than (a, b, c,) = (stream.read, ...)?
     JumpStargateParams memory params;
     params.dstChainId = stream.readUint16();
@@ -754,12 +757,15 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     params.dstGasForCall = stream.readUint32();
 
     if (params.dstGasForCall > 0) {
-      // NOTE: `tokenIn`, `amountIn` are not required
+      // NOTE: `amountIn` is left as zero
       Params memory destParams;
       destParams.partner = t.paramPartner;
       destParams.feeBps = t.paramFeeBps;
       destParams.slippageBps = t.paramSlippageBps;
       destParams.recipient = t.paramRecipient;
+      // NOTE: Used to distinguish ETH vs SGETH. Tokens on the other chain do not not necessarily have
+      // the same address as on this chain
+      destParams.tokenIn = t.token;
       destParams.tokenOut = stream.readAddress();
       destParams.amountOut = stream.readUint256();
       destParams.deadline = t.paramDeadline;
@@ -809,7 +815,9 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     // Swap on the composer if there is a payload, else the router
     IStargateRouter(
       params.payload.length == 0 ? stargateComposer.stargateRouter() : address(stargateComposer)
-    ).swap{value: t.nativeValueRemaining}({
+    ).swap{
+      value: t.token == address(0) ? t.amount + t.nativeValueRemaining : t.nativeValueRemaining
+    }({
       _dstChainId: params.dstChainId,
       _srcPoolId: params.srcPoolId,
       _dstPoolId: params.dstPoolId,
@@ -817,8 +825,9 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       // TODO: Use `msg.sender` if it's EOA, else use this contract
       _refundAddress: payable(address(this)),
       _amountLD: t.amount,
-      // Max 5% slippage
-      _minAmountLD: (t.amount * 95) / 100,
+      // NOTE: This is imperfect because the user may already have eaten some slippage and may eat
+      // more on the other chain. It also assumes the tokens are of nearly equal value
+      _minAmountLD: LibWarp.applySlippage(t.amount, t.paramSlippageBps),
       _lzTxParams: IStargateRouter.lzTxObj({
         dstGasForCall: params.dstGasForCall,
         dstNativeAmount: 0,
