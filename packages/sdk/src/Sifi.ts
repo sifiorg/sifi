@@ -114,6 +114,10 @@ export type Token = {
   logoURI?: string;
 };
 
+export type TokenUsdPrice = {
+  usdPrice: string;
+};
+
 export type JumpStatus = 'pending' | 'inflight' | 'success' | 'unknown';
 
 export type Jump = {
@@ -247,6 +251,17 @@ export class Sifi {
     }).toString();
 
     const response = await fetch(`${this.baseUrl}tokens?${query}`).then(handleResponse);
+
+    return response;
+  }
+
+  async getUsdPrice(chainId: number, address: string): Promise<TokenUsdPrice> {
+    const query = new URLSearchParams({
+      chainId: chainId.toString(),
+      address,
+    });
+
+    const response = await fetch(`${this.baseUrl}token/usd-price?${query}`).then(handleResponse);
 
     return response;
   }
