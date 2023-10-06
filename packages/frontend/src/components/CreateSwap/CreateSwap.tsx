@@ -25,6 +25,7 @@ import { ChainSelector } from 'src/components/ChainSelector/ChainSelector';
 import { getTokenWithNetwork } from 'src/utils/getTokenWithNetwork';
 import { useDefaultTokens } from 'src/hooks/useDefaultTokens';
 import { useSyncTokenUrlParams } from 'src/hooks/useSyncTokenUrlParams';
+import { enableSwapInformation } from 'src/utils/featureFlags';
 
 const CreateSwap = () => {
   useCullQueries('quote');
@@ -232,7 +233,7 @@ const CreateSwap = () => {
           </div>
         </form>
       </div>
-      <SwapInformation />
+      {enableSwapInformation && <SwapInformation />}
     </div>
   );
 };
