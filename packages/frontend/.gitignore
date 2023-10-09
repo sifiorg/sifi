@@ -25,3 +25,7 @@ storybook-static
 *.njsproj
 *.sln
 *.sw?
+
+# Synpress test results
+screenshots/
+videos/
