@@ -16,6 +16,7 @@ const {
   POLYGON_SCAN_API_KEY,
   ARBITRUM_SCAN_API_KEY,
   OPTIMISM_SCAN_API_KEY,
+  AVALANCHE_SCAN_API_KEY,
 } = process.env;
 
 function getNetworkUrl(name: string): string {
@@ -90,6 +91,10 @@ const config = {
       chainId: 11155111,
       gasMultiplier: 2,
     },
+    avalanche: {
+      url: getNetworkUrl('avalanche'),
+      accounts: { mnemonic: '' },
+    },
   },
   etherscan: {},
   gasReporter: {
@@ -117,6 +122,7 @@ if (ETHERSCAN_API_KEY) {
       polygon: POLYGON_SCAN_API_KEY,
       arbitrumOne: ARBITRUM_SCAN_API_KEY,
       optimisticGoerli: OPTIMISM_SCAN_API_KEY,
+      avalanche: AVALANCHE_SCAN_API_KEY,
     },
   };
 }
@@ -139,6 +145,11 @@ if (EVM_MNEMONIC) {
   config.networks.arbitrum = { ...config.networks.arbitrum, accounts: { mnemonic: EVM_MNEMONIC } };
 
   config.networks.optimism = { ...config.networks.optimism, accounts: { mnemonic: EVM_MNEMONIC } };
+
+  config.networks.avalanche = {
+    ...config.networks.avalanche,
+    accounts: { mnemonic: EVM_MNEMONIC },
+  };
 }
 
 if (DEV_MNEMONIC) {
