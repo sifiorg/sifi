@@ -10,7 +10,6 @@ import {IUniV3Like} from '../interfaces/IUniV3Like.sol';
 import {LibUniV3Like} from '../libraries/LibUniV3Like.sol';
 import {LibStarVault} from '../libraries/LibStarVault.sol';
 import {LibWarp} from '../libraries/LibWarp.sol';
-import {IUniV3Callback} from './UniV3Callback.sol';
 import {IPermit2} from '../interfaces/external/IPermit2.sol';
 import {IAllowanceTransfer} from '../interfaces/external/IAllowanceTransfer.sol';
 import {PermitParams} from '../libraries/PermitParams.sol';
