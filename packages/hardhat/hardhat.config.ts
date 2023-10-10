@@ -17,6 +17,7 @@ const {
   ARBITRUM_SCAN_API_KEY,
   OPTIMISM_SCAN_API_KEY,
   AVALANCHE_SCAN_API_KEY,
+  BASE_SCAN_API_KEY,
 } = process.env;
 
 function getNetworkUrl(name: string): string {
@@ -95,8 +96,23 @@ const config = {
       url: getNetworkUrl('avalanche'),
       accounts: { mnemonic: '' },
     },
+    base: {
+      url: getNetworkUrl('base'),
+      accounts: { mnemonic: '' },
+    },
   },
-  etherscan: {},
+  etherscan: {
+    customChains: [
+      {
+        network: 'base',
+        chainId: 8453,
+        urls: {
+          apiURL: 'https://api.basescan.org/api',
+          browserURL: 'https://api.basescan.org',
+        },
+      },
+    ],
+  },
   gasReporter: {
     enabled: true,
     currency: 'USD',
@@ -114,6 +130,7 @@ const config = {
 
 if (ETHERSCAN_API_KEY) {
   config.etherscan = {
+    ...config.etherscan,
     apiKey: {
       mainnet: ETHERSCAN_API_KEY,
       goerli: ETHERSCAN_API_KEY,
@@ -123,6 +140,7 @@ if (ETHERSCAN_API_KEY) {
       arbitrumOne: ARBITRUM_SCAN_API_KEY,
       optimisticGoerli: OPTIMISM_SCAN_API_KEY,
       avalanche: AVALANCHE_SCAN_API_KEY,
+      base: BASE_SCAN_API_KEY,
     },
   };
 }
@@ -148,6 +166,11 @@ if (EVM_MNEMONIC) {
 
   config.networks.avalanche = {
     ...config.networks.avalanche,
+    accounts: { mnemonic: EVM_MNEMONIC },
+  };
+
+  config.networks.base = {
+    ...config.networks.base,
     accounts: { mnemonic: EVM_MNEMONIC },
   };
 }
