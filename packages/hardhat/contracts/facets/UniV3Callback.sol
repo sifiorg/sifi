@@ -65,4 +65,12 @@ contract UniV3Callback is IUniV3Callback {
   function ramsesV2SwapCallback(int256, int256, bytes calldata) external {
     swapCallback();
   }
+
+  /**
+   * KyperSwap V2 callback
+   * NOTE: None of these arguments can be trusted
+   */
+  function swapCallback(int256, int256, bytes calldata) external {
+    swapCallback();
+  }
 }
