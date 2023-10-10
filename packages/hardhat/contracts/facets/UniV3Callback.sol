@@ -58,4 +58,11 @@ contract UniV3Callback is IUniV3Callback {
   function pancakeV3SwapCallback(int256, int256, bytes calldata) external {
     swapCallback();
   }
+
+  /**
+   * NOTE: None of these arguments can be trusted
+   */
+  function ramsesV2SwapCallback(int256, int256, bytes calldata) external {
+    swapCallback();
+  }
 }
