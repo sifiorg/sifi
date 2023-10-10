@@ -36,12 +36,18 @@ const TokensProvider: FunctionComponent<{ children: ReactNode }> = ({ children }
   const { fetchTokens: fetchToTokens } = useFetchTokens(toChain.id);
 
   useEffect(() => {
-    fetchFromTokens().then(setFromTokens);
-  }, [fromChain, fetchFromTokens]);
+    const shouldRefetchFromTokens = fromChain.id !== fromTokens?.[0]?.chainId;
+    if (shouldRefetchFromTokens) {
+      fetchFromTokens().then(setFromTokens);
+    }
+  }, [fromChain]);
 
   useEffect(() => {
-    fetchToTokens().then(setToTokens);
-  }, [toChain, fetchToTokens]);
+    const shouldRefetchToTokens = toChain.id !== toTokens?.[0]?.chainId;
+    if (shouldRefetchToTokens) {
+      fetchToTokens().then(setToTokens);
+    }
+  }, [toChain]);
 
   const appendTokenFetchedByAddress = async (
     chain: Chain,
