@@ -45,4 +45,9 @@ export const networkAddresses: Partial<Record<string, Partial<Record<AddressKey,
     permit2: '0x000000000022D473030F116dDEE9F6B43aC78BA3',
     stargateComposer: '0xeCc19E177d24551aA7ed6Bc6FE566eCa726CC8a9',
   },
+  avalanche: {
+    weth: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7',
+    permit2: '0x000000000022D473030F116dDEE9F6B43aC78BA3',
+    stargateComposer: '0xeCc19E177d24551aA7ed6Bc6FE566eCa726CC8a9',
+  },
 };
