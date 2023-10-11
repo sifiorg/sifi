@@ -1,10 +1,5 @@
 // https://blog.uniswap.org/permit2-integration-guide#how-to-construct-permit2-signatures-on-the-frontend
-import {
-  AllowanceProvider,
-  AllowanceTransfer,
-  type PermitSingle,
-  MaxAllowanceTransferAmount,
-} from '@uniswap/permit2-sdk';
+import { AllowanceProvider, AllowanceTransfer, type PermitSingle } from '@uniswap/permit2-sdk';
 import { usePublicClient, useWalletClient } from 'wagmi';
 import { type BigNumberish } from 'ethers';
 import { publicClientToProvider, walletClientToSigner, signTypedData } from 'src/utils';
