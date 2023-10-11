@@ -1,15 +1,14 @@
 import { configureChains } from 'wagmi';
-import { mainnet, polygon } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
 import { InjectedConnector } from 'wagmi/connectors/injected';
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect';
 import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet';
 import { walletConnectProjectId } from './config';
-
+import { SUPPORTED_CHAINS } from './utils/chains';
 
 type SupportedWallet = 'injected' | 'coinbase' | 'walletconnect';
 
-const { chains } = configureChains([mainnet, polygon], [publicProvider()]);
+const { chains } = configureChains([...SUPPORTED_CHAINS], [publicProvider()]);
 
 const injectedConnector = new InjectedConnector({ chains });
 
