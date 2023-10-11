@@ -1,14 +1,15 @@
 import { FunctionComponent } from 'react';
 import { Footer as FooterComponent } from '@sifi/shared-ui';
 import { ReactComponent as Logo } from '../../assets/logo.svg';
+import { texts } from 'src/texts';
 
 const Footer: FunctionComponent = () => {
   return (
     <FooterComponent
       Logo={Logo}
-      description="Swap from anything to anything in a single transaction, we'll find the best route. It's Sifi."
+      description={texts.DESCRIPTION}
       columnLinks={[]}
-      name="SideShift.fi"
+      name={texts.NAME}
       socialLinks={{ discord: new URL('https://discord.gg/sXDKcUYnU8') }}
       bottomLinks={[]}
     />
