@@ -69,11 +69,10 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
 
     const hasFetchedSwapQuote = !!quote || isFromEthereum;
     if (fromBalance && hasFetchedSwapQuote && !hasSufficientBalance) {
-      // TODO: Does not work properly once switching to a Token
       return 'Insufficient Balance';
     }
 
-    return 'Shift';
+    return 'Execute Swap';
   };
 
   if (!isConnected) return <ConnectWallet />;
