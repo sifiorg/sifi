@@ -18,6 +18,7 @@ const {
   OPTIMISM_SCAN_API_KEY,
   AVALANCHE_SCAN_API_KEY,
   BASE_SCAN_API_KEY,
+  BSC_SCAN_API_KEY,
 } = process.env;
 
 function getNetworkUrl(name: string): string {
@@ -100,6 +101,10 @@ const config = {
       url: getNetworkUrl('base'),
       accounts: { mnemonic: '' },
     },
+    bsc: {
+      url: getNetworkUrl('bsc'),
+      accounts: { mnemonic: '' },
+    },
   },
   etherscan: {
     customChains: [
@@ -141,6 +146,7 @@ if (ETHERSCAN_API_KEY) {
       optimisticGoerli: OPTIMISM_SCAN_API_KEY,
       avalanche: AVALANCHE_SCAN_API_KEY,
       base: BASE_SCAN_API_KEY,
+      bsc: BSC_SCAN_API_KEY,
     },
   };
 }
@@ -171,6 +177,11 @@ if (EVM_MNEMONIC) {
 
   config.networks.base = {
     ...config.networks.base,
+    accounts: { mnemonic: EVM_MNEMONIC },
+  };
+
+  config.networks.bsc = {
+    ...config.networks.bsc,
     accounts: { mnemonic: EVM_MNEMONIC },
   };
 }
