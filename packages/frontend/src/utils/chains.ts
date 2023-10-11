@@ -3,21 +3,32 @@ import arbitrumIcon from '../assets/chain-icons/arbitrum.svg';
 import polygonIcon from '../assets/chain-icons/polygon.svg';
 import optimismIcon from '../assets/chain-icons/optimism.svg';
 import defaultIcon from '../assets/chain-icons/default-chain.svg';
-import { mainnet, polygon, optimism, arbitrum, sepolia, Chain, goerli } from 'viem/chains';
+import avalancheIcon from '../assets/chain-icons/avax.svg';
+import baseIcon from '../assets/chain-icons/base.svg';
+import {
+  mainnet,
+  polygon,
+  optimism,
+  arbitrum,
+  sepolia,
+  Chain,
+  goerli,
+  avalanche,
+  base,
+} from 'viem/chains';
 import { isTest } from './environments';
 
 const PRODUCTION_CHAINS: Chain[] = [
   // The order in which the chains are displayed in the UI
   mainnet,
   arbitrum,
+  avalanche,
+  base,
   optimism,
-  polygon
+  polygon,
 ];
 
-const TEST_CHAINS: Chain[] = [
-  sepolia,
-  goerli,
-];
+const TEST_CHAINS: Chain[] = [sepolia, goerli];
 
 const SUPPORTED_CHAINS = isTest ? PRODUCTION_CHAINS.concat(TEST_CHAINS) : PRODUCTION_CHAINS;
 
@@ -31,6 +42,10 @@ function getChainIcon(chainId: number) {
       return optimismIcon;
     case polygon.id:
       return polygonIcon;
+    case avalanche.id:
+      return avalancheIcon;
+    case base.id:
+      return baseIcon;
     default:
       return defaultIcon;
   }
