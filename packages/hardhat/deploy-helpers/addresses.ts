@@ -55,4 +55,9 @@ export const networkAddresses: Partial<Record<string, Partial<Record<AddressKey,
     permit2: '0x000000000022D473030F116dDEE9F6B43aC78BA3',
     stargateComposer: '0xeCc19E177d24551aA7ed6Bc6FE566eCa726CC8a9',
   },
+  bsc: {
+    weth: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
+    permit2: '0x000000000022D473030F116dDEE9F6B43aC78BA3',
+    stargateComposer: '0xeCc19E177d24551aA7ed6Bc6FE566eCa726CC8a9',
+  },
 };
