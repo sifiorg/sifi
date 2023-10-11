@@ -1,6 +1,5 @@
 import type { FunctionComponent, ReactNode } from 'react';
 import { AppProvider } from './AppProvider';
-import { FAQ } from './components/FAQ/FAQ';
 import Footer from './components/Footer/Footer';
 import { Header } from './components/Header/Header';
 import { Hero } from './components/Hero/Hero';
@@ -23,7 +22,6 @@ const Home: FunctionComponent = () => {
       <div className="mt-12 flex min-h-[90vh] flex-col md:mt-0 md:justify-center">
         <Hero />
       </div>
-      <FAQ />
     </>
   );
 }
