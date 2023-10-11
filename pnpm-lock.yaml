@@ -57,8 +57,8 @@ importers:
         specifier: ^1.9.0
         version: link:../sdk
       '@sifi/shared-ui':
-        specifier: ^1.7.5
-        version: 1.7.5(@headlessui/react@1.7.11)(date-fns@2.29.3)(react-dom@18.2.0)(react-hook-form@7.43.1)(react-router-dom@6.0.1)(react@18.2.0)(viem@1.9.0)(wagmi@1.3.10)
+        specifier: ^1.8.1
+        version: 1.8.1(@headlessui/react@1.7.11)(date-fns@2.29.3)(react-dom@18.2.0)(react-hook-form@7.43.1)(react-router-dom@6.0.1)(react@18.2.0)(viem@1.9.0)(wagmi@1.3.10)
       '@tanstack/react-query':
         specifier: ^4.13.0
         version: 4.28.0(react-dom@18.2.0)(react@18.2.0)
@@ -179,7 +179,7 @@ importers:
         version: /@walletconnect/ethereum-provider@1.8.0
       '@walletconnect/ethereum-provider-v2':
         specifier: npm:@walletconnect/ethereum-provider@^2.4.6
-        version: /@walletconnect/ethereum-provider@2.10.0(@walletconnect/modal@2.6.1)
+        version: /@walletconnect/ethereum-provider@2.9.2(@walletconnect/modal@2.6.1)
       autoprefixer:
         specifier: ^10.4.12
         version: 10.4.13(postcss@8.4.21)
@@ -273,10 +273,6 @@ importers:
       solhint-plugin-prettier:
         specifier: ^0.0.5
         version: 0.0.5(prettier-plugin-solidity@1.1.3)(prettier@2.8.8)
-
-  packages/hardhat/lib/forge-std: {}
-
-  packages/hardhat/lib/forge-std/lib/ds-test: {}
 
   packages/sdk:
     devDependencies:
@@ -1343,7 +1339,7 @@ packages:
       '@babel/core': ^7.0.0-0
     dependencies:
       '@babel/core': 7.22.10
-      '@babel/helper-plugin-utils': 7.22.5
+      '@babel/helper-plugin-utils': 7.20.2
     dev: true
 
   /@babel/plugin-syntax-class-properties@7.12.13(@babel/core@7.21.0):
@@ -6422,8 +6418,8 @@ packages:
     resolution: {integrity: sha512-RNiOoTPkptFtSVzQevY/yWtZwf/RxyVnPy/OcA9HBM3MlGDnBEYL5B41H0MTn0Uec8Hi+2qUtTfG2WWZBmMejQ==}
     dev: true
 
-  /@sifi/shared-ui@1.7.5(@headlessui/react@1.7.11)(date-fns@2.29.3)(react-dom@18.2.0)(react-hook-form@7.43.1)(react-router-dom@6.0.1)(react@18.2.0)(viem@1.9.0)(wagmi@1.3.10):
-    resolution: {integrity: sha512-+aZCcKtY0LyQnYJ56bCNHW9LxD6rm6drpf7OMvYSl+lkvcNv7s/yNRNombT4tz+rLW+Qgiv2xbK+uI8CWSRHsQ==}
+  /@sifi/shared-ui@1.8.1(@headlessui/react@1.7.11)(date-fns@2.29.3)(react-dom@18.2.0)(react-hook-form@7.43.1)(react-router-dom@6.0.1)(react@18.2.0)(viem@1.9.0)(wagmi@1.3.10):
+    resolution: {integrity: sha512-d9uOQ7LN57xHTALW0H9zqLQMsxe9ND2Vy7szbj7w7NLwfQFtm/sD3zPIFOX2U+kZFPX/APBzubqjnqDsfEfp5A==}
     peerDependencies:
       '@headlessui/react': ^1.7.3
       date-fns: 2.29.3
@@ -7846,7 +7842,7 @@ packages:
       '@playwright/test': 1.38.1
       '@testing-library/cypress': 9.0.0(cypress@12.17.3)
       '@testing-library/react': 14.0.0(react-dom@18.2.0)(react@18.2.0)
-      '@types/testing-library__cypress': 5.0.10
+      '@types/testing-library__cypress': 5.0.11
       '@viem/anvil': 0.0.6(debug@4.3.4)
       app-root-path: 3.1.0
       axios: 1.5.1(debug@4.3.4)
@@ -8582,8 +8578,8 @@ packages:
     resolution: {integrity: sha512-fOHIwZua0sRltqWzODGUM6b4ffZrf/vzGUmNXdR+4DzuJP42PMbM5dLKcdzlYvv8bMJ3GALOzkk1q7cDm2zPyA==}
     dev: true
 
-  /@types/testing-library__cypress@5.0.10:
-    resolution: {integrity: sha512-yPX+krAP5nSdimnSbdOICDocAwJSS+GOPiGtKEvBzuiSRADYQkAfnNFZS8WljjFVZZiDpj78AnZNo8m7adRvCw==}
+  /@types/testing-library__cypress@5.0.11:
+    resolution: {integrity: sha512-SNKUJWfxJKG7ZAmkRCFYWfqxBk3nxD60QKUJYXpU7wxX85EikDEjHxIGmQQfZ6TLSyItMrkgt9MHlX0rG7JF/Q==}
     dependencies:
       '@testing-library/dom': 7.31.2
       cypress: 12.17.3
@@ -9286,6 +9282,7 @@ packages:
       - bufferutil
       - lokijs
       - utf-8-validate
+    dev: false
 
   /@walletconnect/core@2.9.2:
     resolution: {integrity: sha512-VARMPAx8sIgodeyngDHbealP3B621PQqjqKsByFUTOep8ZI1/R/20zU+cmq6j9RCrL+kLKZcrZqeVzs8Z7OlqQ==}
@@ -9311,7 +9308,6 @@ packages:
       - bufferutil
       - lokijs
       - utf-8-validate
-    dev: false
 
   /@walletconnect/crypto@1.0.3:
     resolution: {integrity: sha512-+2jdORD7XQs76I2Odgr3wwrtyuLUXD/kprNVsjWRhhhdO9Mt6WqVzOPu0/t7OHSmgal8k7SoBQzUc5hu/8zL/g==}
@@ -9378,6 +9374,7 @@ packages:
       - encoding
       - lokijs
       - utf-8-validate
+    dev: false
 
   /@walletconnect/ethereum-provider@2.9.2(@walletconnect/modal@2.6.1):
     resolution: {integrity: sha512-eO1dkhZffV1g7vpG19XUJTw09M/bwGUwwhy1mJ3AOPbOSbMPvwiCuRz2Kbtm1g9B0Jv15Dl+TvJ9vTgYF8zoZg==}
@@ -9403,7 +9400,6 @@ packages:
       - encoding
       - lokijs
       - utf-8-validate
-    dev: false
 
   /@walletconnect/events@1.0.1:
     resolution: {integrity: sha512-NPTqaoi0oPBVNuLv7qPaJazmGHs5JGyO8eEAk5VGKmJzDR7AHzD4k6ilox5kxk1iwiOnFopBOOMLs86Oa76HpQ==}
@@ -9637,6 +9633,7 @@ packages:
       - bufferutil
       - lokijs
       - utf-8-validate
+    dev: false
 
   /@walletconnect/sign-client@2.9.2:
     resolution: {integrity: sha512-anRwnXKlR08lYllFMEarS01hp1gr6Q9XUgvacr749hoaC/AwGVlxYFdM8+MyYr3ozlA+2i599kjbK/mAebqdXg==}
@@ -9655,7 +9652,6 @@ packages:
       - bufferutil
       - lokijs
       - utf-8-validate
-    dev: false
 
   /@walletconnect/signer-connection@1.8.0:
     resolution: {integrity: sha512-+YAaTAP52MWZJ2wWnqKClKCPlPHBo6reURFe0cWidLADh9mi/kPWGALZ5AENK22zpem1bbKV466rF5Rzvu0ehA==}
@@ -9704,6 +9700,7 @@ packages:
     transitivePeerDependencies:
       - '@react-native-async-storage/async-storage'
       - lokijs
+    dev: false
 
   /@walletconnect/types@2.9.2:
     resolution: {integrity: sha512-7Rdn30amnJEEal4hk83cdwHUuxI1SWQ+K7fFFHBMqkuHLGi3tpMY6kpyfDxnUScYEZXqgRps4Jo5qQgnRqVM7A==}
@@ -9717,7 +9714,6 @@ packages:
     transitivePeerDependencies:
       - '@react-native-async-storage/async-storage'
       - lokijs
-    dev: false
 
   /@walletconnect/universal-provider@2.10.0:
     resolution: {integrity: sha512-jtVWf+AeTCqBcB3lCmWkv3bvSmdRCkQdo67GNoT5y6/pvVHMxfjgrJNBOUsWQMxpREpWDpZ993X0JRjsYVsMcA==}
@@ -9737,6 +9733,7 @@ packages:
       - encoding
       - lokijs
       - utf-8-validate
+    dev: false
 
   /@walletconnect/universal-provider@2.9.2:
     resolution: {integrity: sha512-JmaolkO8D31UdRaQCHwlr8uIFUI5BYhBzqYFt54Mc6gbIa1tijGOmdyr6YhhFO70LPmS6gHIjljwOuEllmlrxw==}
@@ -9756,7 +9753,6 @@ packages:
       - encoding
       - lokijs
       - utf-8-validate
-    dev: false
 
   /@walletconnect/utils@1.8.0:
     resolution: {integrity: sha512-zExzp8Mj1YiAIBfKNm5u622oNw44WOESzo6hj+Q3apSMIb0Jph9X3GDIdbZmvVZsNPxWDL7uodKgZcCInZv2vA==}
@@ -9790,6 +9786,7 @@ packages:
     transitivePeerDependencies:
       - '@react-native-async-storage/async-storage'
       - lokijs
+    dev: false
 
   /@walletconnect/utils@2.9.2:
     resolution: {integrity: sha512-D44hwXET/8JhhIjqljY6qxSu7xXnlPrf63UN/Qfl98vDjWlYVcDl2+JIQRxD9GPastw0S8XZXdRq59XDXLuZBg==}
@@ -9811,7 +9808,6 @@ packages:
     transitivePeerDependencies:
       - '@react-native-async-storage/async-storage'
       - lokijs
-    dev: false
 
   /@walletconnect/window-getters@1.0.0:
     resolution: {integrity: sha512-xB0SQsLaleIYIkSsl43vm8EwETpBzJ2gnzk7e0wMF3ktqiTGS6TFHxcprMl5R44KKh4tCcHCJwolMCaDSwtAaA==}
