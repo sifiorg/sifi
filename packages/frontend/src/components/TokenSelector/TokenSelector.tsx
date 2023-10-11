@@ -6,6 +6,8 @@ import { SwapFormKeyHelper, SwapFormType } from 'src/providers/SwapFormProvider'
 import { useTokens } from 'src/hooks/useTokens';
 import { getTokenBySymbol } from 'src/utils';
 import type { BalanceMap } from 'src/types';
+import { getChainIcon } from 'src/utils/chains';
+import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 
 const TokenSelector: FunctionComponent<{
   close: () => void;
@@ -15,6 +17,7 @@ const TokenSelector: FunctionComponent<{
 }> = ({ isOpen, close, type, balanceMap }) => {
   const selectId = SwapFormKeyHelper.getTokenKey(type);
   const { address } = useAccount();
+  const { fromChain, toChain } = useSwapFormValues();
   const { fromTokens, toTokens, fetchFromTokenByAddress, fetchToTokenByAddress } = useTokens();
   const tokens = type === 'from' ? fromTokens : toTokens;
   const fetchTokenByAddress = type === 'from' ? fetchFromTokenByAddress : fetchToTokenByAddress;
@@ -28,6 +31,8 @@ const TokenSelector: FunctionComponent<{
     setValue(selectId, newToken.symbol);
   };
 
+  const networkLogoURI = getChainIcon(type === 'from' ? fromChain.id : toChain.id);
+
   const formattedTokens = useMemo(() => {
     return tokens?.map(token => {
       const balance =
@@ -38,7 +43,7 @@ const TokenSelector: FunctionComponent<{
         name: token.name,
         networkDisplayName: null,
         symbol: token.symbol,
-        networkLogoURI: null,
+        networkLogoURI,
         balance,
       };
     });
