@@ -38,17 +38,17 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
   );
   const { data: fromBalance } = useTokenBalance(fromToken, fromChain.id);
   const fromAmountInWei = fromToken ? parseUnits(fromAmount || '0', fromToken.decimals) : BigInt(0);
-  const hasSufficientBalance = quote && fromBalance && fromBalance.value >= fromAmountInWei;
+  const hasSufficientBalance = fromBalance && fromBalance.value >= fromAmountInWei;
 
   const isShiftButtonLoading = isLoading || isFetchingAllowance || isFetchingQuote;
 
   const showApproveButton =
     Boolean(
       !!quote &&
-      allowance !== undefined &&
-      !isAllowanceAboveFromAmount &&
-      !isFromEthereum &&
-      hasSufficientBalance
+        allowance !== undefined &&
+        !isAllowanceAboveFromAmount &&
+        !isFromEthereum &&
+        hasSufficientBalance
     ) || isApproving;
 
   const isShiftButtonDisabled =
@@ -56,6 +56,7 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
     showApproveButton ||
     !fromAmount ||
     !hasSufficientBalance ||
+    !quote ||
     !isValidTokenAmount(fromAmount);
 
   const getShiftButtonLabel = () => {
