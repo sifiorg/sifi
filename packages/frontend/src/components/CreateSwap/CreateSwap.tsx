@@ -26,6 +26,7 @@ import { getTokenWithNetwork } from 'src/utils/getTokenWithNetwork';
 import { useDefaultTokens } from 'src/hooks/useDefaultTokens';
 import { useSyncTokenUrlParams } from 'src/hooks/useSyncTokenUrlParams';
 import { enableSwapInformation } from 'src/utils/featureFlags';
+import { useUsdValue } from 'src/hooks/useUsdValue';
 
 const CreateSwap = () => {
   useCullQueries('quote');
@@ -36,6 +37,7 @@ const CreateSwap = () => {
     fromToken: fromTokenSymbol,
     toToken: toTokenSymbol,
     fromAmount,
+    toAmount,
     fromChain,
     toChain,
   } = useSwapFormValues();
@@ -164,6 +166,16 @@ const CreateSwap = () => {
   const depositMax = isConnected ? spendableBalance : undefined;
   const selectedFromTokenWithNetwork = getTokenWithNetwork(selectedFromToken, fromChain);
   const selectedToTokenWithNetwork = getTokenWithNetwork(selectedToToken, toChain);
+  const fromUsdValue = useUsdValue({
+    address: fromToken?.address,
+    chainId: fromChain.id,
+    amount: fromAmount,
+  });
+  const toUsdValue = useUsdValue({
+    address: toToken?.address,
+    chainId: toChain?.id,
+    amount: toAmount,
+  });
 
   const resetTokenAmounts = () => {
     setValue(SwapFormKey.FromAmount, '');
@@ -202,6 +214,7 @@ const CreateSwap = () => {
                   formMethods={methods}
                   disabled={Boolean(isSameTokenPair)}
                   max={depositMax}
+                  usdValue={fromUsdValue}
                   hideLabel
                 />
               </div>
@@ -219,6 +232,7 @@ const CreateSwap = () => {
                 openSelector={() => openTokenSelector('to')}
                 formMethods={methods}
                 hideLabel
+                usdValue={toUsdValue}
               />
               <TokenSelector
                 balanceMap={tokenSelectorType === 'from' ? fromBalanceMap : toTokenBalanceMap}
