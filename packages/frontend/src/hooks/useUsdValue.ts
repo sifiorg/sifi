@@ -1,5 +1,7 @@
+import { TokenUsdPrice } from '@sifi/sdk';
+import { showToast } from '@sifi/shared-ui';
+import { useQuery } from '@tanstack/react-query';
 import Big from 'big.js';
-import { useEffect, useState } from 'react';
 import { useSifi } from 'src/providers/SDKProvider';
 
 type UseUsdPriceOptions = {
@@ -9,23 +11,28 @@ type UseUsdPriceOptions = {
 };
 
 const useUsdValue = ({ address, chainId, amount }: UseUsdPriceOptions) => {
-  const [usdPrice, setUsdPrice] = useState<string>();
   const sifi = useSifi();
+  const { data } = useQuery<TokenUsdPrice | null>(
+    ['usd-price', `${address}${chainId}`],
+    async () => {
+      if (!chainId || !address) return null;
 
-  const fetchUsdPrice = async () => {
-    if (!address || !chainId) return;
+      const data = await sifi.getUsdPrice(chainId, address);
+      return data;
+    },
+    {
+      onError: error => {
+        if (error instanceof Error) {
+          showToast({ type: 'error', text: error.message });
+        }
+      },
+      enabled: Boolean(address) && Boolean(amount),
+    }
+  );
 
-    const response = await sifi.getUsdPrice(chainId, address);
-    setUsdPrice(response.usdPrice);
-  };
+  if (!data?.usdPrice || !amount) return '';
 
-  useEffect(() => {
-    fetchUsdPrice();
-  }, [address, chainId]);
-
-  if (!usdPrice || !amount) return '';
-
-  return Big(Number(usdPrice) * Number(amount)).toFixed(2);
+  return Big(Number(data.usdPrice) * Number(amount)).toFixed(2);
 };
 
 export { useUsdValue };
