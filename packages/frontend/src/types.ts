@@ -1,4 +1,4 @@
-import type { Token } from "@sifi/sdk";
+import type { Token } from '@sifi/sdk';
 import type { BaseError } from 'viem';
 
 type MulticallToken = Omit<Token, 'address'> & { address: `0x${string}` };

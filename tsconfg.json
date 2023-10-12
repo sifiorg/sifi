@@ -2,13 +2,11 @@
   "compilerOptions": {
     "jsx": "react",
     "baseUrl": "./packages",
+    "moduleResolution": "node",
     "paths": {
-      "@sifi/frontend/*": [
-        "frontend/src/*"
-      ],
-      "@sifi/sdk/*": [
-        "sdk/src/*"
-      ]
-    }
+      "@sifi/frontend/*": ["frontend/src/*"],
+      "@sifi/sdk/*": ["sdk/src/*"]
+    },
+    "include": ["packages/frontend/space-travel.d.ts"]
   }
 }

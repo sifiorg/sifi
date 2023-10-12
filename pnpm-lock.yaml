@@ -110,6 +110,9 @@ importers:
       scrypt-js:
         specifier: 3.0.1
         version: 3.0.1
+      space-travel:
+        specifier: ^1.0.6
+        version: 1.0.6
       tailwindcss:
         specifier: ^3.2.0
         version: 3.2.0(postcss@8.4.21)
@@ -7385,7 +7388,7 @@ packages:
       util: 0.12.5
       util-deprecate: 1.0.2
       watchpack: 2.4.0
-      ws: 8.12.1(bufferutil@4.0.7)(utf-8-validate@5.0.10)
+      ws: 8.14.2(bufferutil@4.0.7)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -9017,7 +9020,7 @@ packages:
       execa: 7.2.0
       get-port: 6.1.2
       http-proxy: 1.18.1(debug@4.3.4)
-      ws: 8.14.2
+      ws: 8.14.2(bufferutil@4.0.7)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
       - bufferutil
       - debug
@@ -18678,6 +18681,11 @@ packages:
       yargs-unparser: 1.6.0
     dev: true
 
+  /modern-normalize@1.1.0:
+    resolution: {integrity: sha512-2lMlY1Yc1+CUy0gw4H95uNN7vjbpoED7NNRSBHE25nWfLBdmMzFCsPshlzbxHz+gYMcBEUN8V4pU16prcdPSgA==}
+    engines: {node: '>=6'}
+    dev: false
+
   /module-error@1.0.2:
     resolution: {integrity: sha512-0yuvsqSCv8LbaOKhnsQ/T5JhyFlCYLPXK3U2sgV10zoKQwzs/MyfuQUOZQ1V/6OCOJsK/TRgNVrPuPDqtdMFtA==}
     engines: {node: '>=10'}
@@ -21087,7 +21095,7 @@ packages:
       '@babel/runtime': 7.22.6
       eventemitter3: 4.0.7
       uuid: 8.3.2
-      ws: 8.12.1(bufferutil@4.0.7)(utf-8-validate@5.0.10)
+      ws: 8.14.2(bufferutil@4.0.7)(utf-8-validate@5.0.10)
     optionalDependencies:
       bufferutil: 4.0.7
       utf-8-validate: 5.0.10
@@ -21818,6 +21826,14 @@ packages:
   /space-separated-tokens@1.1.5:
     resolution: {integrity: sha512-q/JSVd1Lptzhf5bkYm4ob4iWPjx0KiRe3sRFBNrVqbJkFaBm5vbbowy1mymoPNLRa52+oadOhJ+K49wsSeSjTA==}
     dev: true
+
+  /space-travel@1.0.6:
+    resolution: {integrity: sha512-h+rpy2iXOeRejpV7+pfCkURIV0btntBKgkCJZ+r3b8jUYzYJJtbYB/KUQu1V7xgkVCV/KPqGs5dfinx1Cz0HiA==}
+    engines: {node: '>=12'}
+    dependencies:
+      modern-normalize: 1.1.0
+      three: 0.127.0
+    dev: false
 
   /spawn-wrap@2.0.0:
     resolution: {integrity: sha512-EeajNjfN9zMnULLwhZZQU3GWBoFNkbngTUPfaawT4RkMiviTxcX0qfhVbGey39mfctfDHkWtuecgQ8NJcyQWHg==}
@@ -22602,6 +22618,10 @@ packages:
     resolution: {integrity: sha512-UkEhKIg2pD+fjkHQKyJO3yoIvAP3N6RlNFt2dUhcS1FGvCD1cQa1M/PGknCLFIyZdtJOWQjejp7bdNqmN7zwdA==}
     dependencies:
       real-require: 0.1.0
+
+  /three@0.127.0:
+    resolution: {integrity: sha512-wtgrn+mhYUbobxT7QN3GPdu3SRpSBQvwY6uOzLChWS7QE//f7paDU/+wlzbg+ngeIvBBqjBHSRuywTh8A99Jng==}
+    dev: false
 
   /throat@5.0.0:
     resolution: {integrity: sha512-fcwX4mndzpLQKBS1DVYhGAcYaYt7vsHNIvQV+WXMvnow5cgjPphq5CaayLaGsjRdSCKZFNGt7/GYAuXaNOiYCA==}
@@ -23870,7 +23890,7 @@ packages:
       spdy: 4.0.2
       webpack: 5.88.2(esbuild@0.18.20)
       webpack-dev-middleware: 5.3.3(webpack@5.88.2)
-      ws: 8.14.2
+      ws: 8.14.2(bufferutil@4.0.7)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
       - bufferutil
       - debug
@@ -24201,8 +24221,8 @@ packages:
       utf-8-validate:
         optional: true
 
-  /ws@8.12.1(bufferutil@4.0.7)(utf-8-validate@5.0.10):
-    resolution: {integrity: sha512-1qo+M9Ba+xNhPB+YTWUlK6M17brTut5EXbcBaMRN5pH5dFrXz7lzz1ChFSUq3bOUl8yEvSenhHmYUNJxFzdJew==}
+  /ws@8.14.2(bufferutil@4.0.7)(utf-8-validate@5.0.10):
+    resolution: {integrity: sha512-wEBG1ftX4jcglPxgFCMJmZ2PLtSbJ2Peg6TmpJFTbe9GZYOQCDPdMYu/Tm0/bGZkw8paZnJY45J4K2PZrLYq8g==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -24215,19 +24235,6 @@ packages:
     dependencies:
       bufferutil: 4.0.7
       utf-8-validate: 5.0.10
-
-  /ws@8.14.2:
-    resolution: {integrity: sha512-wEBG1ftX4jcglPxgFCMJmZ2PLtSbJ2Peg6TmpJFTbe9GZYOQCDPdMYu/Tm0/bGZkw8paZnJY45J4K2PZrLYq8g==}
-    engines: {node: '>=10.0.0'}
-    peerDependencies:
-      bufferutil: ^4.0.1
-      utf-8-validate: '>=5.0.2'
-    peerDependenciesMeta:
-      bufferutil:
-        optional: true
-      utf-8-validate:
-        optional: true
-    dev: true
 
   /ws@8.5.0:
     resolution: {integrity: sha512-BWX0SWVgLPzYwF8lTzEy1egjhS4S4OEAHfsO8o65WOVsrnSRGaSiUaa9e0ggGlkMTtBlmOpEXiie9RUcBO86qg==}
