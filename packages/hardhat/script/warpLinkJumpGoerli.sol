@@ -18,7 +18,7 @@ import {PermitSignature} from 'test/foundry/helpers/PermitSignature.sol';
  * Bridge mock USDC from Goerli to Optimism-Goerli.
  *
  * Invoke this script using:
- * forge script script/jumpGoerli.sol --rpc-url goerli --no-storage-caching -vvvv --broadcast
+ * forge script script/warpLinkJumpGoerli.sol --rpc-url goerli --no-storage-caching -vvvv --broadcast
  */
 contract JumpAndEngageGoerli is Script, WarpLinkCommandTypes, PermitSignature {
   address goerliDiamondAddr = 0x2A104392321e978495dBC91b68914eDbA3126D9c;
