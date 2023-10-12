@@ -45,6 +45,7 @@ library Optimism {
   IERC20 public constant USDC = IERC20(0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85);
   IERC20 public constant USDT = IERC20(0x94b008aA00579c1307B0EF2c499aD98a8ce58e58);
   address public constant STARGATE_COMPOSER_ADDR = 0xeCc19E177d24551aA7ed6Bc6FE566eCa726CC8a9;
+  uint16 public constant STARGATE_CHAIN_ID = 111;
 }
 
 library OptimismGoerli {
