@@ -60,7 +60,7 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
     !isValidTokenAmount(fromAmount);
 
   const getShiftButtonLabel = () => {
-    if (fromToken?.address === toToken?.address && fromChain === toChain) {
+    if (fromToken?.address === toToken?.address && fromChain?.id === toChain?.id) {
       return 'Cannot shift same tokens';
     }
 
