@@ -6,7 +6,13 @@ import { useQuery } from '@tanstack/react-query';
 import { useFormContext } from 'react-hook-form';
 import { useSifi } from 'src/providers/SDKProvider';
 import { SwapFormKey } from 'src/providers/SwapFormProvider';
-import { formatTokenAmount, getQueryKey, getTokenBySymbol, isValidTokenAmount, parseSifiErrorMessage } from 'src/utils';
+import {
+  formatTokenAmount,
+  getQueryKey,
+  getTokenBySymbol,
+  isValidTokenAmount,
+  parseSifiErrorMessage,
+} from 'src/utils';
 import { ETH_CONTRACT_ADDRESS } from 'src/constants';
 import { useTokens } from './useTokens';
 import { useSwapFormValues } from './useSwapFormValues';
@@ -24,7 +30,7 @@ const useQuote = () => {
   const { fromTokens, toTokens } = useTokens();
   const fromToken = getTokenBySymbol(fromTokenSymbol, fromTokens);
   const toToken = getTokenBySymbol(toTokenSymbol, toTokens);
-  const isSameTokenPair = fromToken?.address === toToken?.address;
+  const isSameTokenPair = fromToken?.address === toToken?.address && fromChain?.id === toChain?.id;
 
   const quoteRequest = {
     fromToken: fromToken?.address || ETH_CONTRACT_ADDRESS,
@@ -74,7 +80,7 @@ const useQuote = () => {
 
   // To avoid showing the last quote
   useEffect(() => {
-      setValue(SwapFormKey.ToAmount, '');
+    setValue(SwapFormKey.ToAmount, '');
   }, [fromAmount, fromToken, toToken]);
 
   return {
