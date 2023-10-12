@@ -45,10 +45,10 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
   const showApproveButton =
     Boolean(
       !!quote &&
-      allowance !== undefined &&
-      !isAllowanceAboveFromAmount &&
-      !isFromEthereum &&
-      hasSufficientBalance
+        allowance !== undefined &&
+        !isAllowanceAboveFromAmount &&
+        !isFromEthereum &&
+        hasSufficientBalance
     ) || isApproving;
 
   const isShiftButtonDisabled =
@@ -59,7 +59,7 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
     !isValidTokenAmount(fromAmount);
 
   const getShiftButtonLabel = () => {
-    if (fromToken?.address === toToken?.address && fromChain === toChain) {
+    if (fromToken?.address === toToken?.address && fromChain?.id === toChain?.id) {
       return 'Cannot shift same tokens';
     }
 
