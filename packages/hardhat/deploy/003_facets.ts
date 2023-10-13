@@ -36,6 +36,10 @@ if (addresses?.uniswapV2Router02 && addresses?.uniswapV2Factory) {
   FACET_NAMES = [...FACET_NAMES, 'UniV2RouterFacet'];
 }
 
+if (network.name === 'mainnet') {
+  FACET_NAMES = [...FACET_NAMES, 'Ens'];
+}
+
 /**
  * Add, replace, or remove facets in the diamond
  */
