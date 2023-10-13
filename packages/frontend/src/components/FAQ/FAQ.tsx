@@ -6,12 +6,12 @@ import linkIcon from 'src/assets/link.svg';
 const items = {
   exchange: [
     {
-      title: 'What is SideShift.fi?',
-      body: 'SideShift.fi is a DEX aggregator that finds the best price for your on-chain cryptocurrency trades.',
+      title: 'What is Sifi?',
+      body: 'Sifi is a DEX aggregator that finds the best price for your on-chain cryptocurrency trades.',
     },
     {
-      title: 'How does SideShift.fi offer the best rates?',
-      body: 'When a trade is initiated, SideShift.fi sources prices from multiple DEXes and offers you the best rate we can find.',
+      title: 'How does Sifi offer the best rates?',
+      body: 'When a trade is initiated, Sifi sources prices from multiple DEXes and offers you the best rate we can find.',
     },
   ],
   feesAndSupportedChains: [
@@ -33,7 +33,7 @@ const FAQ: FunctionComponent = () => {
         <h2 className="dark:text-flashbang-white font-display mb-6 text-left text-2xl sm:text-3xl md:text-[2.5rem] md:leading-[3rem]">
           Frequently Asked <br /> Questions
         </h2>
-        <Accordion icon={layersIcon} title="SideShift.fi Exchange" items={items.exchange} />
+        <Accordion icon={layersIcon} title="Sifi Exchange" items={items.exchange} />
         <Accordion
           icon={linkIcon}
           title="Fees & Supported Chains"
