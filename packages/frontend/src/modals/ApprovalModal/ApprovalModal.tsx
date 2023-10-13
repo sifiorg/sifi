@@ -18,7 +18,7 @@ const ApprovalModal: FunctionComponent<ApprovalModalProps> = ({
     <Modal isOpen={isOpen} handleClose={closeModal} title={`Approve ${tokenName} for trading`}>
       <p className="font-light mb-6 dark:text-smoke text-new-black">
         Review and select the ideal spending cap in your wallet for trading {tokenName}.
-        SideShift.fi only withdraws funds for signed open orders.
+        Sifi only withdraws funds for signed open orders.
       </p>
       <div className="grid sm:grid-cols-2 gap-8 mb-12">
         <div className="dark:bg-code-blue bg-light-smoke px-4 py-6 flex items-center flex-col">

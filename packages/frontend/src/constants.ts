@@ -15,7 +15,7 @@ const ERC20_ABI = [
   },
 ] as const;
 
-// Based on various interactions with the SideShift.fi Smart Contract
+// Based on various interactions with the Sifi Smart Contract
 const SWAP_MAX_GAS_UNITS = 150000;
 
 export {
