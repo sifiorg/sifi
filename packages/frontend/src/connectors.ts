@@ -15,7 +15,7 @@ const injectedConnector = new InjectedConnector({ chains });
 const coinbaseWalletConnector = new CoinbaseWalletConnector({
   chains,
   options: {
-    appName: 'Sideshift.fi',
+    appName: 'Sifi',
     jsonRpcUrl: 'https://eth-rpc.gateway.pokt.network',
   },
 });
