@@ -1,117 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import 'forge-std/Test.sol';
-import 'forge-std/console.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
-import {IUniV2Router} from 'contracts/interfaces/IUniV2Router.sol';
 import {IWarpLink} from 'contracts/interfaces/IWarpLink.sol';
-import {WarpLink, WarpLinkCommandTypes} from 'contracts/facets/WarpLink.sol';
-import {LibStarVault} from 'contracts/libraries/LibStarVault.sol';
-import {InitLibWarp} from 'contracts/init/InitLibWarp.sol';
-import {IUniswapV2Factory} from 'contracts/interfaces/external/IUniswapV2Factory.sol';
-import {FacetTest} from './helpers/FacetTest.sol';
-import {UniV3Callback} from 'contracts/facets/UniV3Callback.sol';
-import {Addresses, Mainnet, Polygon, Arbitrum, Optimism, Goerli, OptimismGoerli} from './helpers/Networks.sol';
-import {WarpLinkEncoder} from './helpers/WarpLinkEncoder.sol';
 import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransfer.sol';
-import {IPermit2} from 'contracts/interfaces/external/IPermit2.sol';
 import {PermitParams} from 'contracts/libraries/PermitParams.sol';
-import {PermitSignature} from './helpers/PermitSignature.sol';
-import {IStargateComposer} from './helpers/IStargateComposer.sol';
-import {IStargateRouter} from 'contracts/interfaces/external/IStargateRouter.sol';
+import {Addresses, Mainnet} from '../helpers/Networks.sol';
+import {UniV2TestHelpers} from '../helpers/UniV2.sol';
+import {WarpLinkTestBase} from './TestBase.sol';
 
-contract WarpLinkTestBase is FacetTest, PermitSignature, WarpLinkCommandTypes {
-  event CollectedFee(
-    address indexed partner,
-    address indexed token,
-    uint256 partnerFee,
-    uint256 diamondFee
-  );
-
-  WarpLink internal facet;
-  IPermit2 internal permit2;
-
-  uint256 internal USER_PRIV;
-  address internal USER;
-  uint48 internal deadline;
-  WarpLinkEncoder internal encoder;
-
-  IAllowanceTransfer.PermitSingle internal emptyPermit;
-  bytes internal emptyPermitSig;
-  PermitParams internal emptyPermitParams;
-
-  function setUpOn(uint256 chainId, uint256 blockNumber) internal override {
-    super.setUpOn(chainId, blockNumber);
-
-    encoder = new WarpLinkEncoder();
-    deadline = (uint48)(block.timestamp + 1);
-
-    (USER, USER_PRIV) = makeAddrAndKey('User');
-
-    IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](2);
-
-    facetCuts[0] = IDiamondCut.FacetCut(
-      address(new UniV3Callback()),
-      IDiamondCut.FacetCutAction.Add,
-      generateSelectors('UniV3Callback')
-    );
-
-    facetCuts[1] = IDiamondCut.FacetCut(
-      address(new WarpLink()),
-      IDiamondCut.FacetCutAction.Add,
-      generateSelectors('WarpLink')
-    );
-
-    InitLibWarp initLibWarp = new InitLibWarp();
-
-    IDiamondCut(address(diamond)).diamondCut(
-      facetCuts,
-      address(initLibWarp),
-      abi.encodeWithSelector(
-        initLibWarp.init.selector,
-        Addresses.weth(chainId),
-        Addresses.PERMIT2,
-        Addresses.stargateComposer(chainId)
-      )
-    );
-
-    facet = WarpLink(address(diamond));
-
-    permit2 = IPermit2(Addresses.PERMIT2);
-
-    emptyPermit = IAllowanceTransfer.PermitSingle(
-      IAllowanceTransfer.PermitDetails({
-        token: address(0),
-        amount: 0,
-        expiration: deadline,
-        nonce: 0
-      }),
-      address(diamond),
-      deadline
-    );
-
-    emptyPermitSig = getPermitSignature(emptyPermit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
-
-    emptyPermitParams = PermitParams({nonce: emptyPermit.details.nonce, signature: emptyPermitSig});
-  }
-
-  function getPair(
-    address factory,
-    address tokenA,
-    address tokenB
-  ) internal view returns (address) {
-    if (tokenA > tokenB) {
-      (tokenA, tokenB) = (tokenB, tokenA);
-    }
-
-    return IUniswapV2Factory(factory).getPair(tokenA, tokenB);
-  }
-}
-
-contract WarpLinkTest is WarpLinkTestBase {
+contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
   function setUp() public override {
     setUpOn(1, 17853419);
   }
@@ -286,13 +185,23 @@ contract WarpLinkTest is WarpLinkTestBase {
       (uint8)(COMMAND_TYPE_WRAP),
       (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE),
       (address)(Mainnet.DAI), // WarpUniV2LikeSwapSingleParams.tokenOut
-      (address)(getPair(Mainnet.SUSHISWAP_V2_FACTORY, address(Mainnet.WETH), address(Mainnet.DAI))), // WarpUniV2LikeSwapSingleParams.pool
+      (address)(
+        UniV2TestHelpers.getPair(
+          Mainnet.SUSHISWAP_V2_FACTORY,
+          address(Mainnet.WETH),
+          address(Mainnet.DAI)
+        )
+      ), // WarpUniV2LikeSwapSingleParams.pool
       (uint8)(address(Mainnet.WETH) < address(Mainnet.DAI) ? 1 : 0), // WarpUniV2LikeSwapSingleParams.zeroForOne
       (uint16)(30), // WarpUniV2LikeSwapSingleParams.poolFeeBps
       (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE),
       (address)(Mainnet.USDC), // WarpUniV2LikeSwapSingleParams.tokenOut
       (address)(
-        getPair(Mainnet.UNISWAP_V2_FACTORY_ADDR, address(Mainnet.DAI), address(Mainnet.USDC))
+        UniV2TestHelpers.getPair(
+          Mainnet.UNISWAP_V2_FACTORY_ADDR,
+          address(Mainnet.DAI),
+          address(Mainnet.USDC)
+        )
       ), // WarpUniV2LikeSwapSingleParams.pool
       (uint8)(address(Mainnet.DAI) < address(Mainnet.USDC) ? 1 : 0), // WarpUniV2LikeSwapSingleParams.zeroForOne
       (uint16)(30) // WarpUniV2LikeSwapSingleParams.poolFeeBps
@@ -381,7 +290,11 @@ contract WarpLinkTest is WarpLinkTestBase {
         (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE),
         (address)(Mainnet.WBTC), // WarpUniV2LikeSwapSingleParams.tokenOut
         (address)(
-          getPair(Mainnet.UNISWAP_V2_FACTORY_ADDR, address(Mainnet.WETH), address(Mainnet.WBTC))
+          UniV2TestHelpers.getPair(
+            Mainnet.UNISWAP_V2_FACTORY_ADDR,
+            address(Mainnet.WETH),
+            address(Mainnet.WBTC)
+          )
         ), // WarpUniV2LikeSwapSingleParams.pool
         (uint8)(address(Mainnet.WETH) < address(Mainnet.WBTC) ? 1 : 0), // WarpUniV2LikeSwapSingleParams.zeroForOne
         (uint16)(30) // WarpUniV2LikeSwapSingleParams.poolFeeBps
@@ -391,7 +304,11 @@ contract WarpLinkTest is WarpLinkTestBase {
         (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE),
         (address)(Mainnet.WBTC), // WarpUniV2LikeSwapSingleParams.tokenOut
         (address)(
-          getPair(Mainnet.SUSHISWAP_V2_FACTORY, address(Mainnet.WETH), address(Mainnet.WBTC))
+          UniV2TestHelpers.getPair(
+            Mainnet.SUSHISWAP_V2_FACTORY,
+            address(Mainnet.WETH),
+            address(Mainnet.WBTC)
+          )
         ), // WarpUniV2LikeSwapSingleParams.pool
         (uint8)(address(Mainnet.WETH) < address(Mainnet.WBTC) ? 1 : 0), // WarpUniV2LikeSwapSingleParams.zeroForOne
         (uint16)(30) // WarpUniV2LikeSwapSingleParams.poolFeeBps
@@ -452,7 +369,11 @@ contract WarpLinkTest is WarpLinkTestBase {
         (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE),
         (address)(Mainnet.USDC), // WarpUniV2LikeSwapSingleParams.tokenOut
         (address)(
-          getPair(Mainnet.UNISWAP_V2_FACTORY_ADDR, address(Mainnet.WETH), address(Mainnet.USDC))
+          UniV2TestHelpers.getPair(
+            Mainnet.UNISWAP_V2_FACTORY_ADDR,
+            address(Mainnet.WETH),
+            address(Mainnet.USDC)
+          )
         ), // WarpUniV2LikeSwapSingleParams.pool
         (uint8)(address(Mainnet.WETH) < address(Mainnet.USDC) ? 1 : 0), // WarpUniV2LikeSwapSingleParams.zeroForOne
         (uint16)(30) // WarpUniV2LikeSwapSingleParams.poolFeeBps
@@ -462,7 +383,11 @@ contract WarpLinkTest is WarpLinkTestBase {
         (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE),
         (address)(Mainnet.WBTC), // WarpUniV2LikeSwapSingleParams.tokenOut
         (address)(
-          getPair(Mainnet.UNISWAP_V2_FACTORY_ADDR, address(Mainnet.USDC), address(Mainnet.WBTC))
+          UniV2TestHelpers.getPair(
+            Mainnet.UNISWAP_V2_FACTORY_ADDR,
+            address(Mainnet.USDC),
+            address(Mainnet.WBTC)
+          )
         ), // WarpUniV2LikeSwapSingleParams.pool
         (uint8)(address(Mainnet.USDC) < address(Mainnet.WBTC) ? 1 : 0), // WarpUniV2LikeSwapSingleParams.zeroForOne
         (uint16)(30) // WarpUniV2LikeSwapSingleParams.poolFeeBps
@@ -472,7 +397,11 @@ contract WarpLinkTest is WarpLinkTestBase {
         (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE),
         (address)(Mainnet.WBTC), // WarpUniV2LikeSwapSingleParams.tokenOut
         (address)(
-          getPair(Mainnet.UNISWAP_V2_FACTORY_ADDR, address(Mainnet.WETH), address(Mainnet.WBTC))
+          UniV2TestHelpers.getPair(
+            Mainnet.UNISWAP_V2_FACTORY_ADDR,
+            address(Mainnet.WETH),
+            address(Mainnet.WBTC)
+          )
         ), // WarpUniV2LikeSwapSingleParams.pool
         (uint8)(address(Mainnet.WETH) < address(Mainnet.WBTC) ? 1 : 0), // WarpUniV2LikeSwapSingleParams.zeroForOne
         (uint16)(30) // WarpUniV2LikeSwapSingleParams.poolFeeBps
@@ -482,7 +411,11 @@ contract WarpLinkTest is WarpLinkTestBase {
         (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE),
         (address)(Mainnet.WBTC), // WarpUniV2LikeSwapSingleParams.tokenOut
         (address)(
-          getPair(Mainnet.SUSHISWAP_V2_FACTORY, address(Mainnet.WETH), address(Mainnet.WBTC))
+          UniV2TestHelpers.getPair(
+            Mainnet.SUSHISWAP_V2_FACTORY,
+            address(Mainnet.WETH),
+            address(Mainnet.WBTC)
+          )
         ), // WarpUniV2LikeSwapSingleParams.pool
         (uint8)(address(Mainnet.WETH) < address(Mainnet.WBTC) ? 1 : 0), // WarpUniV2LikeSwapSingleParams.zeroForOne
         (uint16)(30) // WarpUniV2LikeSwapSingleParams.poolFeeBps
@@ -537,10 +470,18 @@ contract WarpLinkTest is WarpLinkTestBase {
         (address)(Mainnet.USDT), // token 0
         (address)(Mainnet.APE), // token 1
         (address)(
-          getPair(Mainnet.SUSHISWAP_V2_FACTORY, address(Mainnet.USDC), address(Mainnet.USDT))
+          UniV2TestHelpers.getPair(
+            Mainnet.SUSHISWAP_V2_FACTORY,
+            address(Mainnet.USDC),
+            address(Mainnet.USDT)
+          )
         ), // pair 0
         (address)(
-          getPair(Mainnet.SUSHISWAP_V2_FACTORY, address(Mainnet.USDT), address(Mainnet.APE))
+          UniV2TestHelpers.getPair(
+            Mainnet.SUSHISWAP_V2_FACTORY,
+            address(Mainnet.USDT),
+            address(Mainnet.APE)
+          )
         ), // pair 1
         (uint16)(30), // pool fee bps 0
         (uint16)(30) // pool fee bps 1
@@ -593,7 +534,13 @@ contract WarpLinkTest is WarpLinkTestBase {
       (uint8)(1), // Command count
       (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE),
       (address)(Mainnet.DAI), // WarpUniV2LikeSwapSingleParams.tokenOut
-      (address)(getPair(Mainnet.SUSHISWAP_V2_FACTORY, address(Mainnet.WETH), address(Mainnet.DAI))), // WarpUniV2LikeSwapSingleParams.pool
+      (address)(
+        UniV2TestHelpers.getPair(
+          Mainnet.SUSHISWAP_V2_FACTORY,
+          address(Mainnet.WETH),
+          address(Mainnet.DAI)
+        )
+      ), // WarpUniV2LikeSwapSingleParams.pool
       (uint8)(address(Mainnet.WETH) < address(Mainnet.DAI) ? 1 : 0), // WarpUniV2LikeSwapSingleParams.zeroForOne
       (uint16)(30) // WarpUniV2LikeSwapSingleParams.poolFeeBps
     );
@@ -644,7 +591,13 @@ contract WarpLinkTest is WarpLinkTestBase {
       (uint8)(1), // Command count,
       (uint8)(COMMAND_TYPE_WARP_UNI_V2_LIKE_EXACT_INPUT_SINGLE),
       (address)(Mainnet.DAI), // WarpUniV2LikeSwapSingleParams.tokenOut
-      (address)(getPair(Mainnet.SUSHISWAP_V2_FACTORY, address(Mainnet.WETH), address(Mainnet.DAI))), // WarpUniV2LikeSwapSingleParams.pool
+      (address)(
+        UniV2TestHelpers.getPair(
+          Mainnet.SUSHISWAP_V2_FACTORY,
+          address(Mainnet.WETH),
+          address(Mainnet.DAI)
+        )
+      ), // WarpUniV2LikeSwapSingleParams.pool
       (uint8)(address(Mainnet.WETH) < address(Mainnet.DAI) ? 1 : 0), // WarpUniV2LikeSwapSingleParams.zeroForOne
       (uint16)(30) // WarpUniV2LikeSwapSingleParams.poolFeeBps
     );
@@ -1074,777 +1027,5 @@ contract WarpLinkTest is WarpLinkTestBase {
     );
 
     assertEq(Mainnet.FRXETH.balanceOf(USER), 1000867499582465464, 'balance');
-  }
-}
-
-// Block on 2023-09-29
-// Stargate switched to requiring the composer
-contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
-  function setUp() public override {
-    setUpOn(1, 18240282);
-  }
-
-  function testFork_jumpStargate_EthToUsdc() public {
-    uint256 amountIn = 1 ether;
-
-    bytes memory commands = abi.encodePacked(
-      (uint8)(3), // Command count
-      (uint8)(COMMAND_TYPE_WRAP),
-      encoder.encodeWarpUniV2LikeExactInputSingle({
-        factory: Mainnet.UNISWAP_V2_FACTORY_ADDR,
-        fromToken: address(Mainnet.WETH),
-        toToken: address(Mainnet.USDC),
-        poolFeeBps: 30
-      }),
-      (uint8)(COMMAND_TYPE_JUMP_STARGATE),
-      (uint16)(106), // dstChainId (Avalanche)
-      (uint8)(1), // srcPoolId (USDC, Ethereum)
-      (uint8)(1), // dstPoolId (USDC, Avalanche)
-      uint32(0) // dstGasForCall
-    );
-
-    uint256 expectedSwapOut = 1567 * (10 ** 6);
-
-    (uint256 nativeWei, ) = IStargateComposer(Mainnet.STARGATE_COMPOSER_ADDR).quoteLayerZeroFee({
-      _dstChainId: 106,
-      _functionType: 1, // swap remote
-      _toAddress: abi.encodePacked(USER),
-      _transferAndCallPayload: '',
-      _lzTxParams: IStargateRouter.lzTxObj({
-        dstGasForCall: 0,
-        dstNativeAmount: 0,
-        dstNativeAddr: ''
-      })
-    });
-
-    vm.deal(USER, (amountIn + nativeWei));
-
-    console2.log('Native fee: %s', nativeWei);
-
-    vm.prank(USER);
-
-    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
-      IAllowanceTransfer.PermitDetails({
-        token: address(0),
-        amount: uint160(amountIn),
-        expiration: deadline,
-        nonce: 0
-      }),
-      address(diamond),
-      deadline
-    );
-
-    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
-
-    vm.prank(USER);
-    facet.warpLinkEngage{value: amountIn + nativeWei}(
-      IWarpLink.Params({
-        tokenIn: address(0),
-        tokenOut: address(Mainnet.USDC),
-        commands: commands,
-        amountIn: amountIn,
-        amountOut: expectedSwapOut,
-        recipient: USER,
-        partner: address(0),
-        feeBps: 0,
-        slippageBps: 100,
-        deadline: deadline
-      }),
-      PermitParams({nonce: permit.details.nonce, signature: sig})
-    );
-  }
-
-  function testFork_jumpStargate_Usdc() public {
-    uint256 amountIn = 1000 * (10 ** 6);
-    address tokenIn = address(Mainnet.USDC);
-
-    bytes memory commands = abi.encodePacked(
-      (uint8)(1), // Command count
-      (uint8)(COMMAND_TYPE_JUMP_STARGATE),
-      (uint16)(106), // dstChainId (Avalanche)
-      (uint8)(1), // srcPoolId (USDC, Ethereum)
-      (uint8)(1), // dstPoolId (USDC, Avalanche)
-      uint32(0) // dstGasForCall
-    );
-
-    uint256 expectedSwapOut = 1000 * (10 ** 6);
-
-    (uint256 nativeWei, ) = IStargateComposer(Mainnet.STARGATE_COMPOSER_ADDR).quoteLayerZeroFee({
-      _dstChainId: 106,
-      _functionType: 1, // swap remote
-      _toAddress: abi.encodePacked(USER),
-      _transferAndCallPayload: '',
-      _lzTxParams: IStargateRouter.lzTxObj({
-        dstGasForCall: 0,
-        dstNativeAmount: 0,
-        dstNativeAddr: ''
-      })
-    });
-
-    vm.deal(USER, nativeWei);
-    deal(tokenIn, USER, amountIn);
-
-    console2.log('Native fee: %s', nativeWei);
-
-    vm.prank(USER);
-    IERC20(tokenIn).approve(address(Addresses.PERMIT2), amountIn);
-
-    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
-      IAllowanceTransfer.PermitDetails({
-        token: tokenIn,
-        amount: uint160(amountIn),
-        expiration: deadline,
-        nonce: 0
-      }),
-      address(diamond),
-      deadline
-    );
-
-    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
-
-    vm.prank(USER);
-    facet.warpLinkEngage{value: nativeWei}(
-      IWarpLink.Params({
-        tokenIn: tokenIn,
-        tokenOut: tokenIn,
-        commands: commands,
-        amountIn: amountIn,
-        amountOut: expectedSwapOut,
-        recipient: USER,
-        partner: address(0),
-        feeBps: 0,
-        slippageBps: 200,
-        deadline: deadline
-      }),
-      PermitParams({nonce: permit.details.nonce, signature: sig})
-    );
-  }
-
-  /**
-   * Bridge USDC from Ethereum to Arbitrum. Then simuilate the USD being received, but on the
-   * Ethereum chain, and swap it to USDT
-   */
-  function testFork_jumpAndSwap() public {
-    bytes memory destCommands = abi.encodePacked(
-      (uint8)(1), // Command count
-      encoder.encodeWarpUniV3LikeExactInputSingle({
-        tokenOut: address(Mainnet.USDT),
-        pool: 0x7858E59e0C01EA06Df3aF3D20aC7B0003275D4Bf
-      })
-    );
-
-    IWarpLink.Params memory destParams = IWarpLink.Params({
-      tokenIn: address(Mainnet.USDT),
-      tokenOut: address(Mainnet.WETH),
-      commands: destCommands,
-      amountIn: 0, // Unused
-      amountOut: 990 * (10 ** 6), // TODO
-      recipient: USER,
-      partner: address(0),
-      feeBps: 0,
-      slippageBps: 0,
-      deadline: deadline
-    });
-
-    bytes memory destParamsEncoded = abi.encode(destParams);
-
-    uint256 srcAmountIn = 1000 * (10 ** 6);
-    address srcTokenIn = address(Mainnet.USDC);
-    uint256 dstGasForCall = 500_000;
-
-    bytes memory sourceCommands = bytes.concat(
-      abi.encodePacked(
-        (uint8)(1), // Command count
-        (uint8)(COMMAND_TYPE_JUMP_STARGATE),
-        (uint16)(111), // dstChainId (Optimism)
-        (uint8)(1), // srcPoolId (USDC, Ethereum)
-        (uint8)(1), // dstPoolId (USDC, Optimism),
-        uint32(dstGasForCall), // dstGasForCall, 500K
-        address(Mainnet.WETH), // destParams.tokenOut
-        uint256(990 * (10 ** 6)), // destParams.amountOut
-        uint256(destCommands.length), // destParams.commands.length
-        destCommands // destParams.commands
-      )
-    );
-
-    (uint256 nativeWei, ) = IStargateComposer(Mainnet.STARGATE_COMPOSER_ADDR).quoteLayerZeroFee({
-      _dstChainId: 111, // Optimism
-      _functionType: 1, // Swap remote
-      _toAddress: abi.encodePacked(address(diamond)),
-      _transferAndCallPayload: destParamsEncoded,
-      _lzTxParams: IStargateRouter.lzTxObj({
-        dstGasForCall: dstGasForCall,
-        dstNativeAmount: 0,
-        dstNativeAddr: ''
-      })
-    });
-
-    vm.deal(USER, nativeWei);
-    deal(srcTokenIn, USER, srcAmountIn);
-
-    console2.log('Native fee: %s', nativeWei);
-
-    vm.prank(USER);
-    IERC20(srcTokenIn).approve(address(Addresses.PERMIT2), srcAmountIn);
-
-    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
-      IAllowanceTransfer.PermitDetails({
-        token: srcTokenIn,
-        amount: uint160(srcAmountIn),
-        expiration: deadline,
-        nonce: 0
-      }),
-      address(diamond),
-      deadline
-    );
-
-    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
-
-    vm.prank(USER);
-    facet.warpLinkEngage{value: nativeWei}(
-      IWarpLink.Params({
-        tokenIn: srcTokenIn,
-        tokenOut: srcTokenIn,
-        commands: sourceCommands,
-        amountIn: srcAmountIn,
-        amountOut: 0, // TODO
-        recipient: USER,
-        partner: address(0),
-        feeBps: 0,
-        slippageBps: 100,
-        deadline: deadline
-      }),
-      PermitParams({nonce: permit.details.nonce, signature: sig})
-    );
-
-    // The router delivers 999 USDC to the diamond
-    deal(address(Mainnet.USDC), address(diamond), 999 * (10 ** 6));
-
-    // And calls sgReceive
-    vm.prank(Mainnet.STARGATE_COMPOSER_ADDR);
-    facet.sgReceive(
-      uint16(Mainnet.CHAIN_ID), // _srcChain
-      abi.encodePacked(address(diamond)), // _srcAddress
-      0, // _nonce
-      address(Mainnet.USDC), // _token
-      990 * (10 ** 6), // amountLD
-      destParamsEncoded // payload
-    );
-
-    assertApproxEqRel(Mainnet.USDC.balanceOf(USER), 990 * (10 ** 6), 0.001 ether);
-  }
-
-  function testFork_jumpAndSwapEth() public {
-    bytes memory destCommands = abi.encodePacked(
-      (uint8)(2), // Command count
-      (uint8)(COMMAND_TYPE_WRAP),
-      encoder.encodeWarpUniV3LikeExactInputSingle({
-        tokenOut: address(Mainnet.USDT),
-        pool: 0x4e68Ccd3E89f51C3074ca5072bbAC773960dFa36 // WETH/USDT 0.3%
-      })
-    );
-
-    IWarpLink.Params memory destParams = IWarpLink.Params({
-      tokenIn: address(0),
-      tokenOut: address(Mainnet.USDT),
-      commands: destCommands,
-      amountIn: 0, // Unused
-      amountOut: 1657900441, // USDT
-      recipient: USER,
-      partner: address(0),
-      feeBps: 0,
-      slippageBps: 100,
-      deadline: deadline
-    });
-
-    bytes memory destParamsEncoded = abi.encode(destParams);
-
-    uint256 srcAmountIn = 1 ether;
-    address srcTokenIn = address(0);
-    uint256 dstGasForCall = 500_000;
-
-    bytes memory sourceCommands = bytes.concat(
-      abi.encodePacked(
-        (uint8)(1), // Command count
-        (uint8)(COMMAND_TYPE_JUMP_STARGATE),
-        (uint16)(111), // dstChainId, Optimism
-        (uint8)(13), // srcPoolId, SGETH
-        (uint8)(13), // dstPoolId, SGETH
-        uint32(dstGasForCall), // dstGasForCall, 500K
-        address(0), // destParams.tokenOut
-        uint256(0.9 ether), // destParams.amountOut
-        uint256(destCommands.length), // destParams.commands.length
-        destCommands // destParams.commands
-      )
-    );
-
-    (uint256 nativeWei, ) = IStargateComposer(Mainnet.STARGATE_COMPOSER_ADDR).quoteLayerZeroFee({
-      _dstChainId: 111, // Optimism
-      _functionType: 1, // Swap remote
-      _toAddress: abi.encodePacked(address(diamond)),
-      _transferAndCallPayload: destParamsEncoded,
-      _lzTxParams: IStargateRouter.lzTxObj({
-        dstGasForCall: dstGasForCall,
-        dstNativeAmount: 0,
-        dstNativeAddr: ''
-      })
-    });
-
-    vm.deal(USER, nativeWei + 1 ether);
-
-    console2.log('Native fee: %s', nativeWei);
-
-    PermitParams memory permitParams;
-
-    vm.prank(USER);
-    facet.warpLinkEngage{value: nativeWei + srcAmountIn}(
-      IWarpLink.Params({
-        tokenIn: srcTokenIn,
-        tokenOut: srcTokenIn,
-        commands: sourceCommands,
-        amountIn: srcAmountIn,
-        amountOut: 0, // TODO
-        recipient: USER,
-        partner: address(0),
-        feeBps: 0, // Unused
-        slippageBps: 100,
-        deadline: deadline
-      }),
-      permitParams
-    );
-
-    vm.deal(address(facet), (srcAmountIn * 99) / 100);
-
-    // And calls sgReceive
-    vm.prank(Mainnet.STARGATE_COMPOSER_ADDR);
-    facet.sgReceive(
-      uint16(Mainnet.CHAIN_ID), // _srcChain
-      abi.encodePacked(address(diamond)), // _srcAddress
-      0, // _nonce
-      address(0x72E2F4830b9E45d52F80aC08CB2bEC0FeF72eD9c), // _token, SGETH
-      (srcAmountIn * 99) / 100, // amountLD
-      destParamsEncoded // payload
-    );
-
-    assertEq(Mainnet.USDT.balanceOf(USER), 1657900441, 'usdt balance');
-  }
-}
-
-contract WarpLinkBlock18069811Test is WarpLinkTestBase {
-  function setUp() public override {
-    setUpOn(1, 18069811);
-  }
-
-  function testFork_paraswapVector() public {
-    // 0. permit for APE
-    IAllowanceTransfer.PermitDetails memory details = IAllowanceTransfer.PermitDetails({
-      token: address(Mainnet.APE),
-      amount: (uint160)(1000 ether),
-      expiration: deadline,
-      nonce: 0
-    });
-
-    bytes memory sig = getPermitSignature(
-      IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
-      USER_PRIV,
-      permit2.DOMAIN_SEPARATOR()
-    );
-
-    // 1.1: 92.5% of split 1 will swap Uni V2 APE -> WETH, unwrap
-    bytes memory commandsSplit1_1 = bytes.concat(
-      abi.encodePacked(
-        (uint16)(92_50), // TODO: Split less than 1%
-        (uint8)(2) // Command count
-      ),
-      encoder.encodeWarpUniV2LikeExactInputSingle({
-        factory: Mainnet.UNISWAP_V2_FACTORY_ADDR,
-        fromToken: address(Mainnet.APE),
-        toToken: address(Mainnet.WETH),
-        poolFeeBps: 30
-      }),
-      abi.encodePacked((uint8)(COMMAND_TYPE_UNWRAP))
-    );
-
-    // 1.2: 7.5% of split 1 will swap Uni V2 APE -> WETH on Sushi V2, unwrap
-    bytes memory commandsSplit1_2 = bytes.concat(
-      abi.encodePacked(
-        (uint8)(2) // Command count
-      ),
-      encoder.encodeWarpUniV2LikeExactInputSingle({
-        factory: Mainnet.SUSHISWAP_V2_FACTORY,
-        fromToken: address(Mainnet.APE),
-        toToken: address(Mainnet.WETH),
-        poolFeeBps: 30
-      }),
-      abi.encodePacked((uint8)(COMMAND_TYPE_UNWRAP))
-    );
-
-    // 1: Split 1 will swap APE -> WETH -> Unwrap in two, wrap the ETH,  and then WETH to USDC on Uni V2
-    bytes memory commandsSplit1 = bytes.concat(
-      abi.encodePacked(
-        (uint8)(3), // Command count
-        (uint8)(COMMAND_TYPE_SPLIT),
-        (uint8)(2) // Split count
-      ),
-      commandsSplit1_1,
-      commandsSplit1_2,
-      abi.encodePacked((uint8)(COMMAND_TYPE_WRAP)),
-      encoder.encodeWarpUniV2LikeExactInputSingle({
-        factory: Mainnet.UNISWAP_V2_FACTORY_ADDR,
-        fromToken: address(Mainnet.WETH),
-        toToken: address(Mainnet.USDC),
-        poolFeeBps: 30
-      })
-    );
-
-    // 2: Swap APE->USDT->USDC on UniswapForkOptimized (looks like Sushi)
-    address[] memory commandsSplit2Tokens = new address[](2);
-    commandsSplit2Tokens[0] = address(Mainnet.USDT);
-    commandsSplit2Tokens[1] = address(Mainnet.USDC);
-
-    address[] memory commandsSplit2Pools = new address[](2);
-    commandsSplit2Pools[0] = 0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f;
-    commandsSplit2Pools[1] = 0x3041CbD36888bECc7bbCBc0045E3B1f144466f5f;
-
-    uint16[] memory commandsSplit2PoolFeeBps = new uint16[](2);
-    commandsSplit2PoolFeeBps[0] = 30;
-    commandsSplit2PoolFeeBps[1] = 30;
-
-    bytes memory commandsSplit2 = bytes.concat(
-      abi.encodePacked(
-        (uint8)(1) // Command count
-      ),
-      encoder.encodeWarpUniV2LikeExactInput({
-        tokens: commandsSplit2Tokens,
-        pools: commandsSplit2Pools,
-        poolFeesBps: commandsSplit2PoolFeeBps
-      })
-    );
-
-    bytes memory commands = bytes.concat(
-      abi.encodePacked(
-        (uint8)(1), // Command count
-        (uint8)(COMMAND_TYPE_SPLIT),
-        (uint8)(2), // Split count,
-        (uint16)(80_00) // Split %
-      ),
-      commandsSplit1,
-      commandsSplit2
-    );
-
-    // The output is 5% less than the quote on Paraswap because
-    // of the pools used in the final 20% split. See the Paraswap route
-    // with numbers at https://gist.github.com/xykota/12e905bbde4d7b617176bf8da50423f7
-    uint256 expectedSwapOut = uint256(1300374471 * 950) / 1000;
-    uint256 expectedFee = 0;
-
-    deal(address(Mainnet.APE), USER, 1000 ether);
-
-    vm.prank(USER);
-    Mainnet.APE.approve(address(Addresses.PERMIT2), 1000 ether);
-
-    vm.prank(USER);
-    facet.warpLinkEngage(
-      IWarpLink.Params({
-        tokenIn: address(Mainnet.APE),
-        tokenOut: address(Mainnet.USDC),
-        commands: commands,
-        amountIn: 1000 ether,
-        amountOut: expectedSwapOut,
-        recipient: USER,
-        partner: address(0),
-        feeBps: 0,
-        slippageBps: 10,
-        deadline: deadline
-      }),
-      PermitParams({nonce: 0, signature: sig})
-    );
-
-    assertEq(Mainnet.USDC.balanceOf(USER), expectedSwapOut - expectedFee, 'usdc balance after');
-  }
-
-  receive() external payable {}
-}
-
-contract WarpLinkPolygonTest is WarpLinkTestBase {
-  function setUp() public override {
-    setUpOn(137, 47436715);
-  }
-
-  function testFork_Wrap() public {
-    bytes memory commands = abi.encodePacked(
-      (uint8)(1), // Command count
-      (uint8)(COMMAND_TYPE_WRAP)
-    );
-
-    vm.deal(USER, 1 ether);
-
-    vm.prank(USER);
-    facet.warpLinkEngage{value: 1 ether}(
-      IWarpLink.Params({
-        tokenIn: address(0),
-        tokenOut: address(Polygon.WMATIC),
-        commands: commands,
-        amountIn: 1 ether,
-        amountOut: 1 ether,
-        recipient: USER,
-        partner: address(0),
-        feeBps: 0,
-        slippageBps: 0,
-        deadline: deadline
-      }),
-      emptyPermitParams
-    );
-  }
-
-  function testFork_swapSingleUniV3() public {
-    uint256 amountIn = 1 ether;
-    uint256 expectedSwapOut = 506478;
-    uint256 expectedFee = 0;
-
-    vm.deal(USER, amountIn);
-
-    bytes memory commands = bytes.concat(
-      abi.encodePacked(
-        (uint8)(2), // Command count
-        (uint8)(COMMAND_TYPE_WRAP)
-      ),
-      encoder.encodeWarpUniV3LikeExactInputSingle({
-        tokenOut: address(Polygon.USDC),
-        pool: 0xA374094527e1673A86dE625aa59517c5dE346d32 // MATIC/USDC 0.05%
-      })
-    );
-
-    vm.prank(USER);
-    facet.warpLinkEngage{value: amountIn}(
-      IWarpLink.Params({
-        tokenIn: address(0),
-        tokenOut: address(Polygon.USDC),
-        commands: commands,
-        amountIn: amountIn,
-        amountOut: expectedSwapOut,
-        recipient: USER,
-        partner: address(0),
-        feeBps: 0,
-        slippageBps: 0,
-        deadline: deadline
-      }),
-      emptyPermitParams
-    );
-
-    assertEq(Polygon.USDC.balanceOf(USER), expectedSwapOut - expectedFee, 'after');
-  }
-}
-
-contract WarpLinkArbitrumTest is WarpLinkTestBase {
-  function setUp() public override {
-    setUpOn(42161, 130346515);
-  }
-
-  function testFork_Wrap() public {
-    bytes memory commands = abi.encodePacked(
-      (uint8)(1), // Command count
-      (uint8)(COMMAND_TYPE_WRAP)
-    );
-
-    vm.deal(USER, 1 ether);
-
-    vm.prank(USER);
-    facet.warpLinkEngage{value: 1 ether}(
-      IWarpLink.Params({
-        tokenIn: address(0),
-        tokenOut: address(Arbitrum.WETH),
-        commands: commands,
-        amountIn: 1 ether,
-        amountOut: 1 ether,
-        recipient: USER,
-        partner: address(0),
-        feeBps: 0,
-        slippageBps: 0,
-        deadline: deadline
-      }),
-      emptyPermitParams
-    );
-  }
-
-  function testFork_swapSingleUniV3() public {
-    uint256 amountIn = 1 ether;
-    uint256 expectedSwapOut = 1578436830;
-    uint256 expectedFee = 0;
-
-    vm.deal(USER, amountIn);
-
-    bytes memory commands = bytes.concat(
-      abi.encodePacked(
-        (uint8)(2), // Command count
-        (uint8)(COMMAND_TYPE_WRAP)
-      ),
-      encoder.encodeWarpUniV3LikeExactInputSingle({
-        tokenOut: address(Arbitrum.USDC),
-        pool: 0xC6962004f452bE9203591991D15f6b388e09E8D0 // WETH/USDC 0.05%
-      })
-    );
-
-    vm.prank(USER);
-    facet.warpLinkEngage{value: amountIn}(
-      IWarpLink.Params({
-        tokenIn: address(0),
-        tokenOut: address(Arbitrum.USDC),
-        commands: commands,
-        amountIn: amountIn,
-        amountOut: expectedSwapOut,
-        recipient: USER,
-        partner: address(0),
-        feeBps: 0,
-        slippageBps: 0,
-        deadline: deadline
-      }),
-      emptyPermitParams
-    );
-
-    assertEq(Arbitrum.USDC.balanceOf(USER), expectedSwapOut - expectedFee, 'after');
-  }
-}
-
-contract WarpLinkOptimismTest is WarpLinkTestBase {
-  function setUp() public override {
-    setUpOn(Optimism.CHAIN_ID, 109754831);
-  }
-
-  function testFork_Wrap() public {
-    bytes memory commands = abi.encodePacked(
-      (uint8)(1), // Command count
-      (uint8)(COMMAND_TYPE_WRAP)
-    );
-
-    vm.deal(USER, 1 ether);
-
-    vm.prank(USER);
-    facet.warpLinkEngage{value: 1 ether}(
-      IWarpLink.Params({
-        tokenIn: address(0),
-        tokenOut: address(Optimism.WETH),
-        commands: commands,
-        amountIn: 1 ether,
-        amountOut: 1 ether,
-        recipient: USER,
-        partner: address(0),
-        feeBps: 0,
-        slippageBps: 0,
-        deadline: deadline
-      }),
-      emptyPermitParams
-    );
-  }
-
-  function testFork_swapSingleUniV3() public {
-    uint256 amountIn = 1 ether;
-    uint256 expectedSwapOut = 1578436830;
-    uint256 expectedFee = 0;
-
-    vm.deal(USER, amountIn);
-
-    bytes memory commands = bytes.concat(
-      abi.encodePacked(
-        (uint8)(2), // Command count
-        (uint8)(COMMAND_TYPE_WRAP)
-      ),
-      encoder.encodeWarpUniV3LikeExactInputSingle({
-        tokenOut: address(Optimism.USDT),
-        pool: 0xc858A329Bf053BE78D6239C4A4343B8FbD21472b // WETH/USDT ?%
-      })
-    );
-
-    vm.prank(USER);
-    facet.warpLinkEngage{value: amountIn}(
-      IWarpLink.Params({
-        tokenIn: address(0),
-        tokenOut: address(Optimism.USDT),
-        commands: commands,
-        amountIn: amountIn,
-        amountOut: expectedSwapOut,
-        recipient: USER,
-        partner: address(0),
-        feeBps: 0,
-        slippageBps: 0,
-        deadline: deadline
-      }),
-      emptyPermitParams
-    );
-
-    assertEq(Optimism.USDT.balanceOf(USER), expectedSwapOut - expectedFee, 'after');
-  }
-}
-
-contract WarpLinkGoerliTest is WarpLinkTestBase {
-  function setUp() public override {
-    setUpOn(Goerli.CHAIN_ID, 9755539);
-  }
-
-  function testFork_jumpStargate_Usdc() public {
-    uint256 amountIn = 1000 * (10 ** 6);
-
-    // NOTE: Mock USDC from https://stargateprotocol.gitbook.io/stargate/developers/contract-addresses/testnet
-    address tokenIn = address(0xDf0360Ad8C5ccf25095Aa97ee5F2785c8d848620);
-
-    bytes memory commands = abi.encodePacked(
-      (uint8)(1), // Command count
-      (uint8)(COMMAND_TYPE_JUMP_STARGATE),
-      (uint16)(10132), // dstChainId: Optimism-Goerli
-      (uint8)(1), // srcPoolId: USDC, Ethereum-Goerli
-      (uint8)(1), // dstPoolId: USDC, Optimism-Goerli
-      uint32(0) // dstGasForCall
-    );
-
-    uint256 expectedSwapOut = 1000 * (10 ** 6);
-
-    (uint256 nativeWei, ) = IStargateComposer(Goerli.STARGATE_COMPOSER_ADDR).quoteLayerZeroFee({
-      _dstChainId: 10132,
-      _functionType: 1, // swap remote
-      _toAddress: abi.encodePacked(USER),
-      _transferAndCallPayload: '',
-      _lzTxParams: IStargateRouter.lzTxObj({
-        dstGasForCall: 0,
-        dstNativeAmount: 0,
-        dstNativeAddr: ''
-      })
-    });
-
-    vm.deal(USER, nativeWei);
-    deal(tokenIn, USER, amountIn);
-
-    vm.prank(USER);
-    IERC20(tokenIn).approve(address(Addresses.PERMIT2), amountIn);
-
-    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
-      IAllowanceTransfer.PermitDetails({
-        token: tokenIn,
-        amount: uint160(amountIn),
-        expiration: deadline,
-        nonce: 0
-      }),
-      address(diamond),
-      deadline
-    );
-
-    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
-
-    vm.prank(USER);
-    facet.warpLinkEngage{value: nativeWei}(
-      IWarpLink.Params({
-        tokenIn: tokenIn,
-        tokenOut: tokenIn,
-        commands: commands,
-        amountIn: amountIn,
-        amountOut: expectedSwapOut,
-        recipient: USER,
-        partner: address(0),
-        feeBps: 0,
-        // NOTE: There is massive slippage on the testnet
-        slippageBps: 100 * 20,
-        deadline: deadline
-      }),
-      PermitParams({nonce: permit.details.nonce, signature: sig})
-    );
   }
 }
