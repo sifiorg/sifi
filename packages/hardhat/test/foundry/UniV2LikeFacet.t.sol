@@ -2,8 +2,9 @@
 pragma solidity ^0.8.19;
 
 import 'forge-std/Test.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {FacetTest} from './helpers/FacetTest.sol';
-import {Addresses, Mainnet, Arbitrum} from './helpers/Networks.sol';
+import {Addresses, Mainnet, Arbitrum, Bsc} from './helpers/Networks.sol';
 import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
 import {IUniV2Like} from 'contracts/interfaces/IUniV2Like.sol';
 import {UniV2LikeFacet} from 'contracts/facets/UniV2LikeFacet.sol';
@@ -279,4 +280,54 @@ contract UniV2LikeFacetArbitrumTest is UniV2LikeFacetTestBase {
   }
 
   receive() external payable {}
+}
+
+contract UniV2LikeFacetBsc17853419Test is UniV2LikeFacetTestBase {
+  function setUp() public override {
+    super.setUpOn(Bsc.CHAIN_ID, 32592190);
+  }
+
+  function testFork_uniswapV2LikeExactInputSingle_busdtBnb() public {
+    address tokenIn = 0x55d398326f99059fF775485246999027B3197955;
+    address pool = 0x20bCC3b8a0091dDac2d0BC30F68E6CBb97de59Cd; // Pancake V2, BUSDT/WBNB
+    uint256 amountIn = 1 ether;
+
+    deal(tokenIn, user, amountIn);
+
+    vm.prank(user);
+    IERC20(tokenIn).approve(address(Addresses.PERMIT2), amountIn);
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: tokenIn,
+        amount: uint160(amountIn),
+        expiration: deadline,
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
+
+    vm.prank(user);
+    facet.uniswapV2LikeExactInputSingle(
+      IUniV2Like.ExactInputSingleParams({
+        amountIn: amountIn,
+        amountOut: 4833427033295669,
+        recipient: user,
+        slippageBps: 0,
+        feeBps: 0,
+        deadline: deadline,
+        partner: address(0),
+        tokenIn: tokenIn,
+        tokenOut: address(0),
+        pool: pool,
+        poolFeeBps: 25
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
+    );
+
+    assertEq(user.balance, 4833427033295669);
+  }
 }
