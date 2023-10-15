@@ -15,7 +15,7 @@ import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransf
 import {PermitParams} from 'contracts/libraries/PermitParams.sol';
 import {PermitSignature} from './helpers/PermitSignature.sol';
 
-contract UniV2LikeFacetTestBase is FacetTest, PermitSignature {
+contract UniV2LikeFacetTestBase is FacetTest {
   event CollectedFee(
     address indexed partner,
     address indexed token,
@@ -24,20 +24,9 @@ contract UniV2LikeFacetTestBase is FacetTest, PermitSignature {
   );
 
   IUniV2Like internal facet;
-  IPermit2 internal permit2;
-  uint48 internal deadline;
-  uint256 internal USER_PRIV;
-  address internal USER;
-  address internal PARTNER = makeAddr('Partner');
-
-  IAllowanceTransfer.PermitSingle emptyPermit;
-  bytes emptyPermitSig;
-  PermitParams emptyPermitParams;
 
   function setUpOn(uint256 chainId, uint256 blockNumber) internal override {
     super.setUpOn(chainId, blockNumber);
-
-    (USER, USER_PRIV) = makeAddrAndKey('User');
 
     IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](1);
 
@@ -61,25 +50,6 @@ contract UniV2LikeFacetTestBase is FacetTest, PermitSignature {
     );
 
     facet = IUniV2Like(address(diamond));
-
-    permit2 = IPermit2(Addresses.PERMIT2);
-
-    deadline = (uint48)(block.timestamp + 1000);
-
-    emptyPermit = IAllowanceTransfer.PermitSingle(
-      IAllowanceTransfer.PermitDetails({
-        token: address(0),
-        amount: 0,
-        expiration: deadline,
-        nonce: 0
-      }),
-      address(diamond),
-      deadline
-    );
-
-    emptyPermitSig = getPermitSignature(emptyPermit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
-
-    emptyPermitParams = PermitParams({nonce: emptyPermit.details.nonce, signature: emptyPermitSig});
   }
 
   function getPair(
@@ -101,7 +71,7 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
   }
 
   function testFork_uniswapV2LikeExactInputSingle() public {
-    deal(USER, 1 ether);
+    deal(user, 1 ether);
 
     address pool = getPair(
       Mainnet.SUSHISWAP_V2_FACTORY,
@@ -109,12 +79,12 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
       address(Mainnet.USDC)
     );
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.uniswapV2LikeExactInputSingle{value: 1 ether}(
       IUniV2Like.ExactInputSingleParams({
         amountIn: 1 ether,
         amountOut: 1830 * (10 ** 6),
-        recipient: USER,
+        recipient: user,
         slippageBps: 50,
         feeBps: 0,
         deadline: deadline,
@@ -142,9 +112,9 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
     poolFeesBps[0] = 30;
     poolFeesBps[1] = 30;
 
-    deal(address(Mainnet.DAI), USER, 2000 ether);
+    deal(address(Mainnet.DAI), user, 2000 ether);
 
-    vm.startPrank(USER);
+    vm.startPrank(user);
 
     uint256 expectedSwapOut = 1234;
     uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
@@ -164,13 +134,13 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
       deadline
     );
 
-    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
+    bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     facet.uniswapV2LikeExactInput(
       IUniV2Like.ExactInputParams({
         amountIn: 2000 ether,
         amountOut: expectedSwapOut,
-        recipient: USER,
+        recipient: user,
         slippageBps: 0,
         feeBps: 10,
         deadline: deadline,
@@ -182,11 +152,11 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
       PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
-    assertEq(Mainnet.WBTC.balanceOf(USER), expectedSwapOut - expectedFee);
+    assertEq(Mainnet.WBTC.balanceOf(user), expectedSwapOut - expectedFee);
   }
 
   function testFork_uniswapV2LikeExactInputSingle_PancakeV2EthUsdt() public {
-    deal(USER, 0.001 ether);
+    deal(user, 0.001 ether);
 
     address pool = getPair(
       Mainnet.PANCAKESWAP_V2_FACTORY,
@@ -194,12 +164,12 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
       address(Mainnet.USDT)
     );
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.uniswapV2LikeExactInputSingle{value: 0.001 ether}(
       IUniV2Like.ExactInputSingleParams({
         amountIn: 0.001 ether,
         amountOut: 0,
-        recipient: USER,
+        recipient: user,
         slippageBps: 0,
         feeBps: 0,
         deadline: deadline,
@@ -231,9 +201,9 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
     poolFeesBps[0] = 30;
     poolFeesBps[1] = 25;
 
-    deal(address(Mainnet.DAI), USER, 2000 ether);
+    deal(address(Mainnet.DAI), user, 2000 ether);
 
-    vm.startPrank(USER);
+    vm.startPrank(user);
 
     uint256 expectedSwapOut = 6737074;
     uint256 expectedFee = 0;
@@ -253,13 +223,13 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
       deadline
     );
 
-    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
+    bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     facet.uniswapV2LikeExactInput(
       IUniV2Like.ExactInputParams({
         amountIn: 2000 ether,
         amountOut: expectedSwapOut,
-        recipient: USER,
+        recipient: user,
         slippageBps: 0,
         feeBps: 0,
         deadline: deadline,
@@ -271,7 +241,7 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
       PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
-    assertEq(Mainnet.WBTC.balanceOf(USER), expectedSwapOut - expectedFee);
+    assertEq(Mainnet.WBTC.balanceOf(user), expectedSwapOut - expectedFee);
   }
 
   receive() external payable {}
@@ -283,7 +253,7 @@ contract UniV2LikeFacetArbitrumTest is UniV2LikeFacetTestBase {
   }
 
   function testFork_uniswapV2LikeExactInputSingle() public {
-    // deal(USER, 1 ether);
+    // deal(user, 1 ether);
 
     address pool = 0x57b85FEf094e10b5eeCDF350Af688299E9553378;
 
@@ -292,7 +262,7 @@ contract UniV2LikeFacetArbitrumTest is UniV2LikeFacetTestBase {
       IUniV2Like.ExactInputSingleParams({
         amountIn: 1 ether,
         amountOut: 130346515,
-        recipient: USER,
+        recipient: user,
         slippageBps: 50,
         feeBps: 0,
         deadline: deadline,
@@ -305,7 +275,7 @@ contract UniV2LikeFacetArbitrumTest is UniV2LikeFacetTestBase {
       emptyPermitParams
     );
 
-    assertApproxEqRel(Arbitrum.USDC.balanceOf(USER), 130346515, 0.05 ether);
+    assertApproxEqRel(Arbitrum.USDC.balanceOf(user), 130346515, 0.05 ether);
   }
 
   receive() external payable {}

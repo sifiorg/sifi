@@ -13,7 +13,7 @@ import {PermitSignature} from '../helpers/PermitSignature.sol';
 import {FacetTest} from '../helpers/FacetTest.sol';
 import {Addresses} from '../helpers/Networks.sol';
 
-contract WarpLinkTestBase is FacetTest, PermitSignature, WarpLinkCommandTypes {
+contract WarpLinkTestBase is FacetTest, WarpLinkCommandTypes {
   event CollectedFee(
     address indexed partner,
     address indexed token,
@@ -22,24 +22,13 @@ contract WarpLinkTestBase is FacetTest, PermitSignature, WarpLinkCommandTypes {
   );
 
   WarpLink internal facet;
-  IPermit2 internal permit2;
-
-  uint256 internal USER_PRIV;
-  address internal USER;
-  uint48 internal deadline;
   WarpLinkEncoder internal encoder;
-
-  IAllowanceTransfer.PermitSingle internal emptyPermit;
-  bytes internal emptyPermitSig;
-  PermitParams internal emptyPermitParams;
 
   function setUpOn(uint256 chainId, uint256 blockNumber) internal override {
     super.setUpOn(chainId, blockNumber);
 
     encoder = new WarpLinkEncoder();
     deadline = (uint48)(block.timestamp + 1);
-
-    (USER, USER_PRIV) = makeAddrAndKey('User');
 
     IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](2);
 
@@ -69,22 +58,5 @@ contract WarpLinkTestBase is FacetTest, PermitSignature, WarpLinkCommandTypes {
     );
 
     facet = WarpLink(address(diamond));
-
-    permit2 = IPermit2(Addresses.PERMIT2);
-
-    emptyPermit = IAllowanceTransfer.PermitSingle(
-      IAllowanceTransfer.PermitDetails({
-        token: address(0),
-        amount: 0,
-        expiration: deadline,
-        nonce: 0
-      }),
-      address(diamond),
-      deadline
-    );
-
-    emptyPermitSig = getPermitSignature(emptyPermit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
-
-    emptyPermitParams = PermitParams({nonce: emptyPermit.details.nonce, signature: emptyPermitSig});
   }
 }
