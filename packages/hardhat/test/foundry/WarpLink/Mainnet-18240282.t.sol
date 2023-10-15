@@ -42,7 +42,7 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
     (uint256 nativeWei, ) = IStargateComposer(Mainnet.STARGATE_COMPOSER_ADDR).quoteLayerZeroFee({
       _dstChainId: 106,
       _functionType: 1, // swap remote
-      _toAddress: abi.encodePacked(USER),
+      _toAddress: abi.encodePacked(user),
       _transferAndCallPayload: '',
       _lzTxParams: IStargateRouter.lzTxObj({
         dstGasForCall: 0,
@@ -51,11 +51,11 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
       })
     });
 
-    vm.deal(USER, (amountIn + nativeWei));
+    vm.deal(user, (amountIn + nativeWei));
 
     console2.log('Native fee: %s', nativeWei);
 
-    vm.prank(USER);
+    vm.prank(user);
 
     IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
       IAllowanceTransfer.PermitDetails({
@@ -68,9 +68,9 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
       deadline
     );
 
-    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
+    bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.warpLinkEngage{value: amountIn + nativeWei}(
       IWarpLink.Params({
         tokenIn: address(0),
@@ -78,7 +78,7 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
         commands: commands,
         amountIn: amountIn,
         amountOut: expectedSwapOut,
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 0,
         slippageBps: 100,
@@ -106,7 +106,7 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
     (uint256 nativeWei, ) = IStargateComposer(Mainnet.STARGATE_COMPOSER_ADDR).quoteLayerZeroFee({
       _dstChainId: 106,
       _functionType: 1, // swap remote
-      _toAddress: abi.encodePacked(USER),
+      _toAddress: abi.encodePacked(user),
       _transferAndCallPayload: '',
       _lzTxParams: IStargateRouter.lzTxObj({
         dstGasForCall: 0,
@@ -115,12 +115,12 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
       })
     });
 
-    vm.deal(USER, nativeWei);
-    deal(tokenIn, USER, amountIn);
+    vm.deal(user, nativeWei);
+    deal(tokenIn, user, amountIn);
 
     console2.log('Native fee: %s', nativeWei);
 
-    vm.prank(USER);
+    vm.prank(user);
     IERC20(tokenIn).approve(address(Addresses.PERMIT2), amountIn);
 
     IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
@@ -134,9 +134,9 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
       deadline
     );
 
-    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
+    bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.warpLinkEngage{value: nativeWei}(
       IWarpLink.Params({
         tokenIn: tokenIn,
@@ -144,7 +144,7 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
         commands: commands,
         amountIn: amountIn,
         amountOut: expectedSwapOut,
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 0,
         slippageBps: 200,
@@ -173,7 +173,7 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
       commands: destCommands,
       amountIn: 0, // Unused
       amountOut: 990 * (10 ** 6), // TODO
-      recipient: USER,
+      recipient: user,
       partner: address(0),
       feeBps: 0,
       slippageBps: 0,
@@ -213,12 +213,12 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
       })
     });
 
-    vm.deal(USER, nativeWei);
-    deal(srcTokenIn, USER, srcAmountIn);
+    vm.deal(user, nativeWei);
+    deal(srcTokenIn, user, srcAmountIn);
 
     console2.log('Native fee: %s', nativeWei);
 
-    vm.prank(USER);
+    vm.prank(user);
     IERC20(srcTokenIn).approve(address(Addresses.PERMIT2), srcAmountIn);
 
     IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
@@ -232,9 +232,9 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
       deadline
     );
 
-    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
+    bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.warpLinkEngage{value: nativeWei}(
       IWarpLink.Params({
         tokenIn: srcTokenIn,
@@ -242,7 +242,7 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
         commands: sourceCommands,
         amountIn: srcAmountIn,
         amountOut: 0, // TODO
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 0,
         slippageBps: 100,
@@ -265,7 +265,7 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
       destParamsEncoded // payload
     );
 
-    assertApproxEqRel(Mainnet.USDC.balanceOf(USER), 990 * (10 ** 6), 0.001 ether);
+    assertApproxEqRel(Mainnet.USDC.balanceOf(user), 990 * (10 ** 6), 0.001 ether);
   }
 
   function testFork_jumpAndSwapEth() public {
@@ -284,7 +284,7 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
       commands: destCommands,
       amountIn: 0, // Unused
       amountOut: 1657900441, // USDT
-      recipient: USER,
+      recipient: user,
       partner: address(0),
       feeBps: 0,
       slippageBps: 100,
@@ -324,13 +324,13 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
       })
     });
 
-    vm.deal(USER, nativeWei + 1 ether);
+    vm.deal(user, nativeWei + 1 ether);
 
     console2.log('Native fee: %s', nativeWei);
 
     PermitParams memory permitParams;
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.warpLinkEngage{value: nativeWei + srcAmountIn}(
       IWarpLink.Params({
         tokenIn: srcTokenIn,
@@ -338,7 +338,7 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
         commands: sourceCommands,
         amountIn: srcAmountIn,
         amountOut: 0, // TODO
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 0, // Unused
         slippageBps: 100,
@@ -360,6 +360,6 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
       destParamsEncoded // payload
     );
 
-    assertEq(Mainnet.USDT.balanceOf(USER), 1657900441, 'usdt balance');
+    assertEq(Mainnet.USDT.balanceOf(user), 1657900441, 'usdt balance');
   }
 }

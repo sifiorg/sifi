@@ -21,8 +21,8 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
       (uint8)(COMMAND_TYPE_WRAP)
     );
 
-    vm.deal(USER, 1 ether);
-    vm.prank(USER);
+    vm.deal(user, 1 ether);
+    vm.prank(user);
 
     facet.warpLinkEngage{value: 1 ether}(
       IWarpLink.Params({
@@ -31,7 +31,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
         commands: commands,
         amountIn: 1 ether,
         amountOut: 1 ether,
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 0,
         slippageBps: 0,
@@ -47,7 +47,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
       (uint8)(COMMAND_TYPE_UNWRAP)
     );
 
-    vm.prank(USER);
+    vm.prank(user);
     Mainnet.WETH.approve(address(Addresses.PERMIT2), 2 ether);
 
     IAllowanceTransfer.PermitDetails memory details = IAllowanceTransfer.PermitDetails({
@@ -59,12 +59,12 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
 
     bytes memory sig = getPermitSignature(
       IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
-      USER_PRIV,
+      privateKey,
       permit2.DOMAIN_SEPARATOR()
     );
 
-    deal(address(Mainnet.WETH), USER, 1 ether);
-    vm.prank(USER);
+    deal(address(Mainnet.WETH), user, 1 ether);
+    vm.prank(user);
 
     facet.warpLinkEngage(
       IWarpLink.Params({
@@ -73,7 +73,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
         commands: commands,
         amountIn: 1 ether,
         amountOut: 1 ether,
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 0,
         slippageBps: 0,
@@ -93,7 +93,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
 
     bytes memory sig = getPermitSignature(
       IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
-      USER_PRIV,
+      privateKey,
       permit2.DOMAIN_SEPARATOR()
     );
 
@@ -113,11 +113,11 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
     uint256 expectedSwapOut = 1828982820960382500646;
     uint256 expectedFee = 0;
 
-    vm.prank(USER);
+    vm.prank(user);
     Mainnet.WETH.approve(address(Addresses.PERMIT2), 1 ether);
 
-    deal(address(Mainnet.WETH), USER, 1 ether);
-    vm.prank(USER);
+    deal(address(Mainnet.WETH), user, 1 ether);
+    vm.prank(user);
 
     facet.warpLinkEngage(
       IWarpLink.Params({
@@ -126,7 +126,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
         commands: commands,
         amountIn: 1 ether,
         amountOut: expectedSwapOut,
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 0,
         slippageBps: 0,
@@ -135,7 +135,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
       PermitParams({nonce: details.nonce, signature: sig})
     );
 
-    assertEq(Mainnet.DAI.balanceOf(USER), expectedSwapOut - expectedFee, 'dai balance after swap');
+    assertEq(Mainnet.DAI.balanceOf(user), expectedSwapOut - expectedFee, 'dai balance after swap');
   }
 
   function testFork_wrapAndSwapSingleUniV2Sushi() public {
@@ -156,8 +156,8 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
     uint256 expectedSwapOut = 1828982820960382500646;
     uint256 expectedFee = 0;
 
-    vm.deal(USER, 1 ether);
-    vm.prank(USER);
+    vm.deal(user, 1 ether);
+    vm.prank(user);
 
     facet.warpLinkEngage{value: 1 ether}(
       IWarpLink.Params({
@@ -166,7 +166,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
         commands: commands,
         amountIn: 1 ether,
         amountOut: expectedSwapOut,
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 0,
         slippageBps: 0,
@@ -175,7 +175,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
       emptyPermitParams
     );
 
-    assertEq(Mainnet.DAI.balanceOf(USER), expectedSwapOut - expectedFee, 'dai balance after swap');
+    assertEq(Mainnet.DAI.balanceOf(user), expectedSwapOut - expectedFee, 'dai balance after swap');
   }
 
   function testFork_wrapAndSwapSingleUniV2Chained() public {
@@ -210,8 +210,8 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
     uint256 expectedSwapOut = 1824825184;
     uint256 expectedFee = 0;
 
-    vm.deal(USER, 1 ether);
-    vm.prank(USER);
+    vm.deal(user, 1 ether);
+    vm.prank(user);
 
     facet.warpLinkEngage{value: 1 ether}(
       IWarpLink.Params({
@@ -220,7 +220,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
         commands: commands,
         amountIn: 1 ether,
         amountOut: expectedSwapOut,
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 0,
         slippageBps: 0,
@@ -230,7 +230,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
     );
 
     assertEq(
-      Mainnet.USDC.balanceOf(USER),
+      Mainnet.USDC.balanceOf(user),
       expectedSwapOut - expectedFee,
       'usdc balance after swap'
     );
@@ -255,8 +255,8 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
     uint256 expectedSwapOut = 1 ether;
     uint256 expectedFee = 0;
 
-    vm.deal(USER, 1 ether);
-    vm.prank(USER);
+    vm.deal(user, 1 ether);
+    vm.prank(user);
 
     facet.warpLinkEngage{value: 1 ether}(
       IWarpLink.Params({
@@ -265,7 +265,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
         commands: commands,
         amountIn: 1 ether,
         amountOut: expectedSwapOut,
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 0,
         slippageBps: 0,
@@ -274,7 +274,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
       emptyPermitParams
     );
 
-    assertEq(Mainnet.WETH.balanceOf(USER), expectedSwapOut - expectedFee, 'weth balance after');
+    assertEq(Mainnet.WETH.balanceOf(user), expectedSwapOut - expectedFee, 'weth balance after');
   }
 
   function testFork_wrapSplitSwap() public {
@@ -318,8 +318,8 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
     uint256 expectedSwapOut = 4_422_050 + 1_891_944;
     uint256 expectedFee = 0;
 
-    vm.deal(USER, 1 ether);
-    vm.prank(USER);
+    vm.deal(user, 1 ether);
+    vm.prank(user);
 
     facet.warpLinkEngage{value: 1 ether}(
       IWarpLink.Params({
@@ -328,7 +328,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
         commands: commands,
         amountIn: 1 ether,
         amountOut: expectedSwapOut,
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 0,
         slippageBps: 0,
@@ -337,7 +337,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
       emptyPermitParams
     );
 
-    assertEq(Mainnet.WBTC.balanceOf(USER), expectedSwapOut - expectedFee, 'wbtc balance after');
+    assertEq(Mainnet.WBTC.balanceOf(user), expectedSwapOut - expectedFee, 'wbtc balance after');
   }
 
   function testFork_wrapSplitSwapNested() public {
@@ -425,8 +425,8 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
     uint256 expectedSwapOut = 2168604 + 2211324 + 1891944;
     uint256 expectedFee = 0;
 
-    vm.deal(USER, 1 ether);
-    vm.prank(USER);
+    vm.deal(user, 1 ether);
+    vm.prank(user);
 
     facet.warpLinkEngage{value: 1 ether}(
       IWarpLink.Params({
@@ -435,7 +435,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
         commands: commands,
         amountIn: 1 ether,
         amountOut: expectedSwapOut,
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 0,
         slippageBps: 0,
@@ -444,7 +444,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
       emptyPermitParams
     );
 
-    assertEq(Mainnet.WBTC.balanceOf(USER), expectedSwapOut - expectedFee, 'wbtc balance after');
+    assertEq(Mainnet.WBTC.balanceOf(user), expectedSwapOut - expectedFee, 'wbtc balance after');
   }
 
   function testFork_univ2LikeMulti() public {
@@ -457,7 +457,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
 
     bytes memory sig = getPermitSignature(
       IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
-      USER_PRIV,
+      privateKey,
       permit2.DOMAIN_SEPARATOR()
     );
 
@@ -491,12 +491,12 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
     uint256 expectedSwapOut = 247478888382075850448;
     uint256 expectedFee = 0;
 
-    deal(address(Mainnet.USDC), USER, 1000 * (10 ** 6));
+    deal(address(Mainnet.USDC), user, 1000 * (10 ** 6));
 
-    vm.prank(USER);
+    vm.prank(user);
     Mainnet.USDC.approve(address(Addresses.PERMIT2), 1000 * (10 ** 6));
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.warpLinkEngage(
       IWarpLink.Params({
         tokenIn: address(Mainnet.USDC),
@@ -504,7 +504,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
         commands: commands,
         amountIn: 1000 * (10 ** 6),
         amountOut: 247478888382075850448,
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 0,
         slippageBps: 0,
@@ -513,7 +513,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
       PermitParams({nonce: details.nonce, signature: sig})
     );
 
-    assertEq(Mainnet.APE.balanceOf(USER), expectedSwapOut - expectedFee, 'ape balance after');
+    assertEq(Mainnet.APE.balanceOf(user), expectedSwapOut - expectedFee, 'ape balance after');
   }
 
   function testFork_positiveSlippage() public {
@@ -526,7 +526,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
 
     bytes memory sig = getPermitSignature(
       IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
-      USER_PRIV,
+      privateKey,
       permit2.DOMAIN_SEPARATOR()
     );
     // Swap WETH to DAI on Sushiswap V2
@@ -548,11 +548,11 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
     uint256 expectedSwapOut = 1828982820960382500646;
     uint256 expectedFee = 0;
 
-    vm.prank(USER);
+    vm.prank(user);
     Mainnet.WETH.approve(address(Addresses.PERMIT2), 1 ether);
 
-    deal(address(Mainnet.WETH), USER, 1 ether);
-    vm.prank(USER);
+    deal(address(Mainnet.WETH), user, 1 ether);
+    vm.prank(user);
 
     facet.warpLinkEngage(
       IWarpLink.Params({
@@ -561,7 +561,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
         commands: commands,
         amountIn: 1 ether,
         amountOut: expectedSwapOut + 100,
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 0,
         slippageBps: 10,
@@ -570,7 +570,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
       PermitParams({nonce: details.nonce, signature: sig})
     );
 
-    assertEq(Mainnet.DAI.balanceOf(USER), expectedSwapOut - expectedFee, 'dai balance after swap');
+    assertEq(Mainnet.DAI.balanceOf(user), expectedSwapOut - expectedFee, 'dai balance after swap');
   }
 
   function testFork_collectFee() public {
@@ -583,7 +583,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
 
     bytes memory sig = getPermitSignature(
       IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
-      USER_PRIV,
+      privateKey,
       permit2.DOMAIN_SEPARATOR()
     );
     // Swap WETH to DAI on Sushiswap V2
@@ -605,15 +605,15 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
     uint256 expectedSwapOut = 1828982820960382500646;
     uint256 expectedFee = (expectedSwapOut * 15) / 10_000;
 
-    deal(address(Mainnet.WETH), USER, 1 ether);
+    deal(address(Mainnet.WETH), user, 1 ether);
 
-    vm.prank(USER);
+    vm.prank(user);
     Mainnet.WETH.approve(address(Addresses.PERMIT2), 1 ether);
 
     vm.expectEmit(true, true, true, false);
     emit CollectedFee(address(0), address(Mainnet.DAI), 0, expectedFee);
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.warpLinkEngage(
       IWarpLink.Params({
         tokenIn: address(Mainnet.WETH),
@@ -621,7 +621,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
         commands: commands,
         amountIn: 1 ether,
         amountOut: expectedSwapOut,
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 15,
         slippageBps: 0,
@@ -630,7 +630,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
       PermitParams({nonce: details.nonce, signature: sig})
     );
 
-    assertEq(Mainnet.DAI.balanceOf(USER), expectedSwapOut - expectedFee, 'dai balance after swap');
+    assertEq(Mainnet.DAI.balanceOf(user), expectedSwapOut - expectedFee, 'dai balance after swap');
   }
 
   function testFork_deadline() public {
@@ -640,7 +640,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
 
     vm.expectRevert(abi.encodeWithSelector(IWarpLink.DeadlineExpired.selector));
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.warpLinkEngage(
       IWarpLink.Params({
         tokenIn: address(Mainnet.WETH),
@@ -648,7 +648,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
         commands: commands,
         amountIn: 1 ether,
         amountOut: 1234,
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 15,
         slippageBps: 0,
@@ -668,7 +668,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
 
     bytes memory sig = getPermitSignature(
       IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
-      USER_PRIV,
+      privateKey,
       permit2.DOMAIN_SEPARATOR()
     );
 
@@ -687,12 +687,12 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
     uint256 expectedSwapOut = 1000967411;
     uint256 expectedFee = 0;
 
-    deal(address(Mainnet.USDC), USER, amountIn);
+    deal(address(Mainnet.USDC), user, amountIn);
 
-    vm.prank(USER);
+    vm.prank(user);
     Mainnet.USDC.approve(address(Addresses.PERMIT2), amountIn);
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.warpLinkEngage(
       IWarpLink.Params({
         tokenIn: address(Mainnet.USDC),
@@ -700,7 +700,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
         commands: commands,
         amountIn: amountIn,
         amountOut: expectedSwapOut,
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 0,
         slippageBps: 0,
@@ -709,7 +709,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
       PermitParams({nonce: details.nonce, signature: sig})
     );
 
-    assertEq(Mainnet.USDT.balanceOf(USER), expectedSwapOut - expectedFee, 'usdt balance after');
+    assertEq(Mainnet.USDT.balanceOf(user), expectedSwapOut - expectedFee, 'usdt balance after');
   }
 
   function testFork_univ3LikeMulti() public {
@@ -722,7 +722,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
 
     bytes memory sig = getPermitSignature(
       IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
-      USER_PRIV,
+      privateKey,
       permit2.DOMAIN_SEPARATOR()
     );
 
@@ -742,12 +742,12 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
     uint256 expectedSwapOut = 544005533891390927;
     uint256 expectedFee = 0;
 
-    deal(address(Mainnet.USDC), USER, 1000 * (10 ** 6));
+    deal(address(Mainnet.USDC), user, 1000 * (10 ** 6));
 
-    vm.prank(USER);
+    vm.prank(user);
     Mainnet.USDC.approve(address(Addresses.PERMIT2), 1000 * (10 ** 6));
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.warpLinkEngage(
       IWarpLink.Params({
         tokenIn: address(Mainnet.USDC),
@@ -755,7 +755,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
         commands: commands,
         amountIn: 1000 * (10 ** 6),
         amountOut: expectedSwapOut,
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 0,
         slippageBps: 0,
@@ -764,7 +764,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
       PermitParams({nonce: details.nonce, signature: sig})
     );
 
-    assertEq(Mainnet.WETH.balanceOf(USER), expectedSwapOut - expectedFee, 'weth balance after');
+    assertEq(Mainnet.WETH.balanceOf(user), expectedSwapOut - expectedFee, 'weth balance after');
   }
 
   function testFork_warpCurve_EthToSteth() public {
@@ -782,7 +782,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
     uint256 expectedSwapOut = 1 ether;
     uint256 expectedFee = 0;
 
-    vm.deal(USER, 1 ether);
+    vm.deal(user, 1 ether);
 
     facet.warpLinkEngage{value: 1 ether}(
       IWarpLink.Params({
@@ -791,7 +791,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
         commands: commands,
         amountIn: 1 ether,
         amountOut: expectedSwapOut,
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 0,
         slippageBps: 0,
@@ -800,7 +800,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
       emptyPermitParams
     );
 
-    assertApproxEqRel(Mainnet.STETH.balanceOf(USER), expectedSwapOut - expectedFee, 0.001 ether);
+    assertApproxEqRel(Mainnet.STETH.balanceOf(user), expectedSwapOut - expectedFee, 0.001 ether);
   }
 
   function testFork_warpCurve_StethToEth() public {
@@ -813,7 +813,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
 
     bytes memory sig = getPermitSignature(
       IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
-      USER_PRIV,
+      privateKey,
       permit2.DOMAIN_SEPARATOR()
     );
 
@@ -833,14 +833,14 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
 
     // NOTE: deal doesn't work for this token, borrow some coins from a whale istead
     vm.prank(0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0);
-    Mainnet.STETH.transfer(USER, 2 ether);
+    Mainnet.STETH.transfer(user, 2 ether);
 
-    vm.prank(USER);
+    vm.prank(user);
     SafeERC20.forceApprove(Mainnet.STETH, address(Addresses.PERMIT2), 2 ether);
 
-    //console2.log('allowance %s', Mainnet.STETH.allowance(USER, address(Addresses.PERMIT2)));
+    //console2.log('allowance %s', Mainnet.STETH.allowance(user, address(Addresses.PERMIT2)));
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.warpLinkEngage(
       IWarpLink.Params({
         tokenIn: address(Mainnet.STETH),
@@ -848,7 +848,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
         commands: commands,
         amountIn: 1 ether,
         amountOut: expectedSwapOut,
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 0,
         slippageBps: 5,
@@ -857,7 +857,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
       PermitParams({nonce: details.nonce, signature: sig})
     );
 
-    assertApproxEqRel(USER.balance, expectedSwapOut - expectedFee, 0.001 ether);
+    assertApproxEqRel(user.balance, expectedSwapOut - expectedFee, 0.001 ether);
   }
 
   function testFork_warpCurveDaiToGusd() public {
@@ -866,7 +866,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
     address tokenIn = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
     address tokenOut = address(0x056Fd409E1d7A124BD7017459dFEa2F387b6d5Cd);
 
-    deal(tokenIn, USER, amountIn);
+    deal(tokenIn, user, amountIn);
 
     IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
       IAllowanceTransfer.PermitDetails({
@@ -879,7 +879,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
       1694336027
     );
 
-    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
+    bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     bytes memory commands = abi.encodePacked(
       (uint8)(1), // Command count
@@ -892,10 +892,10 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
       (uint8)(1) // underlying
     );
 
-    vm.prank(USER);
+    vm.prank(user);
     IERC20(tokenIn).approve(address(Addresses.PERMIT2), amountIn);
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.warpLinkEngage(
       IWarpLink.Params({
         tokenIn: tokenIn,
@@ -903,7 +903,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
         commands: commands,
         amountIn: amountIn,
         amountOut: amountOut,
-        recipient: USER,
+        recipient: user,
         partner: address(0x0000000000000000000000000000000000000000),
         feeBps: 0,
         slippageBps: 100,
@@ -912,7 +912,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
       PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
-    assertEq(IERC20(tokenOut).balanceOf(USER), amountOut, 'gusd balance');
+    assertEq(IERC20(tokenOut).balanceOf(user), amountOut, 'gusd balance');
   }
 
   function testFork_warpCurveV2Twice() public {
@@ -920,10 +920,10 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
     // likely using v0.8.21's PUSH0 opcode
     vm.skip(true);
 
-    deal(0x6B175474E89094C44Da98b954EedeAC495271d0F, USER, 100000000000000000000);
+    deal(0x6B175474E89094C44Da98b954EedeAC495271d0F, user, 100000000000000000000);
 
     // Log the network
-    vm.prank(USER);
+    vm.prank(user);
     IERC20(address(0x6B175474E89094C44Da98b954EedeAC495271d0F)).approve(
       address(Addresses.PERMIT2),
       100000000000000000000
@@ -938,7 +938,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
 
     bytes memory sig = getPermitSignature(
       IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
-      USER_PRIV,
+      privateKey,
       permit2.DOMAIN_SEPARATOR()
     );
 
@@ -964,7 +964,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
       )
     );
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.warpLinkEngage(
       IWarpLink.Params({
         tokenIn: address(0x6B175474E89094C44Da98b954EedeAC495271d0F),
@@ -972,7 +972,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
         commands: commands,
         amountIn: 100000000000000000000,
         amountOut: 344657,
-        recipient: USER,
+        recipient: user,
         partner: address(0x0000000000000000000000000000000000000000),
         feeBps: 0,
         slippageBps: 100,
@@ -981,11 +981,11 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
       PermitParams({nonce: details.nonce, signature: sig})
     );
 
-    assertEq(Mainnet.WBTC.balanceOf(USER), 344657, 'wbtc balance');
+    assertEq(Mainnet.WBTC.balanceOf(user), 344657, 'wbtc balance');
   }
 
   function testFork_warpCurveV1AndFactory() public {
-    deal(USER, 1 ether);
+    deal(user, 1 ether);
 
     bytes memory commands = bytes.concat(
       abi.encodePacked(
@@ -1009,7 +1009,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
       )
     );
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.warpLinkEngage{value: 1000000000000000000}(
       IWarpLink.Params({
         tokenIn: address(0),
@@ -1017,7 +1017,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
         commands: commands,
         amountIn: 1000000000000000000,
         amountOut: 1000867499582465464,
-        recipient: USER,
+        recipient: user,
         partner: address(0x0000000000000000000000000000000000000000),
         feeBps: 0,
         slippageBps: 100,
@@ -1026,6 +1026,6 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
       emptyPermitParams
     );
 
-    assertEq(Mainnet.FRXETH.balanceOf(USER), 1000867499582465464, 'balance');
+    assertEq(Mainnet.FRXETH.balanceOf(user), 1000867499582465464, 'balance');
   }
 }

@@ -17,7 +17,7 @@ import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransf
 import {PermitParams} from 'contracts/libraries/PermitParams.sol';
 import {PermitSignature} from './helpers/PermitSignature.sol';
 
-contract CurveTest is FacetTest, PermitSignature {
+contract CurveTest is FacetTest {
   event CollectedFee(
     address indexed partner,
     address indexed token,
@@ -26,18 +26,11 @@ contract CurveTest is FacetTest, PermitSignature {
   );
 
   ICurve internal facet;
-  IPermit2 internal permit2;
-  uint48 private deadline;
-  uint256 USER_PRIV;
-  address USER;
-  address PARTNER = makeAddr('Partner');
 
   function setUp() public override {
     vm.createSelectFork(StdChains.getChain(1).rpcUrl, 17853419);
 
     super.setUp();
-
-    (USER, USER_PRIV) = makeAddrAndKey('User');
 
     IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](1);
 
@@ -59,10 +52,6 @@ contract CurveTest is FacetTest, PermitSignature {
     );
 
     facet = ICurve(address(diamond));
-
-    permit2 = IPermit2(Addresses.PERMIT2);
-
-    deadline = (uint48)(block.timestamp + 1000);
   }
 
   function getIndex(uint8 kind, address pool, address token) private view returns (uint8 index) {
@@ -115,7 +104,7 @@ contract CurveTest is FacetTest, PermitSignature {
   }
 
   function testFork_curveExactInputSingle_EthToSteth() public {
-    deal(USER, 1 ether);
+    deal(user, 1 ether);
 
     uint8 kind = 2;
 
@@ -136,16 +125,16 @@ contract CurveTest is FacetTest, PermitSignature {
 
     bytes memory emptyPermitSig = getPermitSignature(
       emptyPermit,
-      USER_PRIV,
+      privateKey,
       permit2.DOMAIN_SEPARATOR()
     );
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.curveExactInputSingle{value: 1 ether}(
       ICurve.ExactInputSingleParams({
         amountIn: 1 ether,
         amountOut: 1000226977976805063,
-        recipient: USER,
+        recipient: user,
         slippageBps: 50,
         feeBps: 0,
         deadline: deadline,
@@ -161,7 +150,7 @@ contract CurveTest is FacetTest, PermitSignature {
       PermitParams({nonce: emptyPermit.details.nonce, signature: emptyPermitSig})
     );
 
-    assertApproxEqRel(Mainnet.STETH.balanceOf(USER), 1000226977976805063, 0.01 ether);
+    assertApproxEqRel(Mainnet.STETH.balanceOf(user), 1000226977976805063, 0.01 ether);
   }
 
   function testFork_curveExactInputSingle_StethToEth() public {
@@ -169,14 +158,14 @@ contract CurveTest is FacetTest, PermitSignature {
 
     // NOTE: deal doesn't work for this token, borrow some coins from a whale istead
     vm.prank(0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0);
-    Mainnet.STETH.transfer(USER, 1 ether);
+    Mainnet.STETH.transfer(user, 1 ether);
 
     // v0.2.8 Stableswap
     address pool = 0xDC24316b9AE028F1497c275EB9192a3Ea0f67022;
     uint8 i = getIndex(kind, pool, address(Mainnet.STETH));
     uint8 j = getIndex(kind, pool, address(0));
 
-    vm.prank(USER);
+    vm.prank(user);
     Mainnet.STETH.approve(address(Addresses.PERMIT2), 1 ether);
 
     IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
@@ -190,14 +179,14 @@ contract CurveTest is FacetTest, PermitSignature {
       deadline
     );
 
-    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
+    bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.curveExactInputSingle(
       ICurve.ExactInputSingleParams({
         amountIn: 1 ether,
         amountOut: 1 ether,
-        recipient: USER,
+        recipient: user,
         slippageBps: 50,
         feeBps: 0,
         deadline: deadline,
@@ -213,19 +202,19 @@ contract CurveTest is FacetTest, PermitSignature {
       PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
-    assertApproxEqRel(USER.balance, 1 ether, 0.01 ether);
+    assertApproxEqRel(user.balance, 1 ether, 0.01 ether);
   }
 
   function testFork_curveExactInputSingle_DaiToUsdc() public {
     uint8 kind = 1;
 
-    deal(address(Mainnet.DAI), USER, 1000 ether);
+    deal(address(Mainnet.DAI), user, 1000 ether);
 
     address pool = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
     uint8 i = getIndex(kind, pool, address(Mainnet.DAI));
     uint8 j = getIndex(kind, pool, address(Mainnet.USDC));
 
-    vm.prank(USER);
+    vm.prank(user);
     Mainnet.DAI.approve(address(Addresses.PERMIT2), 1000 ether);
 
     IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
@@ -239,14 +228,14 @@ contract CurveTest is FacetTest, PermitSignature {
       deadline
     );
 
-    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
+    bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.curveExactInputSingle(
       ICurve.ExactInputSingleParams({
         amountIn: 1000 ether,
         amountOut: 1000 * (10 ** 6),
-        recipient: USER,
+        recipient: user,
         slippageBps: 50,
         feeBps: 0,
         deadline: deadline,
@@ -262,19 +251,19 @@ contract CurveTest is FacetTest, PermitSignature {
       PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
-    assertApproxEqRel(Mainnet.USDC.balanceOf(USER), 1000 * (10 ** 6), 0.01 ether);
+    assertApproxEqRel(Mainnet.USDC.balanceOf(user), 1000 * (10 ** 6), 0.01 ether);
   }
 
   function testFork_curveExactInputSingle_DaiToGusd() public {
     uint8 kind = 1;
 
-    deal(address(Mainnet.DAI), USER, 1000 ether);
+    deal(address(Mainnet.DAI), user, 1000 ether);
 
     address pool = 0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956;
     uint8 i = getUnderlyingIndex(kind, pool, address(Mainnet.DAI));
     uint8 j = getIndex(kind, pool, address(Mainnet.GUSD));
 
-    vm.prank(USER);
+    vm.prank(user);
     Mainnet.DAI.approve(address(Addresses.PERMIT2), 1000 ether);
 
     IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
@@ -288,14 +277,14 @@ contract CurveTest is FacetTest, PermitSignature {
       deadline
     );
 
-    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
+    bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.curveExactInputSingle(
       ICurve.ExactInputSingleParams({
         amountIn: 1000 ether,
         amountOut: 1000 * (10 ** 2),
-        recipient: USER,
+        recipient: user,
         slippageBps: 50,
         feeBps: 0,
         deadline: deadline,
@@ -311,7 +300,7 @@ contract CurveTest is FacetTest, PermitSignature {
       PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
-    assertApproxEqRel(Mainnet.GUSD.balanceOf(USER), 1000 * (10 ** 2), 0.01 ether);
+    assertApproxEqRel(Mainnet.GUSD.balanceOf(user), 1000 * (10 ** 2), 0.01 ether);
   }
 
   function testFork_curveExactInputSingle_GusdToDai() public {
@@ -319,13 +308,13 @@ contract CurveTest is FacetTest, PermitSignature {
 
     // NOTE: deal doesn't work for this token, borrow some coins from a whale istead
     vm.prank(0x79A0FA989fb7ADf1F8e80C93ee605Ebb94F7c6A5);
-    Mainnet.GUSD.transfer(USER, 1000 * (10 ** 2));
+    Mainnet.GUSD.transfer(user, 1000 * (10 ** 2));
 
     address pool = 0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956;
     uint8 i = getIndex(kind, pool, address(Mainnet.GUSD));
     uint8 j = getUnderlyingIndex(kind, pool, address(Mainnet.DAI));
 
-    vm.prank(USER);
+    vm.prank(user);
     Mainnet.GUSD.approve(address(Addresses.PERMIT2), 1000 * (10 ** 2));
 
     IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
@@ -339,14 +328,14 @@ contract CurveTest is FacetTest, PermitSignature {
       deadline
     );
 
-    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
+    bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.curveExactInputSingle(
       ICurve.ExactInputSingleParams({
         amountIn: 1000 * (10 ** 2),
         amountOut: 1000 ether,
-        recipient: USER,
+        recipient: user,
         slippageBps: 50,
         feeBps: 0,
         deadline: deadline,
@@ -362,7 +351,7 @@ contract CurveTest is FacetTest, PermitSignature {
       PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
-    assertApproxEqRel(Mainnet.DAI.balanceOf(USER), 1000 ether, 0.01 ether);
+    assertApproxEqRel(Mainnet.DAI.balanceOf(user), 1000 ether, 0.01 ether);
   }
 
   receive() external payable {}

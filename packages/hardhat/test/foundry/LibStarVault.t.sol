@@ -60,15 +60,15 @@ contract LibStarVaultTest is Test {
 
   // With partner, 0.15% fee, and negative slippage
   function test_calculateAndRegisterFee_1() public {
-    address PARTNER = makeAddr('PARTNER');
+    address partner = makeAddr('partner');
 
     vm.expectEmit(true, true, true, true);
-    emit CollectedFee(PARTNER, address(Mainnet.USDC), 71250, 71250);
+    emit CollectedFee(partner, address(Mainnet.USDC), 71250, 71250);
 
     // The total fee is 0.15% of the actual output 95_000000, 142500 (0.1425 USDC)
     // Site and partner gets half, 71250 units each
     uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
-      PARTNER,
+      partner,
       address(Mainnet.USDC),
       15, // 0.15% fee
       100_000000, // User was quoted 100 USDC
@@ -80,7 +80,7 @@ contract LibStarVaultTest is Test {
 
   // With partner, 0.23% fee, and positive slippage
   function test_calculateAndRegisterFee_2() public {
-    address PARTNER = makeAddr('PARTNER');
+    address partner = makeAddr('partner');
 
     // Positive slippage
     uint256 expectedFeeTotal = (95_000000 - 90_000000);
@@ -88,10 +88,10 @@ contract LibStarVaultTest is Test {
     expectedFeeTotal += (90_000000 * 23) / 10_000;
 
     vm.expectEmit(true, true, true, true);
-    emit CollectedFee(PARTNER, address(Mainnet.USDC), expectedFeeTotal / 2, expectedFeeTotal / 2);
+    emit CollectedFee(partner, address(Mainnet.USDC), expectedFeeTotal / 2, expectedFeeTotal / 2);
 
     uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
-      PARTNER,
+      partner,
       address(Mainnet.USDC),
       23, // 0.23% fee
       90_000000, // User was quoted 90 USDC
@@ -103,16 +103,16 @@ contract LibStarVaultTest is Test {
 
   // With partner, 0% fee, and positive slippage
   function test_calculateAndRegisterFee_3() public {
-    address PARTNER = makeAddr('PARTNER');
+    address partner = makeAddr('partner');
 
     // Positive slippage
     uint256 expectedFeeTotal = (95_000000 - 90_000000);
 
     vm.expectEmit(true, true, true, true);
-    emit CollectedFee(PARTNER, address(Mainnet.USDC), expectedFeeTotal / 2, expectedFeeTotal / 2);
+    emit CollectedFee(partner, address(Mainnet.USDC), expectedFeeTotal / 2, expectedFeeTotal / 2);
 
     uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
-      PARTNER,
+      partner,
       address(Mainnet.USDC),
       0, // 0% fee
       90_000000, // User was quoted 90 USDC
@@ -124,15 +124,15 @@ contract LibStarVaultTest is Test {
 
   // With partner, 0.15% fee, and no slippage
   function test_calculateAndRegisterFee_4() public {
-    address PARTNER = makeAddr('PARTNER');
+    address partner = makeAddr('partner');
 
     uint256 expectedFeeTotal = (100_000000 * 15) / 10_000;
 
     vm.expectEmit(true, true, true, true);
-    emit CollectedFee(PARTNER, address(Mainnet.USDC), expectedFeeTotal / 2, expectedFeeTotal / 2);
+    emit CollectedFee(partner, address(Mainnet.USDC), expectedFeeTotal / 2, expectedFeeTotal / 2);
 
     uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
-      PARTNER,
+      partner,
       address(Mainnet.USDC),
       15, // 0.15% fee
       100_000000, // User was quoted 100 USDC
@@ -219,20 +219,20 @@ contract LibStarVaultTest is Test {
 
   // With partner, 0.25% fee, and no slippage. Uneven fee spit between partner and diamond
   function test_calculateAndRegisterFee_9() public {
-    address PARTNER = makeAddr('PARTNER');
+    address partner = makeAddr('partner');
 
     uint256 expectedFeeTotal = (1200 * 25) / 10_000;
 
     vm.expectEmit(true, true, true, true);
     emit CollectedFee(
-      PARTNER,
+      partner,
       address(Mainnet.USDC),
       expectedFeeTotal / 2,
       expectedFeeTotal / 2 + 1
     );
 
     uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
-      PARTNER,
+      partner,
       address(Mainnet.USDC),
       25, // 0.25% fee
       1200, // User was quoted 1200 units
@@ -243,12 +243,12 @@ contract LibStarVaultTest is Test {
   }
 
   function test_calculateAndRegisterFee_PartnerFeeTooHigh() public {
-    address PARTNER = makeAddr('PARTNER');
+    address partner = makeAddr('partner');
 
     vm.expectRevert(abi.encodeWithSelector(LibStarVault.FeeTooHigh.selector, 2000));
 
     uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
-      PARTNER,
+      partner,
       address(Mainnet.USDC),
       20_000, // 200%
       1200,
