@@ -18,28 +18,16 @@ import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransf
 import {PermitParams} from 'contracts/libraries/PermitParams.sol';
 import {PermitSignature} from './helpers/PermitSignature.sol';
 
-contract UniV2RouterIntegrationTest is FacetTest, PermitSignature {
+contract UniV2RouterIntegrationTest is FacetTest {
   event PartnerWithdraw(address indexed partner, address indexed token, uint256 amount);
 
-  address PARTNER = address(0xdeadbeef9023480492001);
-  uint256 USER_PRIV;
-  address USER;
   address VAULT = makeAddr('VAULT');
 
   IUniV2Router internal uniV2Router;
   IStarVault internal starVault;
-  IPermit2 internal permit2;
-
-  uint256 private deadline;
 
   function setUp() public override {
-    vm.createSelectFork(StdChains.getChain(1).rpcUrl, 17853419);
-
-    super.setUp();
-
-    (USER, USER_PRIV) = makeAddrAndKey('USER');
-
-    deadline = block.timestamp + 1000;
+    super.setUpOn(1, 17853419);
 
     IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](2);
 
@@ -71,7 +59,6 @@ contract UniV2RouterIntegrationTest is FacetTest, PermitSignature {
 
     starVault = IStarVault(address(diamond));
     uniV2Router = IUniV2Router(address(diamond));
-    permit2 = IPermit2(Addresses.PERMIT2);
   }
 
   function testFork_swapEthForUsdc() public {
@@ -79,7 +66,7 @@ contract UniV2RouterIntegrationTest is FacetTest, PermitSignature {
     path[0] = address(0);
     path[1] = address(Mainnet.USDC);
 
-    deal(USER, 1 ether);
+    deal(user, 1 ether);
 
     IAllowanceTransfer.PermitSingle memory emptyPermit = IAllowanceTransfer.PermitSingle(
       IAllowanceTransfer.PermitDetails({
@@ -94,21 +81,21 @@ contract UniV2RouterIntegrationTest is FacetTest, PermitSignature {
 
     bytes memory emptyPermitSig = getPermitSignature(
       emptyPermit,
-      USER_PRIV,
+      privateKey,
       permit2.DOMAIN_SEPARATOR()
     );
 
-    vm.prank(USER);
+    vm.prank(user);
 
     uniV2Router.uniswapV2ExactInput{value: 1 ether}(
       IUniV2Router.ExactInputParams({
         amountIn: 1 ether,
         amountOut: 1830 * (10 ** 6),
-        recipient: USER,
+        recipient: user,
         slippage: 50,
         feeBps: 20,
         deadline: (uint48)(deadline),
-        partner: PARTNER,
+        partner: partner,
         path: path
       }),
       PermitParams({nonce: emptyPermit.details.nonce, signature: emptyPermitSig})
@@ -118,20 +105,20 @@ contract UniV2RouterIntegrationTest is FacetTest, PermitSignature {
     uint256 amountOutActual = 1830163503;
     uint256 expectedFeeTotal = amountOutActual - 1826340000;
 
-    assertEq(Mainnet.USDC.balanceOf(USER), 1826340000, 'swapper usdc after');
+    assertEq(Mainnet.USDC.balanceOf(user), 1826340000, 'swapper usdc after');
     assertEq(Mainnet.USDC.balanceOf(address(diamond)), expectedFeeTotal, 'diamond usdc after');
     assertEq(
-      starVault.partnerTokenBalance(PARTNER, address(Mainnet.USDC)),
+      starVault.partnerTokenBalance(partner, address(Mainnet.USDC)),
       expectedFeeTotal / 2,
       'partner usdc after'
     );
 
-    vm.prank(PARTNER);
+    vm.prank(partner);
     vm.expectEmit(true, true, true, false);
-    emit PartnerWithdraw(PARTNER, address(Mainnet.USDC), 100);
+    emit PartnerWithdraw(partner, address(Mainnet.USDC), 100);
     starVault.partnerWithdraw(address(Mainnet.USDC));
 
-    assertApproxEqRel(Mainnet.USDC.balanceOf(PARTNER), expectedFeeTotal / 2, 0.05 ether);
+    assertApproxEqRel(Mainnet.USDC.balanceOf(partner), expectedFeeTotal / 2, 0.05 ether);
 
     vm.expectRevert(abi.encodeWithSelector(StarVault.InsufficientOwnerBalance.selector, 1911752));
     starVault.ownerWithdraw(address(Mainnet.USDC), (expectedFeeTotal / 2) + 10, payable(VAULT));
@@ -145,11 +132,11 @@ contract UniV2RouterIntegrationTest is FacetTest, PermitSignature {
     path[0] = address(Mainnet.USDC);
     path[1] = address(0);
 
-    uint256 balBefore = USER.balance;
+    uint256 balBefore = user.balance;
 
-    deal(address(Mainnet.USDC), USER, 2000 * (10 ** 6));
+    deal(address(Mainnet.USDC), user, 2000 * (10 ** 6));
 
-    vm.startPrank(USER);
+    vm.startPrank(user);
 
     Mainnet.USDC.approve(address(Addresses.PERMIT2), 2000 * (10 ** 6));
 
@@ -164,17 +151,17 @@ contract UniV2RouterIntegrationTest is FacetTest, PermitSignature {
       deadline
     );
 
-    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
+    bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     uniV2Router.uniswapV2ExactInput(
       IUniV2Router.ExactInputParams({
         amountIn: 2000 * (10 ** 6),
         amountOut: 1.08 ether,
-        recipient: USER,
+        recipient: user,
         slippage: 50,
         feeBps: 20,
         deadline: (uint48)(deadline),
-        partner: PARTNER,
+        partner: partner,
         path: path
       }),
       PermitParams({nonce: permit.details.nonce, signature: sig})
@@ -182,21 +169,21 @@ contract UniV2RouterIntegrationTest is FacetTest, PermitSignature {
 
     vm.stopPrank();
 
-    uint256 balAfter = USER.balance;
+    uint256 balAfter = user.balance;
 
     assertApproxEqRel(balAfter - balBefore, 1.08 ether, 0.05 ether);
     assertApproxEqRel(
-      starVault.partnerTokenBalance(PARTNER, address(Mainnet.WETH)),
+      starVault.partnerTokenBalance(partner, address(Mainnet.WETH)),
       0.004 ether,
       0.05 ether
     );
     assertApproxEqRel(Mainnet.WETH.balanceOf(address(diamond)), 0.008 ether, 0.05 ether);
 
-    vm.prank(PARTNER);
+    vm.prank(partner);
     vm.expectEmit(true, true, true, false);
-    emit PartnerWithdraw(PARTNER, address(Mainnet.WETH), 100);
+    emit PartnerWithdraw(partner, address(Mainnet.WETH), 100);
     starVault.partnerWithdraw(address(Mainnet.WETH));
-    assertApproxEqRel(Mainnet.WETH.balanceOf(PARTNER), 0.004 ether, 0.05 ether);
+    assertApproxEqRel(Mainnet.WETH.balanceOf(partner), 0.004 ether, 0.05 ether);
 
     vm.expectRevert(
       abi.encodeWithSelector(StarVault.InsufficientOwnerBalance.selector, 4137565610928260)
@@ -212,10 +199,10 @@ contract UniV2RouterIntegrationTest is FacetTest, PermitSignature {
     path[0] = address(Mainnet.USDC);
     path[1] = address(Mainnet.DAI);
 
-    deal(address(Mainnet.USDC), USER, 2000 * (10 ** 6));
+    deal(address(Mainnet.USDC), user, 2000 * (10 ** 6));
 
     // approve and swap as user
-    vm.startPrank(USER);
+    vm.startPrank(user);
 
     Mainnet.USDC.approve(address(Addresses.PERMIT2), 2000 * (10 ** 6));
 
@@ -230,17 +217,17 @@ contract UniV2RouterIntegrationTest is FacetTest, PermitSignature {
       deadline
     );
 
-    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
+    bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     uniV2Router.uniswapV2ExactInput(
       IUniV2Router.ExactInputParams({
         amountIn: 2000 * (10 ** 6),
         amountOut: 1900 * (10 ** 18),
-        recipient: USER,
+        recipient: user,
         slippage: 50,
         feeBps: 20,
         deadline: (uint48)(deadline),
-        partner: PARTNER,
+        partner: partner,
         path: path
       }),
       PermitParams({nonce: permit.details.nonce, signature: sig})
@@ -248,20 +235,20 @@ contract UniV2RouterIntegrationTest is FacetTest, PermitSignature {
 
     vm.stopPrank();
 
-    assertApproxEqRel(Mainnet.DAI.balanceOf(USER), 1900 * (10 ** 18), 0.05 ether);
+    assertApproxEqRel(Mainnet.DAI.balanceOf(user), 1900 * (10 ** 18), 0.05 ether);
     assertApproxEqRel(Mainnet.DAI.balanceOf(address(diamond)), 100 * (10 ** 18), 0.05 ether);
     assertApproxEqRel(
-      starVault.partnerTokenBalance(PARTNER, address(Mainnet.DAI)),
+      starVault.partnerTokenBalance(partner, address(Mainnet.DAI)),
       50 * (10 ** 18),
       0.05 ether
     );
 
-    vm.prank(PARTNER);
+    vm.prank(partner);
     vm.expectEmit(true, true, true, false);
-    emit PartnerWithdraw(PARTNER, address(Mainnet.DAI), 50 * (10 ** 18));
+    emit PartnerWithdraw(partner, address(Mainnet.DAI), 50 * (10 ** 18));
     starVault.partnerWithdraw(address(Mainnet.DAI));
 
-    assertApproxEqRel(Mainnet.DAI.balanceOf(PARTNER), 50 * (10 ** 18), 0.05 ether);
+    assertApproxEqRel(Mainnet.DAI.balanceOf(partner), 50 * (10 ** 18), 0.05 ether);
 
     vm.expectRevert(
       abi.encodeWithSelector(StarVault.InsufficientOwnerBalance.selector, 47823223316479588619)

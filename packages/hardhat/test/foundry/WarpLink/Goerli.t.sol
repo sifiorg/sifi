@@ -37,7 +37,7 @@ contract WarpLinkGoerliTest is WarpLinkTestBase {
     (uint256 nativeWei, ) = IStargateComposer(Goerli.STARGATE_COMPOSER_ADDR).quoteLayerZeroFee({
       _dstChainId: 10132,
       _functionType: 1, // swap remote
-      _toAddress: abi.encodePacked(USER),
+      _toAddress: abi.encodePacked(user),
       _transferAndCallPayload: '',
       _lzTxParams: IStargateRouter.lzTxObj({
         dstGasForCall: 0,
@@ -46,10 +46,10 @@ contract WarpLinkGoerliTest is WarpLinkTestBase {
       })
     });
 
-    vm.deal(USER, nativeWei);
-    deal(tokenIn, USER, amountIn);
+    vm.deal(user, nativeWei);
+    deal(tokenIn, user, amountIn);
 
-    vm.prank(USER);
+    vm.prank(user);
     IERC20(tokenIn).approve(address(Addresses.PERMIT2), amountIn);
 
     IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
@@ -63,9 +63,9 @@ contract WarpLinkGoerliTest is WarpLinkTestBase {
       deadline
     );
 
-    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
+    bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.warpLinkEngage{value: nativeWei}(
       IWarpLink.Params({
         tokenIn: tokenIn,
@@ -73,7 +73,7 @@ contract WarpLinkGoerliTest is WarpLinkTestBase {
         commands: commands,
         amountIn: amountIn,
         amountOut: expectedSwapOut,
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 0,
         // NOTE: There is massive slippage on the testnet

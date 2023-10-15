@@ -21,9 +21,9 @@ contract WarpLinkArbitrumTest is WarpLinkTestBase {
       (uint8)(COMMAND_TYPE_WRAP)
     );
 
-    vm.deal(USER, 1 ether);
+    vm.deal(user, 1 ether);
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.warpLinkEngage{value: 1 ether}(
       IWarpLink.Params({
         tokenIn: address(0),
@@ -31,7 +31,7 @@ contract WarpLinkArbitrumTest is WarpLinkTestBase {
         commands: commands,
         amountIn: 1 ether,
         amountOut: 1 ether,
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 0,
         slippageBps: 0,
@@ -46,7 +46,7 @@ contract WarpLinkArbitrumTest is WarpLinkTestBase {
     uint256 expectedSwapOut = 1578436830;
     uint256 expectedFee = 0;
 
-    vm.deal(USER, amountIn);
+    vm.deal(user, amountIn);
 
     bytes memory commands = bytes.concat(
       abi.encodePacked(
@@ -59,7 +59,7 @@ contract WarpLinkArbitrumTest is WarpLinkTestBase {
       })
     );
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.warpLinkEngage{value: amountIn}(
       IWarpLink.Params({
         tokenIn: address(0),
@@ -67,7 +67,7 @@ contract WarpLinkArbitrumTest is WarpLinkTestBase {
         commands: commands,
         amountIn: amountIn,
         amountOut: expectedSwapOut,
-        recipient: USER,
+        recipient: user,
         partner: address(0),
         feeBps: 0,
         slippageBps: 0,
@@ -76,6 +76,6 @@ contract WarpLinkArbitrumTest is WarpLinkTestBase {
       emptyPermitParams
     );
 
-    assertEq(Arbitrum.USDC.balanceOf(USER), expectedSwapOut - expectedFee, 'after');
+    assertEq(Arbitrum.USDC.balanceOf(user), expectedSwapOut - expectedFee, 'after');
   }
 }

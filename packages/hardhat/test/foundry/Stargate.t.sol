@@ -15,18 +15,11 @@ import {PermitParams} from 'contracts/libraries/PermitParams.sol';
 import {IStargateRouter} from 'contracts/interfaces/external/IStargateRouter.sol';
 import {IStargateComposer} from './helpers/IStargateComposer.sol';
 
-abstract contract StargateTestBase is FacetTest, PermitSignature {
+abstract contract StargateTestBase is FacetTest {
   IStargate internal facet;
-  IPermit2 internal permit2;
-  uint48 internal deadline;
-  uint256 USER_PRIV;
-  address USER;
-  address PARTNER = makeAddr('Partner');
 
   function setUpOn(uint256 chainId, uint256 blockNumber) internal override {
     super.setUpOn(chainId, blockNumber);
-
-    (USER, USER_PRIV) = makeAddrAndKey('User');
 
     IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](1);
 
@@ -48,10 +41,6 @@ abstract contract StargateTestBase is FacetTest, PermitSignature {
     );
 
     facet = IStargate(address(diamond));
-
-    permit2 = IPermit2(Addresses.PERMIT2);
-
-    deadline = (uint48)(block.timestamp + 1000);
   }
 }
 
@@ -63,12 +52,12 @@ contract StargateMainnetTest is StargateTestBase {
   }
 
   function testFork_stargateJumpTokens_Usdc() public {
-    deal(address(Mainnet.USDC), USER, 1000 * (10 ** 6));
+    deal(address(Mainnet.USDC), user, 1000 * (10 ** 6));
 
     (uint256 lzFee, ) = IStargateComposer(Mainnet.STARGATE_COMPOSER_ADDR).quoteLayerZeroFee({
       _dstChainId: Optimism.STARGATE_CHAIN_ID,
       _functionType: 1, // swap remote
-      _toAddress: abi.encodePacked(USER),
+      _toAddress: abi.encodePacked(user),
       _transferAndCallPayload: '',
       _lzTxParams: IStargateRouter.lzTxObj({
         dstGasForCall: 0,
@@ -77,9 +66,9 @@ contract StargateMainnetTest is StargateTestBase {
       })
     });
 
-    deal(USER, lzFee);
+    deal(user, lzFee);
 
-    vm.prank(USER);
+    vm.prank(user);
     Mainnet.USDC.approve(address(Addresses.PERMIT2), 1000 * (10 ** 6));
 
     IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
@@ -93,15 +82,15 @@ contract StargateMainnetTest is StargateTestBase {
       deadline
     );
 
-    bytes memory sig = getPermitSignature(permit, USER_PRIV, permit2.DOMAIN_SEPARATOR());
+    bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.stargateJumpToken{value: lzFee}(
       IStargate.JumpTokenParams({
         amountIn: 1000 * (10 ** 6),
         // TODO: Estimate using contracts
         amountOutExpected: 1000 * (10 ** 6),
-        recipient: USER,
+        recipient: user,
         slippageBps: 50,
         feeBps: 15,
         deadline: deadline,
@@ -114,14 +103,14 @@ contract StargateMainnetTest is StargateTestBase {
       PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
-    assertEq(Mainnet.USDC.balanceOf(USER), 0);
+    assertEq(Mainnet.USDC.balanceOf(user), 0);
   }
 
   function testFork_stargateJumpNative() public {
     (uint256 lzFee, ) = IStargateComposer(Mainnet.STARGATE_COMPOSER_ADDR).quoteLayerZeroFee({
       _dstChainId: Optimism.STARGATE_CHAIN_ID,
       _functionType: 1, // swap remote
-      _toAddress: abi.encodePacked(USER),
+      _toAddress: abi.encodePacked(user),
       _transferAndCallPayload: '',
       _lzTxParams: IStargateRouter.lzTxObj({
         dstGasForCall: 0,
@@ -131,15 +120,15 @@ contract StargateMainnetTest is StargateTestBase {
     });
 
     uint160 amountIn = 1 ether;
-    deal(USER, amountIn + lzFee);
+    deal(user, amountIn + lzFee);
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.stargateJumpNative{value: amountIn + lzFee}(
       IStargate.JumpNativeParams({
         amountIn: amountIn,
         // TODO: Estimate using contracts
         amountOutExpected: amountIn,
-        recipient: USER,
+        recipient: user,
         slippageBps: 50,
         feeBps: 15,
         deadline: deadline,
@@ -155,7 +144,7 @@ contract StargateMainnetTest is StargateTestBase {
     (uint256 lzFee, ) = IStargateComposer(Mainnet.STARGATE_COMPOSER_ADDR).quoteLayerZeroFee({
       _dstChainId: Optimism.STARGATE_CHAIN_ID,
       _functionType: 1, // swap remote
-      _toAddress: abi.encodePacked(USER),
+      _toAddress: abi.encodePacked(user),
       _transferAndCallPayload: '',
       _lzTxParams: IStargateRouter.lzTxObj({
         dstGasForCall: 0,
@@ -165,15 +154,15 @@ contract StargateMainnetTest is StargateTestBase {
     });
 
     uint160 amountIn = 1 ether;
-    deal(USER, amountIn + lzFee);
+    deal(user, amountIn + lzFee);
 
-    vm.prank(USER);
+    vm.prank(user);
     facet.stargateJumpNative{value: amountIn + lzFee}(
       IStargate.JumpNativeParams({
         amountIn: amountIn,
         // TODO: Estimate using contracts
         amountOutExpected: 0,
-        recipient: USER,
+        recipient: user,
         slippageBps: 50,
         feeBps: 15,
         deadline: deadline,
