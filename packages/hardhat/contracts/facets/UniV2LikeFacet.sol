@@ -116,9 +116,7 @@ contract UniV2LikeFacet is IUniV2Like {
       ''
     );
 
-    uint256 nextTokenOutBalance = isToEth
-      ? address(this).balance
-      : IERC20(params.tokenOut).balanceOf(address(this));
+    uint256 nextTokenOutBalance = IERC20(params.tokenOut).balanceOf(address(this));
 
     if (
       nextTokenOutBalance < tokenOutBalancePrev ||
@@ -234,9 +232,7 @@ contract UniV2LikeFacet is IUniV2Like {
       }
     }
 
-    uint256 nextTokenOutBalance = isToEth
-      ? address(this).balance
-      : IERC20(params.tokens[poolLength]).balanceOf(address(this));
+    uint256 nextTokenOutBalance = IERC20(params.tokens[poolLength]).balanceOf(address(this));
 
     if (
       // TOOD: Is this overflow check necessary?

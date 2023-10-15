@@ -67,6 +67,12 @@ library Goerli {
   uint16 public constant STARGATE_CHAIN_ID = 10121;
 }
 
+library Bsc {
+  uint256 public constant CHAIN_ID = 56;
+  address public constant STARGATE_COMPOSER_ADDR = 0x7C5B3F4865b41b9d2B6dE65fdfbB47af06AC41f0;
+  IERC20 public constant WBNB = IERC20(0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c);
+}
+
 library Addresses {
   IPermit2 public constant PERMIT2 = IPermit2(0x000000000022D473030F116dDEE9F6B43aC78BA3);
 
@@ -79,6 +85,8 @@ library Addresses {
       return Polygon.WMATIC;
     } else if (chainId == Optimism.CHAIN_ID) {
       return Optimism.WETH;
+    } else if (chainId == Bsc.CHAIN_ID) {
+      return Bsc.WBNB;
     } else {
       return IERC20(address(0));
     }
