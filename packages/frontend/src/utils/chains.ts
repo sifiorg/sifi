@@ -26,7 +26,10 @@ const PRODUCTION_CHAINS: Chain[] = [
   arbitrum,
   avalanche,
   base,
-  bsc,
+  {
+    ...bsc,
+   name: 'BNB Chain'
+  },
   optimism,
   polygon,
 ];
