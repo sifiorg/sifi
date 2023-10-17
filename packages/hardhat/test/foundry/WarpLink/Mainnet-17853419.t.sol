@@ -6,6 +6,7 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IWarpLink} from 'contracts/interfaces/IWarpLink.sol';
 import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransfer.sol';
 import {PermitParams} from 'contracts/libraries/PermitParams.sol';
+import {LibWarp} from 'contracts/libraries/LibWarp.sol';
 import {Addresses, Mainnet} from '../helpers/Networks.sol';
 import {UniV2TestHelpers} from '../helpers/UniV2.sol';
 import {WarpLinkTestBase} from './TestBase.sol';
@@ -24,6 +25,9 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
     vm.deal(user, 1 ether);
     vm.prank(user);
 
+    vm.expectEmit(true, true, true, true);
+    emit LibWarp.Warp(partner, address(0), address(Mainnet.WETH), 1 ether, 0.999 ether);
+
     facet.warpLinkEngage{value: 1 ether}(
       IWarpLink.Params({
         tokenIn: address(0),
@@ -32,8 +36,8 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
         amountIn: 1 ether,
         amountOut: 1 ether,
         recipient: user,
-        partner: address(0),
-        feeBps: 0,
+        partner: partner,
+        feeBps: 10,
         slippageBps: 0,
         deadline: deadline
       }),

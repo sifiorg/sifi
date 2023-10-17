@@ -6,6 +6,7 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IWarpLink} from 'contracts/interfaces/IWarpLink.sol';
 import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransfer.sol';
 import {PermitParams} from 'contracts/libraries/PermitParams.sol';
+import {LibWarp} from 'contracts/libraries/LibWarp.sol';
 import {IStargateRouter} from 'contracts/interfaces/external/IStargateRouter.sol';
 import {Addresses, Mainnet} from '../helpers/Networks.sol';
 import {WarpLinkTestBase} from './TestBase.sol';
@@ -69,6 +70,9 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
     );
 
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
+
+    vm.expectEmit(true, true, true, true);
+    emit LibWarp.Warp(address(0), address(0), address(Mainnet.USDC), amountIn, 1673762736);
 
     vm.prank(user);
     facet.warpLinkEngage{value: amountIn + nativeWei}(

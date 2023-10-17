@@ -145,6 +145,15 @@ contract UniV3Like is IUniV3Like {
     } else {
       IERC20(params.tokenOut).safeTransfer(params.recipient, amountOut);
     }
+
+    emit LibWarp.Warp(
+      params.partner,
+      // NOTE: The tokens may have been rewritten to WETH
+      isFromEth ? address(0) : params.tokenIn,
+      isToEth ? address(0) : params.tokenOut,
+      params.amountIn,
+      amountOut
+    );
   }
 
   function uniswapV3LikeExactInput(
@@ -277,5 +286,14 @@ contract UniV3Like is IUniV3Like {
     } else {
       IERC20(params.tokens[poolLength]).safeTransfer(params.recipient, amountOut);
     }
+
+    emit LibWarp.Warp(
+      params.partner,
+      // NOTE: The tokens may have been rewritten to WETH
+      isFromEth ? address(0) : params.tokens[0],
+      isToEth ? address(0) : params.tokens[poolLength],
+      params.amountIn,
+      amountOut
+    );
   }
 }
