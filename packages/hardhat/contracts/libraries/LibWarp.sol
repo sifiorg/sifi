@@ -6,13 +6,21 @@ import {IPermit2} from '../interfaces/external/IPermit2.sol';
 import {IStargateComposer} from '../interfaces/external/IStargateComposer.sol';
 
 library LibWarp {
-  bytes32 constant DIAMOND_STORAGE_SLOT = keccak256('diamond.storage.LibWarp');
+  event Warp(
+    address indexed partner,
+    address indexed tokenIn,
+    address indexed tokenOut,
+    uint256 amountIn,
+    uint256 amountOut
+  );
 
   struct State {
     IWETH weth;
     IPermit2 permit2;
     IStargateComposer stargateComposer;
   }
+
+  bytes32 constant DIAMOND_STORAGE_SLOT = keccak256('diamond.storage.LibWarp');
 
   function state() internal pure returns (State storage s) {
     bytes32 slot = DIAMOND_STORAGE_SLOT;

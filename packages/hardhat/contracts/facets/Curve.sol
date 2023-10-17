@@ -106,5 +106,7 @@ contract Curve is ICurve {
     } else {
       IERC20(params.tokenOut).safeTransfer(params.recipient, amountOut);
     }
+
+    emit LibWarp.Warp(params.partner, params.tokenIn, params.tokenOut, params.amountIn, amountOut);
   }
 }
