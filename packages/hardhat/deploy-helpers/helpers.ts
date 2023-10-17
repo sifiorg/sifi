@@ -1,4 +1,4 @@
-import { ethers, run } from 'hardhat';
+import { ethers, network, run } from 'hardhat';
 import { DeployOptions, DeployResult } from 'hardhat-deploy/types';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 
@@ -76,5 +76,21 @@ export async function deploy(
     console.warn(`Deployment for ${name} is unchanged`);
   }
 
-  return await hre.deployments.get(name);
+  let lastrError: Error | undefined;
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      return await hre.deployments.get(name);
+    } catch (error: any) {
+      if (error.message.match(/nonce too low/)) {
+        lastrError = error;
+
+        await new Promise(resolve => setTimeout(resolve, 10_000));
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  throw lastrError;
 }
