@@ -10,6 +10,7 @@ import {ICurve} from 'contracts/interfaces/ICurve.sol';
 import {Curve} from 'contracts/facets/Curve.sol';
 import {InitLibWarp} from 'contracts/init/InitLibWarp.sol';
 import {Errors} from 'contracts/libraries/Errors.sol';
+import {LibWarp} from 'contracts/libraries/LibWarp.sol';
 import {IUniswapV2Factory} from 'contracts/interfaces/external/IUniswapV2Factory.sol';
 import {ICurvePoolKind1, ICurvePoolKind2, ICurvePoolKind3} from 'contracts/interfaces/external/ICurvePool.sol';
 import {IPermit2} from 'contracts/interfaces/external/IPermit2.sol';
@@ -129,6 +130,9 @@ contract CurveTest is FacetTest {
       permit2.DOMAIN_SEPARATOR()
     );
 
+    vm.expectEmit(true, true, true, true);
+    emit LibWarp.Warp(address(0), address(0), address(Mainnet.STETH), 1 ether, 1000226977976805063);
+
     vm.prank(user);
     facet.curveExactInputSingle{value: 1 ether}(
       ICurve.ExactInputSingleParams({
@@ -150,7 +154,7 @@ contract CurveTest is FacetTest {
       PermitParams({nonce: emptyPermit.details.nonce, signature: emptyPermitSig})
     );
 
-    assertApproxEqRel(Mainnet.STETH.balanceOf(user), 1000226977976805063, 0.01 ether);
+    assertApproxEqRel(Mainnet.STETH.balanceOf(user), 1000226977976805063, 0.001 ether);
   }
 
   function testFork_curveExactInputSingle_StethToEth() public {

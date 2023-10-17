@@ -124,6 +124,15 @@ contract UniV2RouterFacet is IUniV2Router {
     } else {
       IERC20(params.tokenOut).safeTransfer(params.recipient, amountOut);
     }
+
+    emit LibWarp.Warp(
+      params.partner,
+      // NOTE: The tokens may have been rewritten to WETH
+      isFromEth ? address(0) : params.tokenIn,
+      isToEth ? address(0) : params.tokenOut,
+      params.amountIn,
+      amountOut
+    );
   }
 
   function uniswapV2ExactInput(
@@ -233,5 +242,14 @@ contract UniV2RouterFacet is IUniV2Router {
     } else {
       IERC20(params.path[pathLengthMinusOne]).safeTransfer(params.recipient, amountOut);
     }
+
+    emit LibWarp.Warp(
+      params.partner,
+      // NOTE: The tokens may have been rewritten to WETH
+      isFromEth ? address(0) : params.path[0],
+      isToEth ? address(0) : params.path[pathLengthMinusOne],
+      params.amountIn,
+      amountOut
+    );
   }
 }

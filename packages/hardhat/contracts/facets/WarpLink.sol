@@ -78,6 +78,8 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     address paramPartner;
     uint16 paramFeeBps;
     address paramRecipient;
+    address paramTokenIn;
+    uint256 paramAmountIn;
     uint256 paramAmountOut;
     uint16 paramSlippageBps;
     uint48 paramDeadline;
@@ -731,6 +733,10 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
    *
    * This command must not run inside of a split.
    *
+   * If the jump is the final operation, meaning the tokens will be delivered to the recipient on
+   * the other chain without further processing, the fee is charged `LibWarp.Warp` event is emitted
+   * in this function.
+   *
    * A bridge fee must be paid in the native token. This fee is determined with
    * `IStargateRouter.quoteLayerZeroFee`
    *
@@ -773,18 +779,22 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       params.payload = abi.encode(destParams);
     }
 
-    // If the tokens are being delivered directly to the recipient without a second
-    // WarpLink engage, the fee is charged on this chain
-    if (params.payload.length == 0) {
-      // NOTE: It is not possible to know how many tokens were delivered. Therfore positive slippage
-      // is never charged
-      t.amount = LibStarVault.calculateAndRegisterFee(
-        t.paramPartner,
-        t.token,
-        t.paramFeeBps,
-        t.amount,
-        t.amount
-      );
+    if (t.token != t.paramTokenIn) {
+      if (params.payload.length == 0) {
+        // If the tokens are being delivered directly to the recipient without a second
+        // WarpLink engage, the fee is charged on this chain
+        // NOTE: It is not possible to know how many tokens were delivered. Therfore positive slippage
+        // is never charged
+        t.amount = LibStarVault.calculateAndRegisterFee(
+          t.paramPartner,
+          t.token,
+          t.paramFeeBps,
+          t.amount,
+          t.amount
+        );
+      }
+
+      emit LibWarp.Warp(t.paramPartner, t.paramTokenIn, t.token, t.paramAmountIn, t.amount);
     }
 
     // Enforce minimum amount/max slippage
@@ -895,6 +905,8 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     t.paramFeeBps = params.feeBps;
     t.paramSlippageBps = params.slippageBps;
     t.paramRecipient = params.recipient;
+    t.paramTokenIn = params.tokenIn;
+    t.paramAmountIn = params.amountIn;
     t.paramAmountOut = params.amountOut;
     t.paramSlippageBps = params.slippageBps;
     t.paramDeadline = params.deadline;
@@ -984,5 +996,7 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       // TODO: Is this the correct recipient?
       payable(msg.sender).transfer(t.nativeValueRemaining);
     }
+
+    emit LibWarp.Warp(params.partner, params.tokenIn, params.tokenOut, params.amountIn, amountOut);
   }
 }

@@ -10,6 +10,7 @@ import {IUniV2Like} from 'contracts/interfaces/IUniV2Like.sol';
 import {UniV2LikeFacet} from 'contracts/facets/UniV2LikeFacet.sol';
 import {InitLibWarp} from 'contracts/init/InitLibWarp.sol';
 import {Errors} from 'contracts/libraries/Errors.sol';
+import {LibWarp} from 'contracts/libraries/LibWarp.sol';
 import {IUniswapV2Factory} from 'contracts/interfaces/external/IUniswapV2Factory.sol';
 import {IPermit2} from 'contracts/interfaces/external/IPermit2.sol';
 import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransfer.sol';
@@ -136,6 +137,9 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
     );
 
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
+
+    vm.expectEmit(true, true, true, true);
+    emit LibWarp.Warp(address(0), tokens[0], tokens[2], 2000 ether, expectedSwapOut - expectedFee);
 
     facet.uniswapV2LikeExactInput(
       IUniV2Like.ExactInputParams({
