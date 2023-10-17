@@ -15,7 +15,7 @@ library LibStarVault {
     address indexed partner,
     address indexed token,
     uint256 partnerFee,
-    uint256 diamondFee
+    uint256 protocolFee
   );
 
   struct State {
@@ -59,7 +59,7 @@ library LibStarVault {
     address partner,
     address token,
     uint256 partnerFee,
-    uint256 diamondFee
+    uint256 protocolFee
   ) internal {
     State storage s = state();
 
@@ -74,7 +74,7 @@ library LibStarVault {
       s.partnerBalancesTotal[token] += partnerFee;
     }
 
-    emit CollectedFee(partner, token, partnerFee, diamondFee);
+    emit CollectedFee(partner, token, partnerFee, protocolFee);
   }
 
   function calculateAndRegisterFee(
@@ -105,10 +105,10 @@ library LibStarVault {
 
       // If a partner is set, split the fee in half
       uint256 feePartner = partner == address(0) ? 0 : (feeTotal * 50) / 100;
-      uint256 feeDiamond = feeTotal - feePartner;
+      uint256 feeProtocol = feeTotal - feePartner;
 
-      if (feeDiamond > 0) {
-        registerCollectedFee(partner, token, feePartner, feeDiamond);
+      if (feeProtocol > 0) {
+        registerCollectedFee(partner, token, feePartner, feeProtocol);
       }
 
       return amountOutActual - feeTotal;
