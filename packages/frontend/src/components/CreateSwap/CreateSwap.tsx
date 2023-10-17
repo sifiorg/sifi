@@ -22,6 +22,7 @@ import { enableSwapInformation } from 'src/utils/featureFlags';
 import { useUsdValue } from 'src/hooks/useUsdValue';
 import { useExecuteSwap } from 'src/hooks/useExecuteSwap';
 import { useDepositMax } from 'src/hooks/useDepositMax';
+import { useSuggestMevProtection } from 'src/hooks/useSuggestMevProtection';
 import { SwapDetails } from '../SwapDetails/SwapDetails';
 
 const CreateSwap = () => {
@@ -30,6 +31,7 @@ const CreateSwap = () => {
   useReferrer();
   useDefaultTokens();
   const { handleSubmit } = useForm();
+  useSuggestMevProtection();
   const {
     fromToken: fromTokenSymbol,
     toToken: toTokenSymbol,
