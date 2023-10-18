@@ -10,7 +10,7 @@ import {LibStarVault} from '../libraries/LibStarVault.sol';
 interface IStarVault {
   error EthTransferFailed();
 
-  event PartnerWithdraw(address indexed partner, address indexed token, uint256 amount);
+  event Withdraw(address indexed partner, address indexed token, uint256 amount);
 
   function partnerTokens(address partner) external view returns (address[] memory tokens_);
 

@@ -45,7 +45,7 @@ contract StarVault is IStarVault {
       s.partnerBalances[msg.sender][token] = 0;
       s.partnerBalancesTotal[token] -= balance;
 
-      emit PartnerWithdraw(msg.sender, token, balance);
+      emit Withdraw(msg.sender, token, balance);
 
       if (token == address(0)) {
         // NOTE: Control transfered to untrusted address
@@ -78,7 +78,7 @@ contract StarVault is IStarVault {
       revert InsufficientOwnerBalance(available);
     }
 
-    emit PartnerWithdraw(address(0), token, amount);
+    emit Withdraw(address(0), token, amount);
 
     if (token == address(0)) {
       // Send ETH
