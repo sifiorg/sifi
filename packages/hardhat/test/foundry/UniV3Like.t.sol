@@ -7,6 +7,7 @@ import {FacetTest} from './helpers/FacetTest.sol';
 import {Addresses, Mainnet, Polygon} from './helpers/Networks.sol';
 import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
 import {IUniV3Like} from 'contracts/interfaces/IUniV3Like.sol';
+import {ILibStarVault} from 'contracts/interfaces/ILibStarVault.sol';
 import {UniV3Like} from 'contracts/facets/UniV3Like.sol';
 import {InitLibWarp} from 'contracts/init/InitLibWarp.sol';
 import {UniV3Callback} from 'contracts/facets/UniV3Callback.sol';
@@ -17,13 +18,6 @@ import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransf
 import {PermitParams} from 'contracts/libraries/PermitParams.sol';
 
 abstract contract UniV3LikeTestBase is FacetTest {
-  event CollectedFee(
-    address indexed partner,
-    address indexed token,
-    uint256 partnerFee,
-    uint256 diamondFee
-  );
-
   IUniV3Like internal facet;
 
   function setUpOn(uint256 chainId, uint256 blockNumber) internal override {

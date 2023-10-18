@@ -6,6 +6,7 @@ import {IPermit2} from 'contracts/interfaces/external/IPermit2.sol';
 import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransfer.sol';
 import {PermitParams} from 'contracts/libraries/PermitParams.sol';
 import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
+import {ILibStarVault} from 'contracts/interfaces/ILibStarVault.sol';
 import {UniV3Callback} from 'contracts/facets/UniV3Callback.sol';
 import {InitLibWarp} from 'contracts/init/InitLibWarp.sol';
 import {WarpLinkEncoder} from '../helpers/WarpLinkEncoder.sol';
@@ -13,14 +14,7 @@ import {PermitSignature} from '../helpers/PermitSignature.sol';
 import {FacetTest} from '../helpers/FacetTest.sol';
 import {Addresses} from '../helpers/Networks.sol';
 
-contract WarpLinkTestBase is FacetTest, WarpLinkCommandTypes {
-  event CollectedFee(
-    address indexed partner,
-    address indexed token,
-    uint256 partnerFee,
-    uint256 diamondFee
-  );
-
+contract WarpLinkTestBase is FacetTest, WarpLinkCommandTypes, ILibStarVault {
   WarpLink internal facet;
   WarpLinkEncoder internal encoder;
 

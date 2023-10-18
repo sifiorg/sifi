@@ -2,8 +2,16 @@
 pragma solidity ^0.8.19;
 
 import {PermitParams} from '../libraries/PermitParams.sol';
+import {ILibStarVault} from '../interfaces/ILibStarVault.sol';
+import {ILibWarp} from '../interfaces/ILibWarp.sol';
 
-interface IUniV2Router {
+interface IUniV2Router is ILibStarVault, ILibWarp {
+  error EthTransferFailed();
+  error ZeroAmountOut();
+  error IncorrectEthValue();
+  error InsufficientOutputAmount();
+  error DeadlineExpired();
+
   struct ExactInputParams {
     uint256 amountIn;
     uint256 amountOut;

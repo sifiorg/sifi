@@ -2,8 +2,11 @@
 pragma solidity ^0.8.19;
 
 import {PermitParams} from '../libraries/PermitParams.sol';
+import {ILibCurve} from '../interfaces/ILibCurve.sol';
+import {ILibStarVault} from '../interfaces/ILibStarVault.sol';
+import {ILibWarp} from '../interfaces/ILibWarp.sol';
 
-interface ICurve {
+interface ICurve is ILibCurve, ILibStarVault, ILibWarp {
   error DeadlineExpired();
   error InsufficientOutputAmount();
   error EthTransferFailed();

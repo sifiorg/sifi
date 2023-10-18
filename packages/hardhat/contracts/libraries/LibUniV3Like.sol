@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+/**
+ * NOTE: Events and errors must be copied to ILibUniV3Like
+ */
 library LibUniV3Like {
   error CallbackAlreadyActive();
   error CallbackStillActive();
