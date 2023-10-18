@@ -79,6 +79,8 @@ contract StarVault is IStarVault {
       revert InsufficientOwnerBalance(available);
     }
 
+    emit PartnerWithdraw(address(0), token, amount);
+
     if (token == address(0)) {
       // Send ETH
       (bool sent, ) = to.call{value: amount}('');
