@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -eu -o pipefail
+
+for dir in ./deployments/*/; do
+  network=$(basename "$dir")
+
+  echo "==== NETWORK: $network ===="
+  echo
+
+  hardhat deploy --network "$network"
+  echo
+done
