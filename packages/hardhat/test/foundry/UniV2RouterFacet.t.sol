@@ -81,7 +81,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     deal(user, 1 ether);
 
     vm.expectEmit(true, true, true, false);
-    emit CollectedFee(partner, address(Mainnet.USDC), 1.83 * (10 ** 6), 1.83 * (10 ** 6));
+    emit Fee(partner, address(Mainnet.USDC), 1.83 * (10 ** 6), 1.83 * (10 ** 6));
 
     vm.prank(user);
     facet.uniswapV2ExactInputSingle{value: 1 ether}(
@@ -162,7 +162,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     vm.expectEmit(true, true, true, false);
-    emit CollectedFee(partner, address(Mainnet.DAI), 2 * (10 ** 18), 2 * (10 ** 18));
+    emit Fee(partner, address(Mainnet.DAI), 2 * (10 ** 18), 2 * (10 ** 18));
 
     facet.uniswapV2ExactInputSingle(
       IUniV2Router.ExactInputSingleParams({
@@ -247,7 +247,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     vm.expectEmit(true, true, true, false);
-    emit CollectedFee(partner, address(Mainnet.WETH), 0.004 ether, 0.004 ether);
+    emit Fee(partner, address(Mainnet.WETH), 0.004 ether, 0.004 ether);
 
     facet.uniswapV2ExactInputSingle(
       IUniV2Router.ExactInputSingleParams({
@@ -296,7 +296,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     vm.expectEmit(true, true, true, true);
-    emit CollectedFee(address(0), address(Mainnet.DAI), 2 * 0, expectedFee);
+    emit Fee(address(0), address(Mainnet.DAI), 2 * 0, expectedFee);
 
     facet.uniswapV2ExactInput(
       IUniV2Router.ExactInputParams({
@@ -344,7 +344,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     // vm.expectEmit(true, true, true, true);
-    // emit CollectedFee(address(0), address(Mainnet.DAI), 0, expectedFee);
+    // emit Fee(address(0), address(Mainnet.DAI), 0, expectedFee);
 
     facet.uniswapV2ExactInput(
       IUniV2Router.ExactInputParams({
@@ -391,7 +391,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     vm.expectEmit(true, true, true, true);
-    emit CollectedFee(address(0), address(Mainnet.WETH), 2 * 0, expectedFee);
+    emit Fee(address(0), address(Mainnet.WETH), 2 * 0, expectedFee);
 
     facet.uniswapV2ExactInput(
       IUniV2Router.ExactInputParams({
@@ -423,7 +423,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
 
     vm.expectEmit(true, true, true, true);
-    emit CollectedFee(address(0), address(Mainnet.DAI), 0, expectedFee);
+    emit Fee(address(0), address(Mainnet.DAI), 0, expectedFee);
 
     facet.uniswapV2ExactInput{value: 1 ether}(
       IUniV2Router.ExactInputParams({
@@ -472,7 +472,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     vm.expectEmit(true, true, true, true);
-    emit CollectedFee(address(0), address(Mainnet.DAI), 2 * 0, expectedFee);
+    emit Fee(address(0), address(Mainnet.DAI), 2 * 0, expectedFee);
 
     facet.uniswapV2ExactInput(
       IUniV2Router.ExactInputParams({
@@ -586,7 +586,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
 
     vm.expectEmit(true, true, true, true);
-    emit CollectedFee(address(0), address(Mainnet.DAI), 0, expectedFee);
+    emit Fee(address(0), address(Mainnet.DAI), 0, expectedFee);
 
     facet.uniswapV2ExactInputSingle{value: 1 ether}(
       IUniV2Router.ExactInputSingleParams({
@@ -690,7 +690,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     vm.expectEmit(true, true, true, true);
-    emit CollectedFee(address(0), address(Mainnet.DAI), 2 * 0, expectedFee);
+    emit Fee(address(0), address(Mainnet.DAI), 2 * 0, expectedFee);
 
     facet.uniswapV2ExactInputSingle(
       IUniV2Router.ExactInputSingleParams({
@@ -733,7 +733,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     vm.expectEmit(true, true, true, true);
-    emit CollectedFee(address(0), address(Mainnet.WETH), 2 * 0, expectedFee);
+    emit Fee(address(0), address(Mainnet.WETH), 2 * 0, expectedFee);
 
     facet.uniswapV2ExactInputSingle(
       IUniV2Router.ExactInputSingleParams({
@@ -777,7 +777,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     vm.expectEmit(true, true, true, true);
-    emit CollectedFee(address(0), address(Mainnet.DAI), 2 * 0, expectedFee);
+    emit Fee(address(0), address(Mainnet.DAI), 2 * 0, expectedFee);
 
     facet.uniswapV2ExactInputSingle(
       IUniV2Router.ExactInputSingleParams({

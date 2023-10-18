@@ -7,7 +7,7 @@ interface ILibStarVault {
    */
   error FeeTooHigh(uint256 maxFeeBps);
 
-  event CollectedFee(
+  event Fee(
     address indexed partner,
     address indexed token,
     uint256 partnerFee,

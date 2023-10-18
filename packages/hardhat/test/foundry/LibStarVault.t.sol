@@ -21,7 +21,7 @@ contract LibStarVaultTest is Test, ILibStarVault {
 
     // Collect 101 units of USDC for partner PARTNER_1
     vm.expectEmit(true, true, true, true);
-    emit CollectedFee(PARTNER_1, address(Mainnet.USDC), 50, 51);
+    emit Fee(PARTNER_1, address(Mainnet.USDC), 50, 51);
     LibStarVault.registerCollectedFee(PARTNER_1, address(Mainnet.USDC), 50, 51);
 
     assertEq(s.partners.length(), 1);
@@ -57,7 +57,7 @@ contract LibStarVaultTest is Test, ILibStarVault {
     address partner = makeAddr('partner');
 
     vm.expectEmit(true, true, true, true);
-    emit CollectedFee(partner, address(Mainnet.USDC), 71250, 71250);
+    emit Fee(partner, address(Mainnet.USDC), 71250, 71250);
 
     // The total fee is 0.15% of the actual output 95_000000, 142500 (0.1425 USDC)
     // Site and partner gets half, 71250 units each
@@ -82,7 +82,7 @@ contract LibStarVaultTest is Test, ILibStarVault {
     expectedFeeTotal += (90_000000 * 23) / 10_000;
 
     vm.expectEmit(true, true, true, true);
-    emit CollectedFee(partner, address(Mainnet.USDC), expectedFeeTotal / 2, expectedFeeTotal / 2);
+    emit Fee(partner, address(Mainnet.USDC), expectedFeeTotal / 2, expectedFeeTotal / 2);
 
     uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
       partner,
@@ -103,7 +103,7 @@ contract LibStarVaultTest is Test, ILibStarVault {
     uint256 expectedFeeTotal = (95_000000 - 90_000000);
 
     vm.expectEmit(true, true, true, true);
-    emit CollectedFee(partner, address(Mainnet.USDC), expectedFeeTotal / 2, expectedFeeTotal / 2);
+    emit Fee(partner, address(Mainnet.USDC), expectedFeeTotal / 2, expectedFeeTotal / 2);
 
     uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
       partner,
@@ -123,7 +123,7 @@ contract LibStarVaultTest is Test, ILibStarVault {
     uint256 expectedFeeTotal = (100_000000 * 15) / 10_000;
 
     vm.expectEmit(true, true, true, true);
-    emit CollectedFee(partner, address(Mainnet.USDC), expectedFeeTotal / 2, expectedFeeTotal / 2);
+    emit Fee(partner, address(Mainnet.USDC), expectedFeeTotal / 2, expectedFeeTotal / 2);
 
     uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
       partner,
@@ -141,7 +141,7 @@ contract LibStarVaultTest is Test, ILibStarVault {
     uint256 expectedFeeTotal = (100_000000 * 15) / 10_000;
 
     vm.expectEmit(true, true, true, true);
-    emit CollectedFee(address(0), address(Mainnet.USDC), 0, expectedFeeTotal);
+    emit Fee(address(0), address(Mainnet.USDC), 0, expectedFeeTotal);
 
     uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
       address(0),
@@ -180,7 +180,7 @@ contract LibStarVaultTest is Test, ILibStarVault {
     expectedFeeTotal += (100_000000 * 15) / 10_000;
 
     vm.expectEmit(true, true, true, true);
-    emit CollectedFee(address(0), address(Mainnet.USDC), 0, expectedFeeTotal);
+    emit Fee(address(0), address(Mainnet.USDC), 0, expectedFeeTotal);
 
     uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
       address(0),
@@ -218,12 +218,7 @@ contract LibStarVaultTest is Test, ILibStarVault {
     uint256 expectedFeeTotal = (1200 * 25) / 10_000;
 
     vm.expectEmit(true, true, true, true);
-    emit CollectedFee(
-      partner,
-      address(Mainnet.USDC),
-      expectedFeeTotal / 2,
-      expectedFeeTotal / 2 + 1
-    );
+    emit Fee(partner, address(Mainnet.USDC), expectedFeeTotal / 2, expectedFeeTotal / 2 + 1);
 
     uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
       partner,
