@@ -22,7 +22,7 @@ contract StarVaultHarness is StarVault {
 }
 
 contract StarVaultTest is FacetTest {
-  event PartnerWithdraw(address indexed partner, address indexed token, uint256 amount);
+  event Withdraw(address indexed partner, address indexed token, uint256 amount);
 
   address PARTNER_1 = address(0xdeadbeef9023480492001);
   address PARTNER_2 = address(0xdeadbeef9023480492002);
@@ -79,7 +79,7 @@ contract StarVaultTest is FacetTest {
 
     // Withdraw the USDC balance for partner 1
     vm.expectEmit(true, true, true, false);
-    emit PartnerWithdraw(PARTNER_1, address(Mainnet.USDC), 100);
+    emit Withdraw(PARTNER_1, address(Mainnet.USDC), 100);
     vm.prank(PARTNER_1);
     facet.partnerWithdraw(address(Mainnet.USDC));
 
@@ -109,7 +109,7 @@ contract StarVaultTest is FacetTest {
 
     // Withdraw the ETH balance for partner 2
     vm.expectEmit(true, true, true, false);
-    emit PartnerWithdraw(PARTNER_2, address(0), 300);
+    emit Withdraw(PARTNER_2, address(0), 300);
     vm.prank(PARTNER_2);
     facet.partnerWithdraw(address(0));
 

@@ -615,7 +615,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
     Mainnet.WETH.approve(address(Addresses.PERMIT2), 1 ether);
 
     vm.expectEmit(true, true, true, false);
-    emit CollectedFee(address(0), address(Mainnet.DAI), 0, expectedFee);
+    emit Fee(address(0), address(Mainnet.DAI), 0, expectedFee);
 
     vm.prank(user);
     facet.warpLinkEngage(

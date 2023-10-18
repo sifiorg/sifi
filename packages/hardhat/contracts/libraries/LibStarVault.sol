@@ -14,7 +14,7 @@ library LibStarVault {
    */
   error FeeTooHigh(uint256 maxFeeBps);
 
-  event CollectedFee(
+  event Fee(
     address indexed partner,
     address indexed token,
     uint256 partnerFee,
@@ -77,7 +77,7 @@ library LibStarVault {
       s.partnerBalancesTotal[token] += partnerFee;
     }
 
-    emit CollectedFee(partner, token, partnerFee, protocolFee);
+    emit Fee(partner, token, partnerFee, protocolFee);
   }
 
   function calculateAndRegisterFee(

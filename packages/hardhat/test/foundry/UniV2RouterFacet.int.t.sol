@@ -18,7 +18,7 @@ import {PermitParams} from 'contracts/libraries/PermitParams.sol';
 import {PermitSignature} from './helpers/PermitSignature.sol';
 
 contract UniV2RouterIntegrationTest is FacetTest {
-  event PartnerWithdraw(address indexed partner, address indexed token, uint256 amount);
+  event Withdraw(address indexed partner, address indexed token, uint256 amount);
 
   address VAULT = makeAddr('VAULT');
 
@@ -114,7 +114,7 @@ contract UniV2RouterIntegrationTest is FacetTest {
 
     vm.prank(partner);
     vm.expectEmit(true, true, true, false);
-    emit PartnerWithdraw(partner, address(Mainnet.USDC), 100);
+    emit Withdraw(partner, address(Mainnet.USDC), 100);
     starVault.partnerWithdraw(address(Mainnet.USDC));
 
     assertApproxEqRel(Mainnet.USDC.balanceOf(partner), expectedFeeTotal / 2, 0.05 ether);
@@ -180,7 +180,7 @@ contract UniV2RouterIntegrationTest is FacetTest {
 
     vm.prank(partner);
     vm.expectEmit(true, true, true, false);
-    emit PartnerWithdraw(partner, address(Mainnet.WETH), 100);
+    emit Withdraw(partner, address(Mainnet.WETH), 100);
     starVault.partnerWithdraw(address(Mainnet.WETH));
     assertApproxEqRel(Mainnet.WETH.balanceOf(partner), 0.004 ether, 0.05 ether);
 
@@ -244,7 +244,7 @@ contract UniV2RouterIntegrationTest is FacetTest {
 
     vm.prank(partner);
     vm.expectEmit(true, true, true, false);
-    emit PartnerWithdraw(partner, address(Mainnet.DAI), 50 * (10 ** 18));
+    emit Withdraw(partner, address(Mainnet.DAI), 50 * (10 ** 18));
     starVault.partnerWithdraw(address(Mainnet.DAI));
 
     assertApproxEqRel(Mainnet.DAI.balanceOf(partner), 50 * (10 ** 18), 0.05 ether);
