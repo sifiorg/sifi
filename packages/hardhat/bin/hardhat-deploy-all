@@ -1,12 +1,25 @@
 #!/usr/bin/env bash
 set -eu -o pipefail
 
+ignore="${IGNORE:-}"
+
+if [ "$ignore" ]; then
+  echo "Ignoring: $ignore"
+fi
+
 for dir in ./deployments/*/; do
   network=$(basename "$dir")
 
-  echo "==== NETWORK: $network ===="
-  echo
+  # Skip if contained in $ignore
+  if [[ "$ignore" == *"$network"* ]]; then
+    continue
+  fi
 
-  hardhat deploy --network "$network"
-  echo
+  echo -n "Deploying to $network..."
+
+  if hardhat deploy --network "$network" >/dev/null 2>&1; then
+    echo "OK"
+  else
+    echo "ERROR"
+  fi
 done
