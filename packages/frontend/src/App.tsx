@@ -31,7 +31,9 @@ const App = () => {
     <AppProvider>
       <Layout>
         <Routes>
+          <Route path="/:ref" element={<Home />} />
           <Route path="/:fromToken/:toToken" element={<Home />} />
+          <Route path="/:fromToken/:toToken/:ref" element={<Home />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </Layout>

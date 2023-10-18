@@ -1,19 +1,18 @@
 import { useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { localStorageKeys } from 'src/utils/localStorageKeys';
-import { searchParams } from 'src/utils/routes';
 import { isAddress } from 'viem';
 
+const REFERRER_ADDRESS_LENGTH = 42;
+
 const useReferrer = () => {
-  const [searchParamsFromUrl] = useSearchParams();
-  const navigate = useNavigate();
+  const { ref: refParam } = useParams();
 
   useEffect(() => {
-    const refParam = searchParamsFromUrl.get(searchParams.REFERRER);
 
     if (!refParam) return;
 
-    const referrerAddress = refParam.slice(0, 42);
+    const referrerAddress = refParam.slice(0, REFERRER_ADDRESS_LENGTH);
 
     if (!isAddress(referrerAddress)) {
       console.error('Invalid Referrer Address. Address should be 42 characters');
@@ -33,9 +32,7 @@ const useReferrer = () => {
       // In case there is a new referral address without a set fee bps, we remove the old one
       localStorage.removeItem(localStorageKeys.REFERRER_FEE_BPS);
     }
-
-    navigate('/');
-  }, [searchParamsFromUrl]);
+  }, []);
 };
 
 export { useReferrer };

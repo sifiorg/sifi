@@ -97,7 +97,7 @@ const useSyncTokenUrlParams = () => {
   // Update url params if the user changes the from or to token
   useEffect(() => {
     if (!isSynchronised && fromToken?.address && toToken?.address) {
-      navigate(`/${fromToken.address}${fromChain.id}/${toToken.address}${toChain.id}`);
+      navigate(`/${fromToken.address}${fromChain.id}/${toToken.address}${toChain.id}`, { replace: true });
     }
   }, [fromToken, toToken]);
 };
