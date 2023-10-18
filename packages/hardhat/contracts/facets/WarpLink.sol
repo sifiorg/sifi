@@ -734,7 +734,7 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
    * This command must not run inside of a split.
    *
    * If the jump is the final operation, meaning the tokens will be delivered to the recipient on
-   * the other chain without further processing, the fee is charged `LibWarp.Warp` event is emitted
+   * the other chain without further processing, the fee is charged and the `Warp` event is emitted
    * in this function.
    *
    * A bridge fee must be paid in the native token. This fee is determined with

@@ -7,9 +7,9 @@ import {FacetTest} from './helpers/FacetTest.sol';
 import {Addresses, Mainnet, Arbitrum, Bsc} from './helpers/Networks.sol';
 import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
 import {IUniV2Like} from 'contracts/interfaces/IUniV2Like.sol';
+import {ILibStarVault} from 'contracts/interfaces/ILibStarVault.sol';
 import {UniV2LikeFacet} from 'contracts/facets/UniV2LikeFacet.sol';
 import {InitLibWarp} from 'contracts/init/InitLibWarp.sol';
-import {Errors} from 'contracts/libraries/Errors.sol';
 import {LibWarp} from 'contracts/libraries/LibWarp.sol';
 import {IUniswapV2Factory} from 'contracts/interfaces/external/IUniswapV2Factory.sol';
 import {IPermit2} from 'contracts/interfaces/external/IPermit2.sol';
@@ -18,13 +18,6 @@ import {PermitParams} from 'contracts/libraries/PermitParams.sol';
 import {PermitSignature} from './helpers/PermitSignature.sol';
 
 contract UniV2LikeFacetTestBase is FacetTest {
-  event CollectedFee(
-    address indexed partner,
-    address indexed token,
-    uint256 partnerFee,
-    uint256 diamondFee
-  );
-
   IUniV2Like internal facet;
 
   function setUpOn(uint256 chainId, uint256 blockNumber) internal override {

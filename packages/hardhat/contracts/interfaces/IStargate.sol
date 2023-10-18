@@ -2,8 +2,9 @@
 pragma solidity ^0.8.19;
 
 import {PermitParams} from '../libraries/PermitParams.sol';
+import {ILibStarVault} from '../interfaces/ILibStarVault.sol';
 
-interface IStargate {
+interface IStargate is ILibStarVault {
   error InsufficientEthValue();
 
   struct JumpTokenParams {

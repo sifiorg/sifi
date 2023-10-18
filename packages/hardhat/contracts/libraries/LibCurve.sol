@@ -3,6 +3,9 @@ pragma solidity ^0.8.19;
 
 import {ICurvePoolKind1, ICurvePoolKind2, ICurvePoolKind3} from '../interfaces/external/ICurvePool.sol';
 
+/**
+ * NOTE: Events and errors must be copied to ILibCurve
+ */
 library LibCurve {
   error UnhandledPoolKind();
 

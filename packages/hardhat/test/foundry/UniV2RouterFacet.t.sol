@@ -6,22 +6,15 @@ import {FacetTest} from './helpers/FacetTest.sol';
 import {Addresses, Mainnet} from './helpers/Networks.sol';
 import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
 import {IUniV2Router} from 'contracts/interfaces/IUniV2Router.sol';
+import {ILibStarVault} from 'contracts/interfaces/ILibStarVault.sol';
 import {UniV2RouterFacet} from 'contracts/facets/UniV2RouterFacet.sol';
 import {InitUniV2Router} from 'contracts/init/InitUniV2Router.sol';
-import {Errors} from 'contracts/libraries/Errors.sol';
 import {IPermit2} from 'contracts/interfaces/external/IPermit2.sol';
 import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransfer.sol';
 import {PermitParams} from 'contracts/libraries/PermitParams.sol';
 import {PermitSignature} from './helpers/PermitSignature.sol';
 
-contract UniV2RouterFacetTestBase is FacetTest {
-  event CollectedFee(
-    address indexed partner,
-    address indexed token,
-    uint256 partnerFee,
-    uint256 diamondFee
-  );
-
+contract UniV2RouterFacetTestBase is FacetTest, ILibStarVault {
   IUniV2Router internal facet;
 
   function setUpOn(uint256 chainId, uint256 blockNumber) internal override {
@@ -524,7 +517,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
 
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
-    vm.expectRevert(abi.encodeWithSelector(Errors.InsufficientOutputAmount.selector));
+    vm.expectRevert(abi.encodeWithSelector(IUniV2Router.InsufficientOutputAmount.selector));
 
     facet.uniswapV2ExactInput(
       IUniV2Router.ExactInputParams({
@@ -567,7 +560,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
 
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
-    vm.expectRevert(abi.encodeWithSelector(Errors.DeadlineExpired.selector));
+    vm.expectRevert(abi.encodeWithSelector(IUniV2Router.DeadlineExpired.selector));
 
     facet.uniswapV2ExactInput(
       IUniV2Router.ExactInputParams({
@@ -614,7 +607,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
   }
 
   function testFork_uniswapV2ExactInputSingle_revertDeadlineExpired() public {
-    vm.expectRevert(abi.encodeWithSelector(Errors.DeadlineExpired.selector));
+    vm.expectRevert(abi.encodeWithSelector(IUniV2Router.DeadlineExpired.selector));
 
     facet.uniswapV2ExactInputSingle(
       IUniV2Router.ExactInputSingleParams({
@@ -653,7 +646,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
 
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
-    vm.expectRevert(abi.encodeWithSelector(Errors.InsufficientOutputAmount.selector));
+    vm.expectRevert(abi.encodeWithSelector(IUniV2Router.InsufficientOutputAmount.selector));
 
     facet.uniswapV2ExactInputSingle(
       IUniV2Router.ExactInputSingleParams({

@@ -3,6 +3,9 @@ pragma solidity ^0.8.19;
 
 import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 
+/**
+ * NOTE: Events and errors must be copied to ILibStarVault
+ */
 library LibStarVault {
   using EnumerableSet for EnumerableSet.AddressSet;
 

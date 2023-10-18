@@ -9,7 +9,6 @@ import {IUniV2Router} from '../interfaces/IUniV2Router.sol';
 import {LibUniV2Router} from '../libraries/LibUniV2Router.sol';
 import {LibStarVault} from '../libraries/LibStarVault.sol';
 import {LibWarp} from '../libraries/LibWarp.sol';
-import {Errors} from '../libraries/Errors.sol';
 import {IUniswapV2Pair} from '../interfaces/external/IUniswapV2Pair.sol';
 import {IPermit2} from '../interfaces/external/IPermit2.sol';
 import {IAllowanceTransfer} from '../interfaces/external/IAllowanceTransfer.sol';
@@ -24,7 +23,7 @@ contract UniV2RouterFacet is IUniV2Router {
     PermitParams calldata permit
   ) external payable returns (uint256 amountOut) {
     if (block.timestamp > params.deadline) {
-      revert Errors.DeadlineExpired();
+      revert DeadlineExpired();
     }
 
     LibUniV2Router.DiamondStorage storage s = LibUniV2Router.diamondStorage();
@@ -56,13 +55,13 @@ contract UniV2RouterFacet is IUniV2Router {
 
     // Enforce minimum amount/max slippage
     if (amountOut < LibWarp.applySlippage(params.amountOut, params.slippage)) {
-      revert Errors.InsufficientOutputAmount();
+      revert InsufficientOutputAmount();
     }
 
     if (isFromEth) {
       // From ETH
       if (msg.value != params.amountIn) {
-        revert Errors.IncorrectEthValue();
+        revert IncorrectEthValue();
       }
 
       s.weth.deposit{value: msg.value}();
@@ -109,7 +108,7 @@ contract UniV2RouterFacet is IUniV2Router {
     );
 
     if (amountOut == 0) {
-      revert Errors.ZeroAmountOut();
+      revert ZeroAmountOut();
     }
 
     if (isToEth) {
@@ -119,7 +118,7 @@ contract UniV2RouterFacet is IUniV2Router {
       (bool sent, ) = params.recipient.call{value: amountOut}('');
 
       if (!sent) {
-        revert Errors.EthTransferFailed();
+        revert EthTransferFailed();
       }
     } else {
       IERC20(params.tokenOut).safeTransfer(params.recipient, amountOut);
@@ -140,7 +139,7 @@ contract UniV2RouterFacet is IUniV2Router {
     PermitParams calldata permit
   ) external payable returns (uint256 amountOut) {
     if (block.timestamp > params.deadline) {
-      revert Errors.DeadlineExpired();
+      revert DeadlineExpired();
     }
 
     LibUniV2Router.DiamondStorage storage s = LibUniV2Router.diamondStorage();
@@ -165,13 +164,13 @@ contract UniV2RouterFacet is IUniV2Router {
 
     // Enforce minimum amount/max slippage
     if (amounts[amounts.length - 1] < LibWarp.applySlippage(params.amountOut, params.slippage)) {
-      revert Errors.InsufficientOutputAmount();
+      revert InsufficientOutputAmount();
     }
 
     if (isFromEth) {
       // From ETH
       if (msg.value != params.amountIn) {
-        revert Errors.IncorrectEthValue();
+        revert IncorrectEthValue();
       }
 
       s.weth.deposit{value: msg.value}();
@@ -227,7 +226,7 @@ contract UniV2RouterFacet is IUniV2Router {
     );
 
     if (amountOut == 0) {
-      revert Errors.ZeroAmountOut();
+      revert ZeroAmountOut();
     }
 
     if (isToEth) {
@@ -237,7 +236,7 @@ contract UniV2RouterFacet is IUniV2Router {
       (bool sent, ) = params.recipient.call{value: amountOut}('');
 
       if (!sent) {
-        revert Errors.EthTransferFailed();
+        revert EthTransferFailed();
       }
     } else {
       IERC20(params.path[pathLengthMinusOne]).safeTransfer(params.recipient, amountOut);

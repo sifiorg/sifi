@@ -7,9 +7,9 @@ import {FacetTest} from './helpers/FacetTest.sol';
 import {Addresses, Mainnet} from './helpers/Networks.sol';
 import {IDiamondCut} from 'contracts/interfaces/IDiamondCut.sol';
 import {ICurve} from 'contracts/interfaces/ICurve.sol';
+import {ILibStarVault} from 'contracts/interfaces/ILibStarVault.sol';
 import {Curve} from 'contracts/facets/Curve.sol';
 import {InitLibWarp} from 'contracts/init/InitLibWarp.sol';
-import {Errors} from 'contracts/libraries/Errors.sol';
 import {LibWarp} from 'contracts/libraries/LibWarp.sol';
 import {IUniswapV2Factory} from 'contracts/interfaces/external/IUniswapV2Factory.sol';
 import {ICurvePoolKind1, ICurvePoolKind2, ICurvePoolKind3} from 'contracts/interfaces/external/ICurvePool.sol';
@@ -18,14 +18,7 @@ import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransf
 import {PermitParams} from 'contracts/libraries/PermitParams.sol';
 import {PermitSignature} from './helpers/PermitSignature.sol';
 
-contract CurveTest is FacetTest {
-  event CollectedFee(
-    address indexed partner,
-    address indexed token,
-    uint256 partnerFee,
-    uint256 diamondFee
-  );
-
+contract CurveTest is FacetTest, ILibStarVault {
   ICurve internal facet;
 
   function setUp() public override {

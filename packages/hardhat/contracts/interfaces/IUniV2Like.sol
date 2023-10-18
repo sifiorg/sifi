@@ -2,8 +2,10 @@
 pragma solidity ^0.8.19;
 
 import {PermitParams} from '../libraries/PermitParams.sol';
+import {ILibStarVault} from '../interfaces/ILibStarVault.sol';
+import {ILibWarp} from '../interfaces/ILibWarp.sol';
 
-interface IUniV2Like {
+interface IUniV2Like is ILibStarVault, ILibWarp {
   error InsufficienTokensDelivered();
   error DeadlineExpired();
   error InsufficientOutputAmount();
