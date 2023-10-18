@@ -12,7 +12,6 @@ import {InitUniV2Router} from 'contracts/init/InitUniV2Router.sol';
 import {IStarVault} from 'contracts/interfaces/IStarVault.sol';
 import {StarVault} from 'contracts/facets/StarVault.sol';
 import {LibStarVault} from 'contracts/libraries/LibStarVault.sol';
-import {Errors} from 'contracts/libraries/Errors.sol';
 import {IPermit2} from 'contracts/interfaces/external/IPermit2.sol';
 import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransfer.sol';
 import {PermitParams} from 'contracts/libraries/PermitParams.sol';

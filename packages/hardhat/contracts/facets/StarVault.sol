@@ -6,7 +6,6 @@ import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {LibDiamond} from '../libraries/LibDiamond.sol';
 import {LibStarVault} from '../libraries/LibStarVault.sol';
-import {Errors} from '../libraries/Errors.sol';
 import {IStarVault} from '../interfaces/IStarVault.sol';
 
 /**
@@ -53,7 +52,7 @@ contract StarVault is IStarVault {
         (bool sent, ) = payable(msg.sender).call{value: balance}('');
 
         if (!sent) {
-          revert Errors.EthTransferFailed();
+          revert EthTransferFailed();
         }
       } else {
         // NOTE: The token is not removed from the partner's token set
@@ -86,7 +85,7 @@ contract StarVault is IStarVault {
       (bool sent, ) = to.call{value: amount}('');
 
       if (!sent) {
-        revert Errors.EthTransferFailed();
+        revert EthTransferFailed();
       }
     } else {
       IERC20(token).safeTransfer(to, amount);

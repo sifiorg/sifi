@@ -6,17 +6,11 @@ pragma solidity ^0.8.19;
 import 'forge-std/Test.sol';
 import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 import {LibStarVault} from 'contracts/libraries/LibStarVault.sol';
+import {ILibStarVault} from 'contracts/interfaces/ILibStarVault.sol';
 import {Mainnet} from './helpers/Networks.sol';
 
-contract LibStarVaultTest is Test {
+contract LibStarVaultTest is Test, ILibStarVault {
   using EnumerableSet for EnumerableSet.AddressSet;
-
-  event CollectedFee(
-    address indexed partner,
-    address indexed token,
-    uint256 partnerFee,
-    uint256 diamondFee
-  );
 
   function test_registerCollectedFee_Vector1() public {
     // NOTE: The storage is this test contract

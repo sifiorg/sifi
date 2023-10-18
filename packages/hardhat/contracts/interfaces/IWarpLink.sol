@@ -2,8 +2,12 @@
 pragma solidity ^0.8.19;
 
 import {PermitParams} from '../libraries/PermitParams.sol';
+import {ILibCurve} from '../interfaces/ILibCurve.sol';
+import {ILibStarVault} from '../interfaces/ILibStarVault.sol';
+import {ILibUniV3Like} from '../interfaces/ILibUniV3Like.sol';
+import {ILibWarp} from '../interfaces/ILibWarp.sol';
 
-interface IWarpLink {
+interface IWarpLink is ILibCurve, ILibStarVault, ILibUniV3Like, ILibWarp {
   error UnhandledCommand();
   error InsufficientEthValue();
   error InsufficientOutputAmount();
