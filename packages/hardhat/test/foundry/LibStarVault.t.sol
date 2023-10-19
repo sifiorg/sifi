@@ -225,7 +225,7 @@ contract LibStarVaultTest is Test, ILibStarVault {
 
     vm.expectRevert(abi.encodeWithSelector(LibStarVault.FeeTooHigh.selector, 2000));
 
-    uint256 amountOutUser = LibStarVault.calculateAndRegisterFee(
+    LibStarVault.calculateAndRegisterFee(
       partner,
       address(Mainnet.USDC),
       20_000, // 200%
