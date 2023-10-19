@@ -79,7 +79,7 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
         amountOut: 1 ether,
         recipient: user,
         partner: address(0),
-        feeBps: 0,
+        feeBps: 10,
         slippageBps: 0,
         deadline: deadline
       }),
