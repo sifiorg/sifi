@@ -39,11 +39,18 @@ const useMultiCallTokenBalance = (
   };
 
   const fetchBalances = async () => {
-    const usdPricesForTokens = await Promise.allSettled(
-      tokens.map(token => sifi.getUsdPrice(chainId, token.address))
-    );
     const balanceData = await publicClient.multicall({ contracts: balanceReadContracts });
     const etherBalance = await fetchEtherBalance();
+    const usdPricesForTokens = await Promise.allSettled(
+      tokens.map((token, index) => {
+        const isNativeToken = token.address.toLowerCase() === ETH_CONTRACT_ADDRESS.toLowerCase();
+        const tokenBalance =
+          balanceData[index].status === 'success' ? (balanceData[index].result as bigint) : 0;
+        if (tokenBalance > 0 || (isNativeToken && etherBalance && etherBalance > 0)) {
+          return sifi.getUsdPrice(chainId, token.address);
+        }
+      })
+    );
 
     const balanceMap: BalanceMap = new Map();
 
@@ -56,7 +63,8 @@ const useMultiCallTokenBalance = (
         const isNativeToken = tokenAddress === ETH_CONTRACT_ADDRESS.toLowerCase();
         const tokenUsdPrice =
           usdPricesForTokens[i].status === 'fulfilled'
-            ? (usdPricesForTokens[i] as PromiseFulfilledResult<TokenUsdPrice>).value.usdPrice
+            ? (usdPricesForTokens[i] as PromiseFulfilledResult<TokenUsdPrice | undefined>).value
+                ?.usdPrice
             : null;
 
         if (isNativeToken && etherBalance) {
@@ -89,6 +97,8 @@ const useMultiCallTokenBalance = (
         console.error(error);
       }
     }
+
+    console.log(chainId, usdPricesForTokens, balanceMap);
 
     setAddressBalanceMap(balanceMap);
   };
