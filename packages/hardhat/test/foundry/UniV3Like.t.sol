@@ -85,7 +85,7 @@ contract UniV3LikeMainnetTest is UniV3LikeTestBase {
         amountOut: 999 * (10 ** 6),
         recipient: user,
         slippageBps: 50,
-        feeBps: 0,
+        feeBps: 10,
         deadline: deadline,
         partner: address(0),
         tokenIn: address(Mainnet.USDC),
@@ -95,7 +95,11 @@ contract UniV3LikeMainnetTest is UniV3LikeTestBase {
       PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
-    assertEq(Mainnet.USDT.balanceOf(user), 999 * (10 ** 6));
+    uint256 expectedOutBeforeFee = 999 * (10 ** 6);
+    uint256 expectedFee = (expectedOutBeforeFee * 10) / 10_000;
+    uint256 expectedOut = expectedOutBeforeFee - expectedFee;
+
+    assertEq(Mainnet.USDT.balanceOf(user), expectedOut);
   }
 
   function testFork_uniswapV3LikeExactInputSingle_UsdcToEth() public {
@@ -222,7 +226,7 @@ contract UniV3LikeMainnetTest is UniV3LikeTestBase {
         amountOut: amountOut,
         recipient: user,
         slippageBps: 0,
-        feeBps: 0,
+        feeBps: 10,
         deadline: deadline,
         partner: address(0),
         tokens: tokens,
@@ -231,7 +235,7 @@ contract UniV3LikeMainnetTest is UniV3LikeTestBase {
       PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
-    assertEq(user.balance, amountOut);
+    assertEq(user.balance, amountOut - (amountOut * 10) / 10_000);
   }
 
   receive() external payable {}

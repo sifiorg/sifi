@@ -65,7 +65,7 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
     super.setUpOn(1, 17853419);
   }
 
-  function testFork_uniswapV2LikeExactInputSingle() public {
+  function testFork_uniswapV2LikeExactInputSingle_sushiEthToUsdc() public {
     deal(user, 1 ether);
 
     address pool = getPair(
@@ -81,7 +81,7 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
         amountOut: 1830 * (10 ** 6),
         recipient: user,
         slippageBps: 50,
-        feeBps: 0,
+        feeBps: 10,
         deadline: deadline,
         partner: address(0),
         tokenIn: address(0),
@@ -90,6 +90,50 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
         poolFeeBps: 30
       }),
       emptyPermitParams
+    );
+  }
+
+  function testFork_uniswapV2LikeExactInputSingle_sushiWethToUsdc() public {
+    address pool = getPair(
+      Mainnet.SUSHISWAP_V2_FACTORY,
+      address(Mainnet.WETH),
+      address(Mainnet.USDC)
+    );
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.WETH),
+        amount: 1 ether,
+        expiration: deadline,
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
+
+    deal(address(Mainnet.WETH), user, 1 ether);
+
+    vm.prank(user);
+    Mainnet.WETH.approve(address(Addresses.PERMIT2), 1 ether);
+
+    vm.prank(user);
+    facet.uniswapV2LikeExactInputSingle(
+      IUniV2Like.ExactInputSingleParams({
+        amountIn: 1 ether,
+        amountOut: 1830 * (10 ** 6),
+        recipient: user,
+        slippageBps: 50,
+        feeBps: 10,
+        deadline: deadline,
+        partner: address(0),
+        tokenIn: address(Mainnet.WETH),
+        tokenOut: address(Mainnet.USDC),
+        pool: pool,
+        poolFeeBps: 30
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
     );
   }
 
