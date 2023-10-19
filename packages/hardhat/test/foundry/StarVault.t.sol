@@ -90,11 +90,6 @@ contract StarVaultTest is FacetTest {
     );
     assertEq(Mainnet.USDC.balanceOf(PARTNER_1), 100, 'partner1 usdc after');
     assertEq(Mainnet.USDC.balanceOf(address(diamond)), 101 + 200 + 201, 'diamond usdc after');
-
-    // Ensure the USDC token wasn't removed from PARTNER_1's token set
-    address[] memory partnerTokens = facet.partnerTokens(PARTNER_1);
-    assertEq(partnerTokens.length, 1, 'token missing');
-    assertEq(partnerTokens[0], address(Mainnet.USDC), 'token incorrect');
   }
 
   function testFork_partnerWithdrawETH() public {
@@ -114,22 +109,6 @@ contract StarVaultTest is FacetTest {
     facet.partnerWithdraw(address(0));
 
     assertEq(PARTNER_2.balance, 300);
-  }
-
-  function testFork_partnerTokens() public {
-    // Collect 50 units of DAI for PARTNER_1
-    facet.exposed_registerCollectedFee(PARTNER_1, address(Mainnet.DAI), 50, 0);
-
-    // Collect 100 units of USDC for PARTNER_2
-    facet.exposed_registerCollectedFee(PARTNER_2, address(Mainnet.USDC), 100, 0);
-
-    address[] memory partner1Tokens = facet.partnerTokens(PARTNER_1);
-    assertEq(partner1Tokens.length, 1);
-    assertEq(partner1Tokens[0], address(Mainnet.DAI));
-
-    address[] memory partner2Tokens = facet.partnerTokens(PARTNER_2);
-    assertEq(partner2Tokens.length, 1);
-    assertEq(partner2Tokens[0], address(Mainnet.USDC));
   }
 
   function testFork_partnerTokenBalance() public {

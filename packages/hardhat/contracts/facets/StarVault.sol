@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {LibDiamond} from '../libraries/LibDiamond.sol';
@@ -12,23 +11,9 @@ import {IStarVault} from '../interfaces/IStarVault.sol';
  * The StarVault estimates, collects, and tracks fees for partners
  */
 contract StarVault is IStarVault {
-  using EnumerableSet for EnumerableSet.AddressSet;
   using SafeERC20 for IERC20;
 
   error InsufficientOwnerBalance(uint256 available);
-
-  function partnerTokens(address partner) external view returns (address[] memory tokens_) {
-    LibStarVault.State storage s = LibStarVault.state();
-
-    EnumerableSet.AddressSet storage tokenSet = s.partnerTokens[partner];
-    uint256 length = tokenSet.length();
-
-    tokens_ = new address[](length);
-
-    for (uint256 tokenIndex; tokenIndex < length; tokenIndex++) {
-      tokens_[tokenIndex] = tokenSet.at(tokenIndex);
-    }
-  }
 
   function partnerTokenBalance(address partner, address token) external view returns (uint256) {
     LibStarVault.State storage s = LibStarVault.state();

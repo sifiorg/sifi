@@ -4,14 +4,11 @@ pragma solidity ^0.8.19;
 // TODO: Add tests for registerAndCollectFee
 
 import 'forge-std/Test.sol';
-import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 import {LibStarVault} from 'contracts/libraries/LibStarVault.sol';
 import {ILibStarVault} from 'contracts/interfaces/ILibStarVault.sol';
 import {Mainnet} from './helpers/Networks.sol';
 
 contract LibStarVaultTest is Test, ILibStarVault {
-  using EnumerableSet for EnumerableSet.AddressSet;
-
   function test_registerCollectedFee_Vector1() public {
     // NOTE: The storage is this test contract
     LibStarVault.State storage s = LibStarVault.state();
@@ -24,17 +21,12 @@ contract LibStarVaultTest is Test, ILibStarVault {
     emit Fee(PARTNER_1, address(Mainnet.USDC), 50, 51);
     LibStarVault.registerCollectedFee(PARTNER_1, address(Mainnet.USDC), 50, 51);
 
-    assertEq(s.partners.length(), 1);
-    assertEq(s.partners.at(0), address(PARTNER_1));
     assertEq(s.partnerBalances[PARTNER_1][address(Mainnet.USDC)], 50);
     assertEq(s.partnerBalancesTotal[address(Mainnet.USDC)], 50);
 
     // Collect 22 units of USDC for partner PARTNER_2
     LibStarVault.registerCollectedFee(PARTNER_2, address(Mainnet.USDC), 11, 11);
 
-    assertEq(s.partners.length(), 2);
-    assertEq(s.partners.at(0), address(PARTNER_1));
-    assertEq(s.partners.at(1), address(PARTNER_2));
     assertEq(s.partnerBalances[PARTNER_1][address(Mainnet.USDC)], 50);
     assertEq(s.partnerBalances[PARTNER_2][address(Mainnet.USDC)], 11);
     assertEq(s.partnerBalancesTotal[address(Mainnet.USDC)], 61);
@@ -42,9 +34,6 @@ contract LibStarVaultTest is Test, ILibStarVault {
     // Collect 33 units of ETH for partner PARTNER_1
     LibStarVault.registerCollectedFee(PARTNER_1, address(0), 33, 0);
 
-    assertEq(s.partners.length(), 2);
-    assertEq(s.partners.at(0), address(PARTNER_1));
-    assertEq(s.partners.at(1), address(PARTNER_2));
     assertEq(s.partnerBalances[PARTNER_1][address(Mainnet.USDC)], 50);
     assertEq(s.partnerBalances[PARTNER_1][address(0)], 33);
     assertEq(s.partnerBalances[PARTNER_2][address(Mainnet.USDC)], 11);
