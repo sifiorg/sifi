@@ -9,6 +9,7 @@ import { SDKProvider } from './providers/SDKProvider';
 import { SwapFormProvider } from './providers/SwapFormProvider';
 import { WagmiProvider } from './providers/WagmiProvider';
 import { TokensProvider } from './providers/TokensProvider';
+import { SpaceTravelProvider } from './providers/SpaceTravelProvider';
 
 const QueryProvider = QueryClientProvider;
 const queryClient = new QueryClient();
@@ -22,7 +23,7 @@ export const AppProvider: FC<PropsWithChildren> = ({ children }) => {
             <WagmiProvider>
               <SwapFormProvider>
                 <TokensProvider>
-                  {children}
+                  <SpaceTravelProvider>{children}</SpaceTravelProvider>
                   <CustomToastContainer />
                 </TokensProvider>
               </SwapFormProvider>
