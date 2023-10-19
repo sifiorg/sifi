@@ -1,14 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
-
 /**
  * NOTE: Events and errors must be copied to ILibStarVault
  */
 library LibStarVault {
-  using EnumerableSet for EnumerableSet.AddressSet;
-
   /**
    * The swap fee is over the maximum allowed
    */
@@ -22,16 +18,6 @@ library LibStarVault {
   );
 
   struct State {
-    /**
-     * Set of partner balances. An address is added when the partner is first credited
-     */
-    EnumerableSet.AddressSet partners;
-    /**
-     * Set of tokens a partner has ever received fees in. The ETH token address zero is not included.
-     * Tokens are not removed from this set when a partner withdraws.
-     * Mapping: Partner -> token set
-     */
-    mapping(address => EnumerableSet.AddressSet) partnerTokens;
     /**
      * Token balances per partner
      * Mapping: Partner -> token -> balance
@@ -47,10 +33,16 @@ library LibStarVault {
   uint256 private constant MAX_FEE_BPS = 2_000;
 
   function state() internal pure returns (State storage s) {
-    bytes32 storagePosition = keccak256('diamond.storage.LibStarVault');
+    /**
+     * NOTE: Three storage slots used to store all partners addresses and partner tokens were
+     * removed to save gas.
+     */
+    unchecked {
+      uint256 storagePosition = uint256(keccak256('diamond.storage.LibStarVault')) + 3;
 
-    assembly {
-      s.slot := storagePosition
+      assembly {
+        s.slot := storagePosition
+      }
     }
   }
 
@@ -65,12 +57,6 @@ library LibStarVault {
     uint256 protocolFee
   ) internal {
     State storage s = state();
-
-    if (token != address(0)) {
-      s.partnerTokens[partner].add(token);
-    }
-
-    s.partners.add(partner);
 
     unchecked {
       s.partnerBalances[partner][token] += partnerFee;
