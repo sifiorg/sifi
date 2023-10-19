@@ -7,6 +7,27 @@ if [ "$ignore" ]; then
   echo "Ignoring: $ignore"
 fi
 
+deploy_network() {
+  network=$1
+  try=${2:-0}
+  echo "Deploying to $network..."
+
+  if hardhat deploy --network "$network" >/dev/null 2>&1; then
+    echo "$network: OK"
+  else
+    echo "$network: ERROR"
+
+    if [ "$try" -lt 3 ]; then
+      sleep 30
+      echo "Retrying $network..."
+      deploy_network "$network" "$((try + 1))"
+    else
+      echo "Failed to deploy $network"
+      exit 1
+    fi
+  fi
+}
+
 for dir in ./deployments/*/; do
   network=$(basename "$dir")
 
@@ -15,11 +36,7 @@ for dir in ./deployments/*/; do
     continue
   fi
 
-  echo -n "Deploying to $network..."
-
-  if hardhat deploy --network "$network" >/dev/null 2>&1; then
-    echo "OK"
-  else
-    echo "ERROR"
-  fi
+  deploy_network "$network" &
 done
+
+wait
