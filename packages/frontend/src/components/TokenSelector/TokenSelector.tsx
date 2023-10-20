@@ -35,8 +35,8 @@ const TokenSelector: FunctionComponent<{
 
   const formattedTokens = useMemo(() => {
     return tokens?.map(token => {
-      const balance =
-        balanceMap?.get(token.address.toLowerCase() as `0x${string}`)?.toString() || undefined;
+      const balanceData =
+        balanceMap?.get(token.address.toLowerCase() as `0x${string}`) || undefined;
       return {
         id: token.address as `0x${string}`,
         logoURI: token.logoURI,
@@ -44,7 +44,8 @@ const TokenSelector: FunctionComponent<{
         networkDisplayName: null,
         symbol: token.symbol,
         networkLogoURI,
-        balance,
+        balance: balanceData?.balance,
+        balanceInUsd: balanceData?.usdValue,
       };
     });
   }, [tokens, balanceMap, address]);
