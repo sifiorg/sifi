@@ -1,0 +1,34 @@
+type Token @entity(immutable: true) {
+  id: ID! # address as hex
+  address: Bytes! # address
+  decimals: BigInt!
+  name: String
+  symbol: String
+}
+
+type Warp @entity(immutable: true) {
+  id: ID!
+
+  addedAt: BigInt!
+  addedAtBlock: BigInt!
+  addedAtTransaction: Bytes!
+
+  tokenIn: Token! # null if ETH
+  tokenOut: Token! # address
+  amountIn: BigInt!
+  amountInDecimal: BigDecimal!
+  amountOut: BigInt!
+  amountOutDecimal: BigDecimal!
+
+  amountInUsd: BigDecimal
+  amountOutUsd: BigDecimal
+}
+
+type AllTimeStats @entity {
+  id: ID! # constant, current
+  modifiedAt: BigInt!
+  modifiedAtBlock: BigInt!
+  modifiedAtTransaction: Bytes!
+  warpCount: BigInt!
+  volumeUsd: BigDecimal!
+}

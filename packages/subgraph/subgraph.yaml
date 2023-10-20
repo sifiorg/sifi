@@ -1,0 +1,27 @@
+specVersion: 0.0.5
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: SifiDiamond
+    source:
+      abi: SifiDiamond
+      startBlock: 130349723
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Warp
+      abis:
+        - name: SifiDiamond
+          file: ./abis/SifiDiamond.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: OffchainOracle
+          file: ./abis/OffchainOracle.json
+      eventHandlers:
+        - event: Warp(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleWarpEvent
+      file: ./src/mappings/warp.ts
+    network: arbitrum-one

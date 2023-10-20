@@ -1,0 +1,21 @@
+{
+  "name": "subgraph",
+  "license": "UNLICENSED",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy": "bin/deploy.sh",
+    "deploy-staging": "graph deploy --ipfs https://api.staging.thegraph.com/ipfs/ --node https://api.staging.thegraph.com/deploy/ sifi",
+    "create-local": "graph create --node http://localhost:8020/ sifi",
+    "remove-local": "graph remove --node http://localhost:8020/ sifi",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 sifi",
+    "test": "graph test"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.60.0",
+    "@graphprotocol/graph-ts": "0.30.0"
+  },
+  "devDependencies": {
+    "matchstick-as": "0.5.0"
+  }
+}
