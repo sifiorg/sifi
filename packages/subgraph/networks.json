@@ -1,0 +1,12 @@
+{
+  "mainnet": {
+    "SifiDiamond": {
+      "startBlock": 17975399
+    }
+  },
+  "arbitrum-one": {
+    "SifiDiamond": {
+      "startBlock": 130349723
+    }
+  }
+}
