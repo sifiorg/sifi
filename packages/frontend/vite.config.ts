@@ -20,4 +20,5 @@ export default defineConfig({
     },
   },
   envPrefix: 'REACT_APP_',
+  assetsInclude: ['**/*.glb'],
 });

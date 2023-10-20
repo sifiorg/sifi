@@ -29,6 +29,7 @@
     "@sifi/sdk": "^1.9.0",
     "@sifi/shared-ui": "^1.8.1",
     "@tanstack/react-query": "^4.13.0",
+    "@types/three": "^0.127.1",
     "@uniswap/permit2-sdk": "^1.2.0",
     "@wagmi/core": "^1.3.10",
     "aes-js": "3.0.0",
@@ -46,6 +47,7 @@
     "react-router-dom": "^6.0.1",
     "scrypt-js": "3.0.1",
     "tailwindcss": "^3.2.0",
+    "three": "^0.157.0",
     "viem": "^1.9.0",
     "wagmi": "^1.3.10"
   },

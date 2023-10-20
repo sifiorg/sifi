@@ -27,6 +27,7 @@ import { useDefaultTokens } from 'src/hooks/useDefaultTokens';
 import { useSyncTokenUrlParams } from 'src/hooks/useSyncTokenUrlParams';
 import { enableSwapInformation } from 'src/utils/featureFlags';
 import { useUsdValue } from 'src/hooks/useUsdValue';
+import { useSpaceTravel } from 'src/providers/SpaceTravelProvider';
 
 const CreateSwap = () => {
   useCullQueries('quote');
@@ -66,6 +67,8 @@ const CreateSwap = () => {
 
   const isToSwapInputLoading = isFetchingQuote;
 
+  const { setThrottle } = useSpaceTravel();
+
   useReferrer();
   useDefaultTokens();
 
@@ -99,6 +102,7 @@ const CreateSwap = () => {
         partner: partnerAddress || undefined,
         feeBps: partnerFeeBps && partnerAddress ? Number(partnerFeeBps) : undefined,
       });
+
       const res = await walletClient.sendTransaction({
         chain: fromChain,
         data: tx.data as `0x${string}`,
@@ -107,6 +111,7 @@ const CreateSwap = () => {
         gas: BigInt(tx.gasLimit),
         value: tx.value !== undefined ? BigInt(tx.value) : undefined,
       });
+      setThrottle(1);
 
       return res;
     },
@@ -120,6 +125,7 @@ const CreateSwap = () => {
       },
       onSettled: () => {
         setIsLoading(false);
+        setThrottle(0.01);
       },
       onSuccess: async hash => {
         const explorerLink = fromChain ? getEvmTxUrl(fromChain, hash) : undefined;
@@ -150,6 +156,7 @@ const CreateSwap = () => {
     if (!fromToken || !toToken) throw new Error('Tokens are missing');
     if (!address) throw new Error('fromAddress is missing');
 
+    setThrottle(0.25);
     setIsLoading(true);
     mutation.mutate();
   };
