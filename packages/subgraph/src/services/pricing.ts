@@ -1,19 +1,23 @@
 import { log } from '@graphprotocol/graph-ts';
-import { Address, BigDecimal, BigInt, TypedMap, dataSource } from '@graphprotocol/graph-ts';
-import { TokenInfo } from './tokens';
+import { Address, BigDecimal, TypedMap, dataSource } from '@graphprotocol/graph-ts';
+import { memTokenInfoFromAddress } from './tokens';
 import { OffchainOracle } from '../../generated/SifiDiamond/OffchainOracle';
-import { BIGINT_TEN } from '../constants';
-import { amountToDecimal } from '../helpers';
+import { BIGDECIMAL_ONE, BIGINT_TEN } from '../constants';
+import { Memoizer, isZeroAddress } from '../helpers';
 
 const OFFCHAIN_ORACLE_ADDRESSES = new TypedMap<string, string>();
-OFFCHAIN_ORACLE_ADDRESSES.set('mainnet', '0x3E1Fe1Bd5a5560972bFa2D393b9aC18aF279fF56');
-OFFCHAIN_ORACLE_ADDRESSES.set('arbitrum-one', '0x59Bc892E1832aE86C268fC21a91fE940830a52b0');
+OFFCHAIN_ORACLE_ADDRESSES.set('mainnet', '0x3e1fe1bd5a5560972bfa2d393b9ac18af279ff56');
+OFFCHAIN_ORACLE_ADDRESSES.set('arbitrum-one', '0x59bc892e1832ae86c268fc21a91fe940830a52b0');
 
 const DAI_ADDRESSES = new TypedMap<string, string>();
 DAI_ADDRESSES.set('mainnet', '0x6b175474e89094c44da98b954eedeac495271d0f');
 DAI_ADDRESSES.set('arbitrum-one', '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1');
 
-export function getRateToEth(tokenAddress: Address): BigDecimal | null {
+function getRateToEth(tokenAddress: Address): BigDecimal | null {
+  if (isZeroAddress(tokenAddress)) {
+    return BIGDECIMAL_ONE;
+  }
+
   const network = dataSource.network();
 
   const oracleAddress = OFFCHAIN_ORACLE_ADDRESSES.get(network);
@@ -36,24 +40,17 @@ export function getRateToEth(tokenAddress: Address): BigDecimal | null {
     return null;
   }
 
-  const tokenInfo = TokenInfo.fromAddress(tokenAddress);
+  const tokenInfo = memTokenInfoFromAddress.get(tokenAddress);
 
   const tokenDecimals = tokenInfo.decimals as u8;
 
   return rate.value.toBigDecimal().div(new BigDecimal(BIGINT_TEN.pow(18 + 18 - tokenDecimals)));
-
-  // return null;
 }
 
-export function getRateToUsd(tokenAddress: Address): BigDecimal | null {
+const memGetRateToEth = new Memoizer<Address, BigDecimal | null>(getRateToEth);
+
+function getRateToUsd(tokenAddress: Address): BigDecimal | null {
   const network = dataSource.network();
-
-  const rateToEth = getRateToEth(tokenAddress);
-
-  if (rateToEth === null) {
-    log.warning('Failed to get rate to ETH for token {}', [tokenAddress.toHexString()]);
-    return null;
-  }
 
   const daiAddress = DAI_ADDRESSES.get(network);
 
@@ -63,7 +60,11 @@ export function getRateToUsd(tokenAddress: Address): BigDecimal | null {
     return null;
   }
 
-  const rateToDai = getRateToEth(Address.fromBytes(Address.fromHexString(daiAddress)));
+  if (tokenAddress.toHexString() === daiAddress) {
+    return BIGDECIMAL_ONE;
+  }
+
+  const rateToDai = memGetRateToEth.get(Address.fromBytes(Address.fromHexString(daiAddress)));
 
   if (rateToDai === null) {
     log.warning('Failed to get rate to DAI for token {}', [tokenAddress.toHexString()]);
@@ -71,21 +72,30 @@ export function getRateToUsd(tokenAddress: Address): BigDecimal | null {
     return null;
   }
 
-  return rateToEth.div(rateToDai);
-}
+  const rateToEth = memGetRateToEth.get(tokenAddress);
 
-export function convertToUsd(tokenAddress: Address, amount: BigInt): BigDecimal | null {
-  const rateToUsd = getRateToUsd(tokenAddress);
+  if (rateToEth === null) {
+    log.warning('Failed to get rate to ETH for token {}', [tokenAddress.toHexString()]);
 
-  if (!rateToUsd) {
     return null;
   }
 
-  const tokenInfo = TokenInfo.fromAddress(tokenAddress);
+  return rateToEth.div(rateToDai);
+}
 
-  const tokenDecimals = tokenInfo.decimals as u8;
+export const memGetRateToUsd = new Memoizer<Address, BigDecimal | null>(getRateToUsd);
 
-  const amountDecimal = amountToDecimal(amount, tokenDecimals);
+export function convertToUsdWithRate(rateUsd: BigDecimal, amountDecimal: BigDecimal): BigDecimal {
+  // Fees can be really small
+  return amountDecimal.times(rateUsd).truncate(5);
+}
 
-  return amountDecimal.times(rateToUsd).truncate(2);
+export function convertToUsd(tokenAddress: Address, amountDecimal: BigDecimal): BigDecimal | null {
+  const rateToUsd = memGetRateToUsd.get(tokenAddress);
+
+  if (rateToUsd === null) {
+    return null;
+  }
+
+  return convertToUsdWithRate(rateToUsd, amountDecimal);
 }

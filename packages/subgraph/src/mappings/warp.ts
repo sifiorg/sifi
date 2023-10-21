@@ -1,10 +1,11 @@
+import { dataSource } from '@graphprotocol/graph-ts';
 import { Warp as WarpEvent } from '../../generated/SifiDiamond/SifiDiamond';
 import { Warp } from '../../generated/schema';
 import { BIGINT_ONE } from '../constants';
-import { amountToDecimal, getEventId, isZeroAddress } from '../helpers';
-import { convertToUsd } from '../services/pricing';
+import { amountToDecimal, getEventId } from '../helpers';
+import { convertToUsdWithRate, memGetRateToUsd } from '../services/pricing';
 import { getOrCreateAllTimeStats } from '../services/stats/all-time';
-import { TokenInfo, getOrCreateToken } from '../services/tokens';
+import { getOrCreateToken } from '../services/tokens';
 
 export function handleWarpEvent(event: WarpEvent): void {
   const warp = new Warp(getEventId(event));
@@ -14,19 +15,27 @@ export function handleWarpEvent(event: WarpEvent): void {
   const amountIn = event.params.amountIn;
   const amountOut = event.params.amountOut;
 
-  const amountInUsd = convertToUsd(tokenInAddress, amountIn);
-  const amountOutUsd = convertToUsd(tokenInAddress, amountOut);
-
   const tokenIn = getOrCreateToken(tokenInAddress);
   const tokenOut = getOrCreateToken(tokenOutAddress);
+
+  const amountInDecimal = amountToDecimal(amountIn, tokenIn.decimals.toI32());
+  const amountOutDecimal = amountToDecimal(amountOut, tokenOut.decimals.toI32());
+
+  const tokenInRateUsd = memGetRateToUsd.get(tokenInAddress);
+  const tokenOutRateUsd = memGetRateToUsd.get(tokenOutAddress);
+
+  const amountInUsd = tokenInRateUsd ? convertToUsdWithRate(tokenInRateUsd, amountInDecimal) : null;
+  const amountOutUsd = tokenOutRateUsd
+    ? convertToUsdWithRate(tokenOutRateUsd, amountOutDecimal)
+    : null;
 
   warp.tokenIn = tokenIn.address.toHexString();
   warp.tokenOut = tokenOut.address.toHexString();
   warp.amountIn = amountIn;
-  warp.amountInDecimal = amountToDecimal(amountIn, tokenIn.decimals.toI32());
+  warp.amountInDecimal = amountInDecimal;
   warp.amountInUsd = amountInUsd;
   warp.amountOut = amountOut;
-  warp.amountOutDecimal = amountToDecimal(amountOut, tokenOut.decimals.toI32());
+  warp.amountOutDecimal = amountOutDecimal;
   warp.amountOutUsd = amountOutUsd;
 
   warp.from = event.transaction.from;

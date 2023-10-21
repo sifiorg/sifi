@@ -1,8 +1,7 @@
 import { Address, BigInt } from '@graphprotocol/graph-ts';
 import { ERC20 } from '../../generated/SifiDiamond/ERC20';
 import { Token } from '../../generated/schema';
-import { isZeroAddress } from '../helpers';
-import { BIGINT_EIGHTEEN, ZERO_ADDRESS } from '../constants';
+import { Memoizer, isZeroAddress } from '../helpers';
 
 export class TokenInfo {
   constructor(
@@ -12,6 +11,11 @@ export class TokenInfo {
   ) {}
 
   static fromAddress(address: Address): TokenInfo {
+    if (isZeroAddress(address)) {
+      // TODO: Change for chains with different native tokens
+      return new TokenInfo('Ether', 'ETH', 18);
+    }
+
     let erc20 = ERC20.bind(address);
 
     let name = erc20.try_name();
@@ -26,30 +30,21 @@ export class TokenInfo {
   }
 }
 
+export const memTokenInfoFromAddress = new Memoizer<Address, TokenInfo>(TokenInfo.fromAddress);
+
 export function getOrCreateToken(address: Address): Token {
   let token = Token.load(address.toHexString());
 
   if (token === null) {
-    if (isZeroAddress(address)) {
-      token = new Token(ZERO_ADDRESS);
-      token.address = address;
-      token.decimals = BIGINT_EIGHTEEN;
+    const info = memTokenInfoFromAddress.get(address);
 
-      // TODO: Add a map for chains like MATIC, BNB, AVAX, etc.
-      token.symbol = 'ETH';
+    token = new Token(address.toHexString());
+    token.address = address;
+    token.name = info.name;
+    token.symbol = info.symbol;
+    token.decimals = BigInt.fromI32(info.decimals);
 
-      token.save();
-    } else {
-      let info = TokenInfo.fromAddress(address);
-
-      token = new Token(address.toHexString());
-      token.address = address;
-      token.name = info.name;
-      token.symbol = info.symbol;
-      token.decimals = BigInt.fromI32(info.decimals);
-
-      token.save();
-    }
+    token.save();
   }
 
   return token;

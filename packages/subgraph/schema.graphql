@@ -32,4 +32,77 @@ type AllTimeStats @entity {
   modifiedAtTransaction: Bytes!
   warpCount: BigInt!
   volumeUsd: BigDecimal!
+  partnerFeesUsd: BigDecimal!
+  protocolFeesUsd: BigDecimal!
+}
+
+type Partner @entity {
+  id: ID! # address
+  addedAt: BigInt!
+  addedAtBlock: BigInt!
+  addedAtTransaction: Bytes!
+
+  modifiedAt: BigInt!
+  modifiedAtBlock: BigInt!
+  modifiedAtTransaction: Bytes!
+
+  rewardedUsd: BigDecimal!
+  withdrawnUsd: BigDecimal!
+
+  tokens: [PartnerToken!]! @derivedFrom(field: "partner")
+}
+
+type PartnerToken @entity {
+  id: Bytes! # partner address + token address
+  addedAt: BigInt!
+  addedAtBlock: BigInt!
+  addedAtTransaction: Bytes!
+
+  token: Token! # address
+  partner: Partner! # address
+  modifiedAt: BigInt!
+  modifiedAtBlock: BigInt!
+  modifiedAtTransaction: Bytes!
+
+  balance: BigInt!
+  balanceDecimal: BigDecimal!
+  balanceUsd: BigDecimal
+
+  rewarded: BigInt!
+  rewardedDecimal: BigDecimal!
+  rewardedUsd: BigDecimal
+
+  withdrawn: BigInt!
+  withdrawnDecimal: BigDecimal!
+  withdrawnUsd: BigDecimal
+}
+
+type Fee @entity(immutable: true) {
+  id: ID! # tx hash + event id
+  addedAt: BigInt!
+  addedAtBlock: BigInt!
+  addedAtTransaction: Bytes!
+
+  partnerToken: PartnerToken! # address
+  # Redundant fields are added for querying
+  partner: Partner! # address
+  token: Token! # address
+  amount: BigInt!
+  amountDecimal: BigDecimal!
+  amountUsd: BigDecimal
+}
+
+type Withdrawal @entity(immutable: true) {
+  id: ID! # tx hash + event id
+  addedAt: BigInt!
+  addedAtBlock: BigInt!
+  addedAtTransaction: Bytes!
+
+  partnerToken: PartnerToken! # address
+  # Redundant fields are added for querying
+  partner: Partner! # address
+  token: Token! # address
+  amount: BigInt!
+  amountDecimal: BigDecimal!
+  amountUsd: BigDecimal
 }

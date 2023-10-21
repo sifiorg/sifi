@@ -6,13 +6,16 @@ dataSources:
     name: SifiDiamond
     source:
       abi: SifiDiamond
-      startBlock: 130349723
+      startBlock: 17975399
+      address: "0x65c49E9996A877d062085B71E1460fFBe3C4c5Aa"
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - Warp
+        - Fee
+        - Withdrawal
       abis:
         - name: SifiDiamond
           file: ./abis/SifiDiamond.json
@@ -23,5 +26,9 @@ dataSources:
       eventHandlers:
         - event: Warp(indexed address,indexed address,indexed address,uint256,uint256)
           handler: handleWarpEvent
-      file: ./src/mappings/warp.ts
-    network: arbitrum-one
+        - event: Fee(indexed address,indexed address,uint256,uint256)
+          handler: handleFeeEvent
+        - event: Withdraw(indexed address,indexed address,uint256)
+          handler: handleWithdrawEvent
+      file: ./src/mappings/index.ts
+    network: mainnet
