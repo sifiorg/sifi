@@ -1,5 +1,6 @@
 {
   "name": "subgraph",
+  "version": "0.0.6",
   "license": "UNLICENSED",
   "scripts": {
     "codegen": "graph codegen",
