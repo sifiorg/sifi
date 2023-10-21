@@ -13,6 +13,7 @@ type Warp @entity(immutable: true) {
   addedAtBlock: BigInt!
   addedAtTransaction: Bytes!
 
+  from: Bytes! # address
   tokenIn: Token! # null if ETH
   tokenOut: Token! # address
   amountIn: BigInt!
