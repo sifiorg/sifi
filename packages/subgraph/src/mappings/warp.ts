@@ -29,6 +29,7 @@ export function handleWarpEvent(event: WarpEvent): void {
   warp.amountOutDecimal = amountToDecimal(amountOut, tokenOut.decimals.toI32());
   warp.amountOutUsd = amountOutUsd;
 
+  warp.from = event.transaction.from;
   warp.addedAt = event.block.timestamp;
   warp.addedAtBlock = event.block.number;
   warp.addedAtTransaction = event.transaction.hash;
