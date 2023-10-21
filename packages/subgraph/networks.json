@@ -1,12 +1,14 @@
 {
   "mainnet": {
     "SifiDiamond": {
-      "startBlock": 17975399
+      "startBlock": 17975399,
+      "address": "0x65c49E9996A877d062085B71E1460fFBe3C4c5Aa"
     }
   },
   "arbitrum-one": {
     "SifiDiamond": {
-      "startBlock": 130349723
+      "startBlock": 130349723,
+      "address": "0x65c49E9996A877d062085B71E1460fFBe3C4c5Aa"
     }
   }
 }

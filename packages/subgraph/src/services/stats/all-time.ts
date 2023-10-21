@@ -12,6 +12,8 @@ export function getOrCreateAllTimeStats(event: ethereum.Event): AllTimeStats {
     state.modifiedAtTransaction = event.transaction.hash;
     state.warpCount = BIGINT_ZERO;
     state.volumeUsd = BIGDECIMAL_ZERO;
+    state.partnerFeesUsd = BIGDECIMAL_ZERO;
+    state.protocolFeesUsd = BIGDECIMAL_ZERO;
   }
 
   return state;
