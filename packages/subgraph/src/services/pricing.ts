@@ -1,17 +1,9 @@
-import { log } from '@graphprotocol/graph-ts';
-import { Address, BigDecimal, TypedMap, dataSource } from '@graphprotocol/graph-ts';
-import { memTokenInfoFromAddress } from './tokens';
+import { Address, BigDecimal, dataSource, log } from '@graphprotocol/graph-ts';
 import { OffchainOracle } from '../../generated/SifiDiamond/OffchainOracle';
 import { BIGDECIMAL_ONE, BIGINT_TEN } from '../constants';
 import { Memoizer, isZeroAddress } from '../helpers';
-
-const OFFCHAIN_ORACLE_ADDRESSES = new TypedMap<string, string>();
-OFFCHAIN_ORACLE_ADDRESSES.set('mainnet', '0x3e1fe1bd5a5560972bfa2d393b9ac18af279ff56');
-OFFCHAIN_ORACLE_ADDRESSES.set('arbitrum-one', '0x59bc892e1832ae86c268fc21a91fe940830a52b0');
-
-const DAI_ADDRESSES = new TypedMap<string, string>();
-DAI_ADDRESSES.set('mainnet', '0x6b175474e89094c44da98b954eedeac495271d0f');
-DAI_ADDRESSES.set('arbitrum-one', '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1');
+import { PRICE_ORACLES, USD_ADDRESSES } from '../networks';
+import { memTokenInfoFromAddress } from './tokens';
 
 function getRateToEth(tokenAddress: Address): BigDecimal | null {
   if (isZeroAddress(tokenAddress)) {
@@ -20,7 +12,7 @@ function getRateToEth(tokenAddress: Address): BigDecimal | null {
 
   const network = dataSource.network();
 
-  const oracleAddress = OFFCHAIN_ORACLE_ADDRESSES.get(network);
+  const oracleAddress = PRICE_ORACLES.get(network);
 
   if (oracleAddress === null) {
     log.warning('No offchain oracle address for network {}', [network]);
@@ -28,9 +20,7 @@ function getRateToEth(tokenAddress: Address): BigDecimal | null {
     return null;
   }
 
-  const offchainOracle = OffchainOracle.bind(
-    Address.fromBytes(Address.fromHexString(oracleAddress))
-  );
+  const offchainOracle = OffchainOracle.bind(oracleAddress);
 
   const rate = offchainOracle.try_getRateToEth(tokenAddress, true);
 
@@ -52,22 +42,22 @@ const memGetRateToEth = new Memoizer<Address, BigDecimal | null>(getRateToEth);
 function getRateToUsd(tokenAddress: Address): BigDecimal | null {
   const network = dataSource.network();
 
-  const daiAddress = DAI_ADDRESSES.get(network);
+  const usdAddress = USD_ADDRESSES.get(network);
 
-  if (daiAddress === null) {
-    log.warning('No DAI address for network {}', [network]);
+  if (usdAddress === null) {
+    log.warning('No USD address for network {}', [network]);
 
     return null;
   }
 
-  if (tokenAddress.toHexString() === daiAddress) {
+  if (tokenAddress.equals(usdAddress)) {
     return BIGDECIMAL_ONE;
   }
 
-  const rateToDai = memGetRateToEth.get(Address.fromBytes(Address.fromHexString(daiAddress)));
+  const rateToUsd = memGetRateToEth.get(usdAddress);
 
-  if (rateToDai === null) {
-    log.warning('Failed to get rate to DAI for token {}', [tokenAddress.toHexString()]);
+  if (rateToUsd === null) {
+    log.warning('Failed to get rate to USD for token {}', [tokenAddress.toHexString()]);
 
     return null;
   }
@@ -80,7 +70,7 @@ function getRateToUsd(tokenAddress: Address): BigDecimal | null {
     return null;
   }
 
-  return rateToEth.div(rateToDai);
+  return rateToEth.div(rateToUsd);
 }
 
 export const memGetRateToUsd = new Memoizer<Address, BigDecimal | null>(getRateToUsd);
