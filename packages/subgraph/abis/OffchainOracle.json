@@ -25,10 +25,55 @@
         "internalType": "contract IERC20",
         "name": "wBase",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "ArraysLengthMismatch",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ConnectorAlreadyAdded",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidOracleTokenKind",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OracleAlreadyAdded",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "SameTokens",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "TooBigThreshold",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "UnknownConnector",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "UnknownOracle",
+    "type": "error"
   },
   {
     "anonymous": false,
@@ -213,6 +258,142 @@
       }
     ],
     "name": "getRateToEth",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "weightedRate",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "srcToken",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "useSrcWrappers",
+        "type": "bool"
+      },
+      {
+        "internalType": "contract IERC20[]",
+        "name": "customConnectors",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "thresholdFilter",
+        "type": "uint256"
+      }
+    ],
+    "name": "getRateToEthWithCustomConnectors",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "weightedRate",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "srcToken",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "useSrcWrappers",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "thresholdFilter",
+        "type": "uint256"
+      }
+    ],
+    "name": "getRateToEthWithThreshold",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "weightedRate",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "srcToken",
+        "type": "address"
+      },
+      {
+        "internalType": "contract IERC20",
+        "name": "dstToken",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "useWrappers",
+        "type": "bool"
+      },
+      {
+        "internalType": "contract IERC20[]",
+        "name": "customConnectors",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "thresholdFilter",
+        "type": "uint256"
+      }
+    ],
+    "name": "getRateWithCustomConnectors",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "weightedRate",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "srcToken",
+        "type": "address"
+      },
+      {
+        "internalType": "contract IERC20",
+        "name": "dstToken",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "useWrappers",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "thresholdFilter",
+        "type": "uint256"
+      }
+    ],
+    "name": "getRateWithThreshold",
     "outputs": [
       {
         "internalType": "uint256",

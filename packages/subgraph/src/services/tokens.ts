@@ -1,7 +1,8 @@
-import { Address, BigInt } from '@graphprotocol/graph-ts';
+import { Address, BigInt, dataSource } from '@graphprotocol/graph-ts';
 import { ERC20 } from '../../generated/SifiDiamond/ERC20';
 import { Token } from '../../generated/schema';
 import { Memoizer, isZeroAddress } from '../helpers';
+import { NATIVE_SYMBOLS } from '../networks';
 
 export class TokenInfo {
   constructor(
@@ -12,8 +13,13 @@ export class TokenInfo {
 
   static fromAddress(address: Address): TokenInfo {
     if (isZeroAddress(address)) {
-      // TODO: Change for chains with different native tokens
-      return new TokenInfo('Ether', 'ETH', 18);
+      let symbol = NATIVE_SYMBOLS.get(dataSource.network());
+
+      if (symbol === null) {
+        symbol = 'ETH';
+      }
+
+      return new TokenInfo(symbol, symbol, 18);
     }
 
     let erc20 = ERC20.bind(address);

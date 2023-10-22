@@ -13,6 +13,10 @@ export function amountToDecimal(amount: BigInt, decimals: number): BigDecimal {
   return amount.toBigDecimal().div(new BigDecimal(BIGINT_TEN.pow(u8(decimals))));
 }
 
+export function addressFromHex(hex: string): Address {
+  return Address.fromBytes(Address.fromString(hex));
+}
+
 // NOTE: Implemented as a class since there's no closure support in AssemblyScript
 export class Memoizer<K, V> {
   private cache: TypedMap<K, V> = new TypedMap<K, V>();

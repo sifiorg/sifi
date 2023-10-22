@@ -10,5 +10,35 @@
       "startBlock": 130349723,
       "address": "0x65c49E9996A877d062085B71E1460fFBe3C4c5Aa"
     }
+  },
+  "optimism": {
+    "SifiDiamond": {
+      "startBlock": 109755121,
+      "address": "0x65c49E9996A877d062085B71E1460fFBe3C4c5Aa"
+    }
+  },
+  "bsc": {
+    "SifiDiamond": {
+      "startBlock": 32498706,
+      "address": "0x65c49E9996A877d062085B71E1460fFBe3C4c5Aa"
+    }
+  },
+  "matic": {
+    "SifiDiamond": {
+      "startBlock": 47443168,
+      "address": "0x65c49E9996A877d062085B71E1460fFBe3C4c5Aa"
+    }
+  },
+  "avalanche": {
+    "SifiDiamond": {
+      "startBlock": 36264788,
+      "address": "0x65c49E9996A877d062085B71E1460fFBe3C4c5Aa"
+    }
+  },
+  "base": {
+    "SifiDiamond": {
+      "startBlock": 5071194,
+      "address": "0x65c49E9996A877d062085B71E1460fFBe3C4c5Aa"
+    }
   }
 }
