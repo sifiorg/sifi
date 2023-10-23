@@ -3,6 +3,7 @@
   "version": "0.0.7",
   "license": "UNLICENSED",
   "scripts": {
+    "clean": "rm -rf build generated",
     "codegen": "graph codegen",
     "build": "graph build",
     "deploy": "bin/deploy.sh",
