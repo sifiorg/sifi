@@ -71,4 +71,7 @@ jobs:
           OPTIMISM_RPC_URL: ${{ secrets.OPTIMISM_RPC_URL }}
           POLYGON_RPC_URL: ${{ secrets.POLYGON_RPC_URL }}
           GOERLI_RPC_URL: ${{ secrets.GOERLI_RPC_URL }}
+          BSC_RPC_URL: ${{ secrets.BSC_RPC_URL }}
+          AVALANCHE_RPC_URL: ${{ secrets.AVALANCHE_RPC_URL }}
+          BASE_RPC_URL: ${{ secrets.BASE_RPC_URL }}
         run: pnpm -C packages/hardhat forge-test
