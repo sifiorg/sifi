@@ -1,0 +1,23 @@
+{
+  "mainnet": {
+    "product": "subgraph-studio"
+  },
+  "arbitrum-one": {
+    "product": "subgraph-studio"
+  },
+  "optimism": {
+    "product": "hosted-service"
+  },
+  "bsc": {
+    "product": "hosted-service"
+  },
+  "matic": {
+    "product": "subgraph-studio"
+  },
+  "avalanche": {
+    "product": "subgraph-studio"
+  },
+  "base": {
+    "product": "hosted-service"
+  }
+}
