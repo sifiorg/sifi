@@ -98,8 +98,6 @@ const useMultiCallTokenBalance = (
       }
     }
 
-    console.log(chainId, usdPricesForTokens, balanceMap);
-
     setAddressBalanceMap(balanceMap);
   };
 
