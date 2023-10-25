@@ -18,6 +18,6 @@
     "composite": true,
     "outDir": "dist"
   },
-  "include": ["src/**/*", ".storybook/decorators/*", "src"],
+  "include": ["src/**/*", ".storybook/decorators/*", "src", "src/subgraph.json"],
   "exclude": ["node_modules", "dist"]
 }

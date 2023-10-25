@@ -1,0 +1,9 @@
+{
+  "1": "https://gateway-arbitrum.network.thegraph.com/api/3e9d2f58d24bcd5d854ba4c4c8df5c3b/subgraphs/id/G316MkVLSw1ksstmonpSQ1UEBUWmRSZf4QkoRA5CN4TA",
+  "10": "https://api.thegraph.com/subgraphs/name/sifiorg/sifi-optimism",
+  "56": "https://api.thegraph.com/subgraphs/name/sifiorg/sifi-bsc",
+  "137": "https://gateway-arbitrum.network.thegraph.com/api/3e9d2f58d24bcd5d854ba4c4c8df5c3b/subgraphs/id/VJesTAc98ochTTwDQViVgnM4jWhyRC4pyWHBpDQkCjj",
+  "8453": "https://api.thegraph.com/subgraphs/name/sifiorg/sifi-base",
+  "42161": "https://gateway-arbitrum.network.thegraph.com/api/3e9d2f58d24bcd5d854ba4c4c8df5c3b/subgraphs/id/BVexPGe3pnB7Mw7ajFkEDQJ8XY8XdVKbAL37ydmorhSQ",
+  "43114": "https://gateway-arbitrum.network.thegraph.com/api/3e9d2f58d24bcd5d854ba4c4c8df5c3b/subgraphs/id/4cn8JGVKUJBWRJNt4n5KQNMKyMLjRATUBLQ9oSCbL9QA"
+}
