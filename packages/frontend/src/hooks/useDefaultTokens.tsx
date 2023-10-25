@@ -3,6 +3,8 @@ import { useFormContext } from 'react-hook-form';
 import { useTokens } from 'src/hooks/useTokens';
 import { SwapFormKeyHelper } from 'src/providers/SwapFormProvider';
 
+const DEFAULT_TO_TOKEN_SYMBOL = 'USDC';
+
 const useDefaultTokens = () => {
   const { setValue } = useFormContext();
   const fromTokenKey = SwapFormKeyHelper.getTokenKey('from');
@@ -17,7 +19,7 @@ const useDefaultTokens = () => {
 
   useEffect(() => {
     if (toTokens.length > 1) {
-      setValue(toTokenKey, toTokens[1].symbol);
+      setValue(toTokenKey, DEFAULT_TO_TOKEN_SYMBOL);
     }
   }, [toTokens, setValue]);
 };
