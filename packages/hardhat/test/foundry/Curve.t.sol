@@ -18,13 +18,11 @@ import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransf
 import {PermitParams} from 'contracts/libraries/PermitParams.sol';
 import {PermitSignature} from './helpers/PermitSignature.sol';
 
-contract CurveTest is FacetTest, ILibStarVault {
+contract CurveTestBase is FacetTest, ILibStarVault {
   ICurve internal facet;
 
-  function setUp() public override {
-    vm.createSelectFork(StdChains.getChain(1).rpcUrl, 17853419);
-
-    super.setUp();
+  function setUpOn(uint256 chainId, uint256 blockNumber) internal override {
+    super.setUpOn(chainId, blockNumber);
 
     IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](1);
 
@@ -48,7 +46,7 @@ contract CurveTest is FacetTest, ILibStarVault {
     facet = ICurve(address(diamond));
   }
 
-  function getIndex(uint8 kind, address pool, address token) private view returns (uint8 index) {
+  function getIndex(uint8 kind, address pool, address token) internal view returns (uint8 index) {
     if (token == address(0)) {
       token = Mainnet.EEE_ADDR;
     }
@@ -76,7 +74,7 @@ contract CurveTest is FacetTest, ILibStarVault {
     uint8 kind,
     address pool,
     address token
-  ) private view returns (uint8 index) {
+  ) internal view returns (uint8 index) {
     for (; ; index++) {
       address coin;
 
@@ -95,6 +93,12 @@ contract CurveTest is FacetTest, ILibStarVault {
         return index + 1;
       }
     }
+  }
+}
+
+contract CurveMainnetTest is CurveTestBase {
+  function setUp() public override {
+    super.setUpOn(1, 17853419);
   }
 
   function testFork_curveExactInputSingle_EthToSteth() public {
@@ -350,6 +354,4 @@ contract CurveTest is FacetTest, ILibStarVault {
 
     assertApproxEqRel(Mainnet.DAI.balanceOf(user), 1000 ether, 0.01 ether);
   }
-
-  receive() external payable {}
 }
