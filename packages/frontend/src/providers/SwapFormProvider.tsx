@@ -28,11 +28,11 @@ export type SwapFormType = 'from' | 'to';
 
 export const formDefaultValues = {
   [SwapFormKey.FromAmount]: '',
-  [SwapFormKey.FromChain]: SUPPORTED_CHAINS[0],
+  [SwapFormKey.FromChain]: SUPPORTED_CHAINS[0], // Mainnet
   [SwapFormKey.FromToken]: null,
   [SwapFormKey.ToAmount]: '',
   [SwapFormKey.ToAddress]: '',
-  [SwapFormKey.ToChain]: SUPPORTED_CHAINS[0],
+  [SwapFormKey.ToChain]: SUPPORTED_CHAINS[1], // Arbitrum
   [SwapFormKey.ToToken]: null,
   [SwapFormKey.TokenSearchFilter]: '',
 };
