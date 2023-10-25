@@ -1,5 +1,5 @@
 import { type FunctionComponent, useState, useEffect } from 'react';
-import { Modal, showToast, WalletOption } from '@sifi/shared-ui';
+import { Modal, showToast, WalletOption, useWalletBranding } from '@sifi/shared-ui';
 import useConnectWallet from 'src/hooks/useConnectWallet';
 import { type SupportedWallet } from 'src/connectors';
 import { getViemErrorMessage } from 'src/utils';
@@ -17,6 +17,7 @@ const ConnectWalletModal: FunctionComponent<ConnectWalletModalProps> = ({
   closeModal,
 }: ConnectWalletModalProps) => {
   const { connectWallet, error } = useConnectWallet();
+  const { text: injectedWalletText, icon: injectedWalletIcon } = useWalletBranding();
 
   useEffect(() => {
     if (error) {
@@ -29,11 +30,11 @@ const ConnectWalletModal: FunctionComponent<ConnectWalletModalProps> = ({
       <div className="pb-6">
         {supportedWallets.map(wallet => (
           <WalletOption
-            // Todo(Nathan): Make this dynamic
-            injectedWalletName={wallet === 'injected' ? 'MetaMask' : undefined}
             key={wallet}
             walletOption={wallet}
             activate={() => connectWallet(wallet)}
+            injectedWalletName={wallet === 'injected' ? injectedWalletText : undefined}
+            injectedWalletIcon={wallet === 'injected' ? injectedWalletIcon : undefined}
           />
         ))}
       </div>

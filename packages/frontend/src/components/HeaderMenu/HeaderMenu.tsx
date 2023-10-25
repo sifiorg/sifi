@@ -1,5 +1,5 @@
 import { FunctionComponent } from 'react';
-import { Menu } from '@sifi/shared-ui';
+import { Menu, useWalletBranding } from '@sifi/shared-ui';
 import { useAccount, useDisconnect, useEnsName, useNetwork } from 'wagmi';
 import { formatAddress, formatEnsName } from 'src/utils';
 
@@ -8,6 +8,7 @@ const HeaderMenu: FunctionComponent = () => {
   const { data: ensName } = useEnsName({ address });
   const { chain } = useNetwork();
   const { disconnect } = useDisconnect();
+  const { icon, text } = useWalletBranding();
 
   if (!address || !isConnected) return null;
 
@@ -21,7 +22,7 @@ const HeaderMenu: FunctionComponent = () => {
   ];
 
   return (
-    <Menu label={label} links={menuLinks}>
+    <Menu icon={icon ? { src: icon, alt: `${text} icon`} : undefined} label={label} links={menuLinks}>
       <div className="px-6 py-4">
         <span className="mb-3 block text-sm" id="network-label">
           Network
