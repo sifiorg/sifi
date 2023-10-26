@@ -61,3 +61,16 @@ interface ICurvePoolKind3 {
     uint256 min_dy
   ) external payable returns (uint256);
 }
+
+// Kind 4, uint256s with no return value
+// Example v0.2.15, "Pool for USDT/BTC/ETH or similar"
+// See https://arbiscan.io/address/0x960ea3e3C7FB317332d990873d354E18d7645590#code
+interface ICurvePoolKind4 {
+  function coins(uint256 index) external view returns (address);
+
+  function underlying_coins(uint256 index) external view returns (address);
+
+  function exchange(uint256 i, uint256 j, uint256 dx, uint256 min_dy) external payable;
+
+  function exchange_underlying(uint256 i, uint256 j, uint256 dx, uint256 min_dy) external payable;
+}

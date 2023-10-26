@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {ICurvePoolKind1, ICurvePoolKind2, ICurvePoolKind3} from '../interfaces/external/ICurvePool.sol';
+import {ICurvePoolKind1, ICurvePoolKind2, ICurvePoolKind3, ICurvePoolKind4} from '../interfaces/external/ICurvePool.sol';
 
 /**
  * NOTE: Events and errors must be copied to ILibCurve
@@ -56,6 +56,12 @@ library LibCurve {
         ICurvePoolKind3(pool).exchange_underlying{value: eth}(uint256(i), uint256(j), dx, min_dy);
       } else {
         ICurvePoolKind3(pool).exchange{value: eth}(uint256(i), uint256(j), dx, min_dy);
+      }
+    } else if (kind == 4) {
+      if (underlying) {
+        revert UnhandledPoolKind();
+      } else {
+        ICurvePoolKind4(pool).exchange{value: eth}(uint256(i), uint256(j), dx, min_dy);
       }
     } else {
       revert UnhandledPoolKind();
