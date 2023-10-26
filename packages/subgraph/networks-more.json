@@ -1,23 +1,30 @@
 {
   "mainnet": {
+    "chainId": 1,
     "product": "subgraph-studio"
   },
   "arbitrum-one": {
+    "chainId": 42161,
     "product": "subgraph-studio"
   },
   "optimism": {
+    "chainId": 10,
     "product": "hosted-service"
   },
   "bsc": {
+    "chainId": 56,
     "product": "hosted-service"
   },
   "matic": {
+    "chainId": 137,
     "product": "subgraph-studio"
   },
   "avalanche": {
-    "product": "subgraph-studio"
+    "chainId": 43114,
+    "product": "hosted-service"
   },
   "base": {
+    "chainId": 8453,
     "product": "hosted-service"
   }
 }
