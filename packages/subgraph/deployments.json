@@ -4,6 +4,6 @@
   "optimism": "https://api.thegraph.com/subgraphs/name/sifiorg/sifi-optimism",
   "bsc": "https://api.thegraph.com/subgraphs/name/sifiorg/sifi-bsc",
   "matic": "https://gateway-arbitrum.network.thegraph.com/api/3e9d2f58d24bcd5d854ba4c4c8df5c3b/subgraphs/id/VJesTAc98ochTTwDQViVgnM4jWhyRC4pyWHBpDQkCjj",
-  "avalanche": "https://gateway-arbitrum.network.thegraph.com/api/3e9d2f58d24bcd5d854ba4c4c8df5c3b/subgraphs/id/4cn8JGVKUJBWRJNt4n5KQNMKyMLjRATUBLQ9oSCbL9QA",
-  "base": "https://api.thegraph.com/subgraphs/name/sifiorg/sifi-base"
+  "avalanche": "https://api.thegraph.com/subgraphs/name/sifiorg/sifi-avalanche",
+  "base": "https://api.studio.thegraph.com/query/56047/sifi-base/version/latest"
 }
