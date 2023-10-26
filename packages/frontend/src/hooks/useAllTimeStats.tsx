@@ -20,15 +20,17 @@ const useAllTimeStats = () => {
   return useQuery(
     ['allTimeStats'],
     async () => {
-      const responses = (await Promise.all(
-        Object.values(GRAPH_URLS).map(url =>
-          request(url, ALL_TIME_STATS_QUERY).catch((error: any) => {
-            console.error(`Failed to fetch data from ${url}:`, error);
+      const responses = await Promise.all(
+        Object.entries(GRAPH_URLS).map(([chainId, url]) =>
+          request(url, ALL_TIME_STATS_QUERY)
+            .then<AllTimeStatsResponse>()
+            .catch((error: any) => {
+              console.error(`Failed to fetch data for ${chainId}:`, error);
 
-            return { allTimeStats: { volumeUsd: '0' } };
-          })
+              return { allTimeStats: { volumeUsd: '0' } };
+            })
         )
-      )) as AllTimeStatsResponse[];
+      );
 
       const totalVolumeUsd = responses.reduce(
         (sum: number, response: AllTimeStatsResponse) =>
