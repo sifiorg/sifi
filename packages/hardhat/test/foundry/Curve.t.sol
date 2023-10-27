@@ -12,13 +12,13 @@ import {Curve} from 'contracts/facets/Curve.sol';
 import {InitLibWarp} from 'contracts/init/InitLibWarp.sol';
 import {LibWarp} from 'contracts/libraries/LibWarp.sol';
 import {IUniswapV2Factory} from 'contracts/interfaces/external/IUniswapV2Factory.sol';
-import {ICurvePoolKind1, ICurvePoolKind2, ICurvePoolKind3} from 'contracts/interfaces/external/ICurvePool.sol';
 import {IPermit2} from 'contracts/interfaces/external/IPermit2.sol';
 import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransfer.sol';
 import {PermitParams} from 'contracts/libraries/PermitParams.sol';
 import {PermitSignature} from './helpers/PermitSignature.sol';
+import {CurveHelpers} from './helpers/CurveHelpers.sol';
 
-contract CurveTest is FacetTest, ILibStarVault {
+contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
   ICurve internal facet;
 
   function setUp() public override {
@@ -46,55 +46,6 @@ contract CurveTest is FacetTest, ILibStarVault {
     );
 
     facet = ICurve(address(diamond));
-  }
-
-  function getIndex(uint8 kind, address pool, address token) private view returns (uint8 index) {
-    if (token == address(0)) {
-      token = Mainnet.EEE_ADDR;
-    }
-
-    for (; ; index++) {
-      address coin;
-
-      if (kind == 1) {
-        coin = ICurvePoolKind1(pool).coins(index);
-      } else if (kind == 2) {
-        coin = ICurvePoolKind2(pool).coins(index);
-      } else if (kind == 3) {
-        coin = ICurvePoolKind3(pool).coins(index);
-      } else {
-        require(false, 'UnhandledPoolKind');
-      }
-
-      if (coin == token) {
-        return index;
-      }
-    }
-  }
-
-  function getUnderlyingIndex(
-    uint8 kind,
-    address pool,
-    address token
-  ) private view returns (uint8 index) {
-    for (; ; index++) {
-      address coin;
-
-      if (kind == 1) {
-        coin = ICurvePoolKind1(pool).base_coins(index);
-      } else if (kind == 2) {
-        coin = ICurvePoolKind2(pool).base_coins(index);
-      } else if (kind == 3) {
-        coin = ICurvePoolKind3(pool).underlying_coins(index);
-      } else {
-        require(false, 'UnhandledPoolKind');
-      }
-
-      if (coin == token) {
-        // The index is 1-based
-        return index + 1;
-      }
-    }
   }
 
   function testFork_curveExactInputSingle_EthToSteth() public {
@@ -142,7 +93,8 @@ contract CurveTest is FacetTest, ILibStarVault {
         tokenIndexIn: i,
         tokenIndexOut: j,
         kind: kind,
-        underlying: false
+        underlying: false,
+        useEth: false
       }),
       PermitParams({nonce: emptyPermit.details.nonce, signature: emptyPermitSig})
     );
@@ -194,7 +146,8 @@ contract CurveTest is FacetTest, ILibStarVault {
         tokenIndexIn: i,
         tokenIndexOut: j,
         kind: kind,
-        underlying: false
+        underlying: false,
+        useEth: false
       }),
       PermitParams({nonce: permit.details.nonce, signature: sig})
     );
@@ -243,7 +196,8 @@ contract CurveTest is FacetTest, ILibStarVault {
         tokenIndexIn: i,
         tokenIndexOut: j,
         kind: kind,
-        underlying: false
+        underlying: false,
+        useEth: false
       }),
       PermitParams({nonce: permit.details.nonce, signature: sig})
     );
@@ -292,7 +246,8 @@ contract CurveTest is FacetTest, ILibStarVault {
         tokenIndexIn: i,
         tokenIndexOut: j,
         kind: kind,
-        underlying: true
+        underlying: true,
+        useEth: false
       }),
       PermitParams({nonce: permit.details.nonce, signature: sig})
     );
@@ -343,12 +298,115 @@ contract CurveTest is FacetTest, ILibStarVault {
         tokenIndexIn: i,
         tokenIndexOut: j,
         kind: kind,
-        underlying: true
+        underlying: true,
+        useEth: false
       }),
       PermitParams({nonce: permit.details.nonce, signature: sig})
     );
 
     assertApproxEqRel(Mainnet.DAI.balanceOf(user), 1000 ether, 0.01 ether);
+  }
+
+  function testFork_curveExactInputSingle_CurveTricryptoOptimizedWETH_useEth_from() public {
+    IAllowanceTransfer.PermitSingle memory emptyPermit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(0),
+        amount: 0,
+        expiration: deadline,
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory emptyPermitSig = getPermitSignature(
+      emptyPermit,
+      privateKey,
+      permit2.DOMAIN_SEPARATOR()
+    );
+
+    uint8 kind = 3;
+
+    address pool = 0x7F86Bf177Dd4F3494b841a37e810A34dD56c829B;
+    uint8 i = getIndex(kind, pool, address(Mainnet.WETH));
+    uint8 j = getIndex(kind, pool, address(Mainnet.WBTC));
+
+    deal(user, 1 ether);
+
+    vm.prank(user);
+    facet.curveExactInputSingle{value: 1 ether}(
+      ICurve.ExactInputSingleParams({
+        amountIn: 1 ether,
+        amountOut: 6315168,
+        recipient: user,
+        slippageBps: 50,
+        feeBps: 0,
+        deadline: deadline,
+        partner: address(0),
+        tokenIn: address(0),
+        tokenOut: address(Mainnet.WBTC),
+        pool: pool,
+        tokenIndexIn: i,
+        tokenIndexOut: j,
+        kind: kind,
+        underlying: false,
+        useEth: true
+      }),
+      PermitParams({nonce: emptyPermit.details.nonce, signature: emptyPermitSig})
+    );
+
+    assertEq(Mainnet.WBTC.balanceOf(user), 6315168);
+  }
+
+  function testFork_curveExactInputSingle_CurveTricryptoOptimizedWETH_useEth_to() public {
+    uint8 kind = 3;
+    uint256 amountIn = 0.01 * (10 ** 8);
+
+    address pool = 0x7F86Bf177Dd4F3494b841a37e810A34dD56c829B;
+    uint8 i = getIndex(kind, pool, address(Mainnet.WBTC));
+    uint8 j = getIndex(kind, pool, address(Mainnet.WETH));
+
+    deal(address(Mainnet.WBTC), user, amountIn);
+
+    vm.prank(user);
+    Mainnet.WBTC.approve(address(Addresses.PERMIT2), amountIn);
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.WBTC),
+        amount: uint160(amountIn),
+        expiration: deadline,
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
+
+    vm.prank(user);
+    facet.curveExactInputSingle(
+      ICurve.ExactInputSingleParams({
+        amountIn: amountIn,
+        amountOut: 6315168,
+        recipient: user,
+        slippageBps: 50,
+        feeBps: 0,
+        deadline: deadline,
+        partner: address(0),
+        tokenIn: address(Mainnet.WBTC),
+        tokenOut: address(0),
+        pool: pool,
+        tokenIndexIn: i,
+        tokenIndexOut: j,
+        kind: kind,
+        underlying: false,
+        useEth: true
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
+    );
+
+    assertEq(user.balance, 6315168);
   }
 
   receive() external payable {}

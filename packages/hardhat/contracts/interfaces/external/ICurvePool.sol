@@ -54,6 +54,14 @@ interface ICurvePoolKind3 {
     uint256 min_dy
   ) external payable returns (uint256);
 
+  function exchange(
+    uint256 i,
+    uint256 j,
+    uint256 dx,
+    uint256 min_dy,
+    bool use_eth
+  ) external payable returns (uint256);
+
   function exchange_underlying(
     uint256 i,
     uint256 j,
