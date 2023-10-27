@@ -26,6 +26,7 @@ interface ICurve is ILibCurve, ILibStarVault, ILibWarp {
     uint8 tokenIndexOut;
     uint8 kind;
     bool underlying;
+    bool useEth;
   }
 
   function curveExactInputSingle(
