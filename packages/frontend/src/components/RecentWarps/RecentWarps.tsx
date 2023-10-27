@@ -24,8 +24,8 @@ const RecentWarpsTableData: FunctionComponent = () => {
       <>
         {new Array(5).fill(0).map((_, index) => (
           <Table.Row key={`recent-shifts-table-skeleton-${index}`}>
-            <Table.Cell width="100%" className="text-center sm:hidden">
-              <Skeleton className="h-12 w-1/2 rounded-md" />
+            <Table.Cell width="100%" className="text-center">
+              <Skeleton className="sm:h-10 sm:w-100 m-auto rounded-md h-20" />
             </Table.Cell>
           </Table.Row>
         ))}
