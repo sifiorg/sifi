@@ -93,8 +93,7 @@ contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
         tokenIndexIn: i,
         tokenIndexOut: j,
         kind: kind,
-        underlying: false,
-        useEth: false
+        underlying: false
       }),
       PermitParams({nonce: emptyPermit.details.nonce, signature: emptyPermitSig})
     );
@@ -146,8 +145,7 @@ contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
         tokenIndexIn: i,
         tokenIndexOut: j,
         kind: kind,
-        underlying: false,
-        useEth: false
+        underlying: false
       }),
       PermitParams({nonce: permit.details.nonce, signature: sig})
     );
@@ -196,8 +194,7 @@ contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
         tokenIndexIn: i,
         tokenIndexOut: j,
         kind: kind,
-        underlying: false,
-        useEth: false
+        underlying: false
       }),
       PermitParams({nonce: permit.details.nonce, signature: sig})
     );
@@ -246,8 +243,7 @@ contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
         tokenIndexIn: i,
         tokenIndexOut: j,
         kind: kind,
-        underlying: true,
-        useEth: false
+        underlying: true
       }),
       PermitParams({nonce: permit.details.nonce, signature: sig})
     );
@@ -298,8 +294,7 @@ contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
         tokenIndexIn: i,
         tokenIndexOut: j,
         kind: kind,
-        underlying: true,
-        useEth: false
+        underlying: true
       }),
       PermitParams({nonce: permit.details.nonce, signature: sig})
     );
@@ -325,11 +320,17 @@ contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
       permit2.DOMAIN_SEPARATOR()
     );
 
+    console2.log('--- check 1');
+
     uint8 kind = 3;
+
+    console2.log('--- check 2');
 
     address pool = 0x7F86Bf177Dd4F3494b841a37e810A34dD56c829B;
     uint8 i = getIndex(kind, pool, address(Mainnet.WETH));
     uint8 j = getIndex(kind, pool, address(Mainnet.WBTC));
+
+    console2.log('--- check 3');
 
     deal(user, 1 ether);
 
@@ -349,8 +350,7 @@ contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
         tokenIndexIn: i,
         tokenIndexOut: j,
         kind: kind,
-        underlying: false,
-        useEth: true
+        underlying: false
       }),
       PermitParams({nonce: emptyPermit.details.nonce, signature: emptyPermitSig})
     );
@@ -400,8 +400,7 @@ contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
         tokenIndexIn: i,
         tokenIndexOut: j,
         kind: kind,
-        underlying: false,
-        useEth: true
+        underlying: false
       }),
       PermitParams({nonce: permit.details.nonce, signature: sig})
     );
