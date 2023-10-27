@@ -14,7 +14,7 @@
     "lint": "solhint 'contracts/**/*.sol'",
     "test": "pnpm run hardhat-test && pnpm run forge-test",
     "hardhat-test": "hardhat test",
-    "forge-test": "forge test --ffi",
+    "forge-test": "forge test --ffi --evm-version shanghai",
     "slither": "slither --filter-paths='test/|node_modules/|lib/' .",
     "slither:ci": "slither --ignore-compile --filter-paths 'test/|node_modules/|lib/' --sarif results.sarif --no-fail .",
     "clean": " rm -rf cache cache_forge artifacts out typechain-types results.sarif",

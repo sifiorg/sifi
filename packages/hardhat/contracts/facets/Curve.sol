@@ -70,7 +70,7 @@ contract Curve is ICurve {
       underlying: params.underlying,
       pool: params.pool,
       eth: msg.value,
-      useEth: params.useEth,
+      useEth: params.tokenIn == address(0) || isToEth,
       i: params.tokenIndexIn,
       j: params.tokenIndexOut,
       // NOTE: `params.amountIn` is not verified to equal `msg.value`
