@@ -17,7 +17,8 @@ library LibCurve {
     uint8 i,
     uint8 j,
     uint256 dx,
-    uint256 min_dy
+    uint256 min_dy,
+    bool useEth
   ) internal {
     if (kind == 1) {
       if (underlying) {
@@ -54,8 +55,10 @@ library LibCurve {
     } else if (kind == 3) {
       if (underlying) {
         ICurvePoolKind3(pool).exchange_underlying{value: eth}(uint256(i), uint256(j), dx, min_dy);
+      } else if (useEth) {
+        ICurvePoolKind3(pool).exchange{value: eth}(uint256(i), uint256(j), dx, min_dy, true);
       } else {
-        ICurvePoolKind3(pool).exchange{value: eth}(uint256(i), uint256(j), dx, min_dy);
+        ICurvePoolKind3(pool).exchange(uint256(i), uint256(j), dx, min_dy);
       }
     } else if (kind == 4) {
       if (underlying) {

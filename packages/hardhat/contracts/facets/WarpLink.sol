@@ -625,6 +625,7 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       underlying: params.underlying,
       pool: params.pool,
       eth: isFromEth ? t.amount : 0,
+      useEth: isFromEth || isToEth,
       i: params.tokenIndexIn,
       j: params.tokenIndexOut,
       dx: t.amount,

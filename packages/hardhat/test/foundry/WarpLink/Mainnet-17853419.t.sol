@@ -9,9 +9,10 @@ import {PermitParams} from 'contracts/libraries/PermitParams.sol';
 import {LibWarp} from 'contracts/libraries/LibWarp.sol';
 import {Addresses, Mainnet} from '../helpers/Networks.sol';
 import {UniV2TestHelpers} from '../helpers/UniV2.sol';
+import {CurveHelpers} from '../helpers/CurveHelpers.sol';
 import {WarpLinkTestBase} from './TestBase.sol';
 
-contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
+contract WarpLinkMainnet17853419Test is WarpLinkTestBase, CurveHelpers {
   function setUp() public override {
     setUpOn(1, 17853419);
   }
@@ -1031,5 +1032,123 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase {
     );
 
     assertEq(Mainnet.FRXETH.balanceOf(user), 1000867499582465464, 'balance');
+  }
+
+  /**
+   * Ensure ETH can be delivered from the WETH pool
+   */
+  function testFork_warpCurveTricryptoOptimizedWETH_useEthOut() public {
+    uint8 kind = 3;
+    address pool = 0x7F86Bf177Dd4F3494b841a37e810A34dD56c829B;
+    uint256 amountIn = 0.01 * (10 ** 8);
+
+    bytes memory commands = bytes.concat(
+      abi.encodePacked(
+        (uint8)(1), // Command count
+        (uint8)(8), // COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE
+        (address)(0), // tokenOut
+        (address)(pool), // pool, WBTC/WETH/...
+        (uint8)(getIndex(kind, pool, address(Mainnet.WBTC))), // tokenIndexIn
+        (uint8)(getIndex(kind, pool, address(Mainnet.WETH))), // tokenIndexOut
+        (uint8)(kind), // kind
+        (uint8)(0) // underlying
+      )
+    );
+
+    IAllowanceTransfer.PermitDetails memory details = IAllowanceTransfer.PermitDetails({
+      token: address(Mainnet.WBTC),
+      amount: (uint160)(amountIn),
+      expiration: deadline,
+      nonce: 0
+    });
+
+    bytes memory sig = getPermitSignature(
+      IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
+      privateKey,
+      permit2.DOMAIN_SEPARATOR()
+    );
+
+    deal(address(Mainnet.WBTC), user, amountIn);
+
+    vm.prank(user);
+    Mainnet.WBTC.approve(address(Addresses.PERMIT2), amountIn);
+
+    vm.prank(user);
+    facet.warpLinkEngage(
+      IWarpLink.Params({
+        tokenIn: address(Mainnet.WBTC),
+        tokenOut: address(0),
+        commands: commands,
+        amountIn: amountIn,
+        amountOut: 6315168,
+        recipient: user,
+        partner: address(0),
+        feeBps: 0,
+        slippageBps: 100,
+        deadline: deadline
+      }),
+      PermitParams({nonce: details.nonce, signature: sig})
+    );
+
+    assertEq(user.balance, 6315168, 'balance');
+  }
+
+  /**
+   * Ensure WETH can be delivered from the WETH pool
+   */
+  function testFork_warpCurveTricryptoOptimizedWETH_dontUseEthOut() public {
+    uint8 kind = 3;
+    address pool = 0x7F86Bf177Dd4F3494b841a37e810A34dD56c829B;
+    uint256 amountIn = 0.01 * (10 ** 8);
+
+    bytes memory commands = bytes.concat(
+      abi.encodePacked(
+        (uint8)(1), // Command count
+        (uint8)(8), // COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE
+        (address)(Mainnet.WETH), // tokenOut
+        (address)(pool), // pool, WBTC/WETH/...
+        (uint8)(getIndex(kind, pool, address(Mainnet.WBTC))), // tokenIndexIn
+        (uint8)(getIndex(kind, pool, address(Mainnet.WETH))), // tokenIndexOut
+        (uint8)(kind), // kind
+        (uint8)(0) // underlying
+      )
+    );
+
+    IAllowanceTransfer.PermitDetails memory details = IAllowanceTransfer.PermitDetails({
+      token: address(Mainnet.WBTC),
+      amount: (uint160)(amountIn),
+      expiration: deadline,
+      nonce: 0
+    });
+
+    bytes memory sig = getPermitSignature(
+      IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
+      privateKey,
+      permit2.DOMAIN_SEPARATOR()
+    );
+
+    deal(address(Mainnet.WBTC), user, amountIn);
+
+    vm.prank(user);
+    Mainnet.WBTC.approve(address(Addresses.PERMIT2), amountIn);
+
+    vm.prank(user);
+    facet.warpLinkEngage(
+      IWarpLink.Params({
+        tokenIn: address(Mainnet.WBTC),
+        tokenOut: address(Mainnet.WETH),
+        commands: commands,
+        amountIn: amountIn,
+        amountOut: 6315168,
+        recipient: user,
+        partner: address(0),
+        feeBps: 0,
+        slippageBps: 100,
+        deadline: deadline
+      }),
+      PermitParams({nonce: details.nonce, signature: sig})
+    );
+
+    assertEq(Mainnet.WETH.balanceOf(user), 6315168, 'balance');
   }
 }
