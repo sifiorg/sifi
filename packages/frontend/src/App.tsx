@@ -6,6 +6,7 @@ import { Hero } from './components/Hero/Hero';
 import { Route, Routes } from 'react-router-dom';
 import { SpaceTravelCanvas } from './space-travel/SpaceTravelCanvas';
 import { Stats } from './components/Stats/Stats';
+import { RecentWarps } from './components/RecentWarps/RecentWarps';
 
 const Layout: FunctionComponent<{ children: ReactNode }> = ({ children }) => {
   return (
@@ -26,6 +27,7 @@ const Home: FunctionComponent = () => {
     <>
       <div className="mt-12 flex min-h-[90vh] flex-col md:mt-0 md:justify-center">
         <Hero />
+        <RecentWarps />
       </div>
     </>
   );
