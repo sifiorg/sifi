@@ -11,6 +11,11 @@ const Header: FunctionComponent = () => {
       title: 'Discord',
       external: true,
     },
+    {
+      href: 'https://docs.sifi.org',
+      title: 'Docs',
+      external: true,
+    },
   ];
 
   return (
