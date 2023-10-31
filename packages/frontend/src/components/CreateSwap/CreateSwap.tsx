@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useForm, useFormContext } from 'react-hook-form';
-import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
+import { useAccount, useWalletClient, usePublicClient, useNetwork } from 'wagmi';
 import { parseUnits } from 'viem';
 import { showToast, ShiftInput } from '@sifi/shared-ui';
 import { useTokens } from 'src/hooks/useTokens';
@@ -173,6 +173,7 @@ const CreateSwap = () => {
   const depositMax = isConnected ? spendableBalance : undefined;
   const selectedFromTokenWithNetwork = getTokenWithNetwork(selectedFromToken, fromChain);
   const selectedToTokenWithNetwork = getTokenWithNetwork(selectedToToken, toChain);
+  const { chain } = useNetwork();
   const fromUsdValue = useUsdValue({
     address: fromToken?.address,
     chainId: fromChain.id,
@@ -183,6 +184,9 @@ const CreateSwap = () => {
     chainId: toChain?.id,
     amount: toAmount,
   });
+  const userIsConnectedToWrongNetwork = Boolean(
+    chain?.id && fromToken?.chainId && chain.id !== fromToken.chainId
+  );
 
   const resetTokenAmounts = () => {
     setValue(SwapFormKey.FromAmount, '');
@@ -220,7 +224,7 @@ const CreateSwap = () => {
                   openSelector={() => openTokenSelector('from')}
                   formMethods={methods}
                   disabled={Boolean(isSameTokenPair)}
-                  max={depositMax}
+                  max={userIsConnectedToWrongNetwork ? undefined : depositMax}
                   usdValue={fromUsdValue}
                   hideLabel
                 />
