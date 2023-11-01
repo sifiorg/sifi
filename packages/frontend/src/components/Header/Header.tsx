@@ -5,21 +5,8 @@ import HeaderMenu from '../HeaderMenu/HeaderMenu';
 import { HeaderChainSelector } from '../HeaderChainSelector/HeaderChainSelector';
 
 const Header: FunctionComponent = () => {
-  const navLinks = [
-    {
-      href: 'https://discord.gg/sXDKcUYnU8',
-      title: 'Discord',
-      external: true,
-    },
-    {
-      href: 'https://docs.sifi.org',
-      title: 'Docs',
-      external: true,
-    },
-  ];
-
   return (
-    <Navbar logo={logo} navLinks={navLinks}>
+    <Navbar logo={logo}>
       <HeaderChainSelector />
       <HeaderMenu />
     </Navbar>

@@ -1,9 +1,9 @@
 import { Table, formatTokenAmount, Skeleton } from '@sifi/shared-ui';
 import { FunctionComponent } from 'react';
 import { useRecentWarps } from 'src/hooks/useRecentWarps';
-import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 import { useTokens } from 'src/hooks/useTokens';
 import { getIconFromSymbol } from 'src/utils';
+import { Stats } from '../Stats/Stats';
 
 const RecentWarpsTableData: FunctionComponent = () => {
   const { data: warps, error, isLoading } = useRecentWarps();
@@ -95,13 +95,13 @@ const RecentWarpsTableData: FunctionComponent = () => {
 };
 
 const RecentWarps: FunctionComponent = () => {
-  const { fromChain } = useSwapFormValues();
   return (
     <section>
       <div className="mx-auto w-full max-w-2xl py-16">
-        <div className="flex flex-col items-center justify-between gap-8">
-          <h2 className="mb-4 text-center text-3xl sm:mb-8">Recent Swaps from {fromChain.name}</h2>
-          <div className="dark:border-darker-gray border-smoke w-full border-t">
+        <div className="flex flex-col items-center justify-between gap-2">
+          <h2 className="text-center text-3xl">Recent</h2>
+          <Stats />
+          <div className="dark:border-darker-gray border-smoke w-full border-t mt-4">
             <Table>
               <thead>
                 <Table.Row>
