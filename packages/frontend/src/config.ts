@@ -1,3 +1,6 @@
-const walletConnectProjectId = import.meta.env.REACT_APP_WALLET_CONNECT_PROJECT_ID;
+const { REACT_APP_WALLET_CONNECT_PROJECT_ID, REACT_APP_DEFAULT_FEE_BPS } = import.meta.env;
 
-export { walletConnectProjectId };
+const walletConnectProjectId = REACT_APP_WALLET_CONNECT_PROJECT_ID;
+const defaultFeeBps = REACT_APP_DEFAULT_FEE_BPS ? Number(REACT_APP_DEFAULT_FEE_BPS) : undefined;
+
+export { walletConnectProjectId, defaultFeeBps };
