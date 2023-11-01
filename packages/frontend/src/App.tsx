@@ -23,7 +23,7 @@ const Layout: FunctionComponent<{ children: ReactNode }> = ({ children }) => {
 const Home: FunctionComponent = () => {
   return (
     <>
-      <div className="mt-12 flex min-h-[90vh] flex-col md:mt-0 md:justify-center">
+      <div className="flex min-h-[90vh] flex-col md:justify-center">
         <Hero />
         <RecentWarps />
       </div>

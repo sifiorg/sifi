@@ -210,7 +210,7 @@ const CreateSwap = () => {
       <div className="bg-white pb-8 shadow sm:rounded-lg">
         <form className="space-y-6" onSubmit={handleSubmit(executeSwap)}>
           <div>
-            <div className="py-4">
+            <div className="sm:py-4">
               <div className="mb-2">
                 <div className="flex justify-between align-bottom items-end">
                   <div className="font-display text-smoke">{ShiftInputLabel.from}</div>
