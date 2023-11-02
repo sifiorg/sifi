@@ -8,13 +8,15 @@ const Hero = () => (
       <h1 className="text-flashbang-white font-display mb-0 pb-0 text-center text-[1.875rem] sm:text-[2.25rem]">
         Swap
       </h1>
-      <Stats />
       <div className="border-darker-gray mx-auto max-w-[27rem] border-b-[1px] pb-2">
         <CreateSwap />
       </div>
-      <p className="text-smoke font-text mx-auto text-center text-base font-light md:max-w-[380px] pt-6">
+      <p className="text-smoke font-text mx-auto text-center text-base font-light md:max-w-[380px] pt-6 pb-6">
         {texts.DESCRIPTION}
       </p>
+      <div className="mx-auto max-w-[27rem] ">
+        <Stats />
+      </div>
     </div>
   </div>
 );
