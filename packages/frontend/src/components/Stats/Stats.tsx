@@ -9,7 +9,7 @@ const Stats = () => {
   }
 
   return (
-    <div className="font-display m-auto text-center text-sm p-2 flex place-items-center justify-center relative">
+    <div className="font-display m-auto text-center text-sm p-1 pb-0 flex place-items-center justify-center relative">
       {data ? (
         `All-time volume: $${numberWithCommas(data)}`
       ) : (

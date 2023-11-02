@@ -9,7 +9,7 @@ const Hero = () => (
         Swap
       </h1>
       <Stats />
-      <div className="border-darker-gray mx-auto max-w-[27rem] border-b-[1px]">
+      <div className="border-darker-gray mx-auto max-w-[27rem] border-b-[1px] pb-2">
         <CreateSwap />
       </div>
       <p className="text-smoke font-text mx-auto text-center text-base font-light md:max-w-[380px] pt-6">
