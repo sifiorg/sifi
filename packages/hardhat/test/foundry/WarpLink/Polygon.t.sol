@@ -36,12 +36,11 @@ contract WarpLinkPolygonTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      }),
-      emptyPermitParams
+      })
     );
   }
 
-  function testFork_swapSingleUniV3() public {
+  function testFork_warpLinkEngage_swapSingleUniV3() public {
     uint256 amountIn = 1 ether;
     uint256 expectedSwapOut = 506478;
     uint256 expectedFee = 0;
@@ -72,8 +71,7 @@ contract WarpLinkPolygonTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      }),
-      emptyPermitParams
+      })
     );
 
     assertEq(Polygon.USDC.balanceOf(user), expectedSwapOut - expectedFee, 'after');

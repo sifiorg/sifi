@@ -95,7 +95,7 @@ contract StatgateJumpTokenGoerli is Script, PermitSignature {
 
     vm.startBroadcast(user);
 
-    IStargate(goerliDiamondAddr).stargateJumpToken{value: lzFee}(
+    IStargate(goerliDiamondAddr).stargateJumpTokenPermit{value: lzFee}(
       IStargate.JumpTokenParams({
         token: Goerli.STARGATE_MOCK_USDC_ADDR,
         amountIn: srcAmountIn,

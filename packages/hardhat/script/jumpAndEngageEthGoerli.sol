@@ -91,7 +91,7 @@ contract JumpAndEngageEthGoerli is Script, WarpLinkCommandTypes, PermitSignature
 
     console2.log('User balance: %s', user.balance);
 
-    IWarpLink(goerliDiamondAddr).warpLinkEngage{value: nativeWei + srcAmountIn}(
+    IWarpLink(goerliDiamondAddr).warpLinkEngagePermit{value: nativeWei + srcAmountIn}(
       IWarpLink.Params({
         tokenIn: address(0),
         tokenOut: address(0),

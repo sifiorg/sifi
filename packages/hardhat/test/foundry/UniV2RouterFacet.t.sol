@@ -69,8 +69,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
         partner: address(0),
         tokenIn: address(0),
         tokenOut: address(Mainnet.USDC)
-      }),
-      emptyPermitParams
+      })
     );
 
     assertApproxEqRel(Mainnet.USDC.balanceOf(user), 1830 * (10 ** 6), 0.05 ether);
@@ -95,8 +94,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
         partner: partner,
         tokenIn: address(0),
         tokenOut: address(Mainnet.USDC)
-      }),
-      emptyPermitParams
+      })
     );
 
     assertApproxEqRel(Mainnet.USDC.balanceOf(user), 1830 * (10 ** 6), 0.05 ether);
@@ -104,6 +102,30 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
   }
 
   function testFork_uniswapV2ExactInputSingle_UsdcForDai_SwapsOnePool() public {
+    deal(address(Mainnet.USDC), user, 2000 * (10 ** 6));
+
+    vm.startPrank(user);
+
+    Mainnet.USDC.approve(address(diamond), 2000 * (10 ** 6));
+
+    facet.uniswapV2ExactInputSingle(
+      IUniV2Router.ExactInputSingleParams({
+        amountIn: 2000 * (10 ** 6),
+        amountOut: 2000 * (10 ** 18),
+        recipient: user,
+        slippage: 50,
+        feeBps: 0,
+        deadline: (uint48)(deadline),
+        partner: address(0),
+        tokenIn: address(Mainnet.USDC),
+        tokenOut: address(Mainnet.DAI)
+      })
+    );
+
+    assertApproxEqRel(Mainnet.DAI.balanceOf(user), 2000 * (10 ** 18), 0.05 ether);
+  }
+
+  function testFork_uniswapV2ExactInputSinglePermit_UsdcForDai_SwapsOnePool() public {
     deal(address(Mainnet.USDC), user, 2000 * (10 ** 6));
 
     vm.startPrank(user);
@@ -123,7 +145,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
 
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
-    facet.uniswapV2ExactInputSingle(
+    facet.uniswapV2ExactInputSinglePermit(
       IUniV2Router.ExactInputSingleParams({
         amountIn: 2000 * (10 ** 6),
         amountOut: 2000 * (10 ** 18),
@@ -141,7 +163,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     assertApproxEqRel(Mainnet.DAI.balanceOf(user), 2000 * (10 ** 18), 0.05 ether);
   }
 
-  function testFork_uniswapV2ExactInputSingle_UsdcForDai_CollectFees() public {
+  function testFork_uniswapV2ExactInputSinglePermit_UsdcForDai_CollectFees() public {
     deal(address(Mainnet.USDC), user, 2000 * (10 ** 6));
 
     vm.startPrank(user);
@@ -164,7 +186,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     vm.expectEmit(true, true, true, false);
     emit Fee(partner, address(Mainnet.DAI), 2 * (10 ** 18), 2 * (10 ** 18));
 
-    facet.uniswapV2ExactInputSingle(
+    facet.uniswapV2ExactInputSinglePermit(
       IUniV2Router.ExactInputSingleParams({
         amountIn: 2000 * (10 ** 6),
         amountOut: 2000 * (10 ** 18),
@@ -183,7 +205,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     assertApproxEqRel(Mainnet.DAI.balanceOf(address(facet)), 4 * (10 ** 18), 0.05 ether);
   }
 
-  function testFork_uniswapV2ExactInputSingle_UsdcForEth_PositiveSlippage() public {
+  function testFork_uniswapV2ExactInputSinglePermit_UsdcForEth_PositiveSlippage() public {
     address[] memory path = new address[](2);
     path[0] = address(Mainnet.USDC);
     path[1] = address(0);
@@ -207,7 +229,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
 
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
-    facet.uniswapV2ExactInputSingle(
+    facet.uniswapV2ExactInputSinglePermit(
       IUniV2Router.ExactInputSingleParams({
         amountIn: 2000 * (10 ** 6),
         amountOut: 1.08 ether,
@@ -226,7 +248,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     assertApproxEqRel(Mainnet.WETH.balanceOf(address(facet)), 0.006 ether, 0.05 ether);
   }
 
-  function testFork_uniswapV2ExactInputSingle_UsdcForEth_CollectFees() public {
+  function testFork_uniswapV2ExactInputSinglePermit_UsdcForEth_CollectFees() public {
     deal(address(Mainnet.USDC), user, 2000 * (10 ** 6));
 
     vm.startPrank(user);
@@ -249,7 +271,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     vm.expectEmit(true, true, true, false);
     emit Fee(partner, address(Mainnet.WETH), 0.004 ether, 0.004 ether);
 
-    facet.uniswapV2ExactInputSingle(
+    facet.uniswapV2ExactInputSinglePermit(
       IUniV2Router.ExactInputSingleParams({
         amountIn: 2000 * (10 ** 6),
         amountOut: 1.08 ether,
@@ -268,7 +290,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     assertApproxEqRel(Mainnet.WETH.balanceOf(address(facet)), 0.008 ether, 0.05 ether);
   }
 
-  function testFork_uniswapV2ExactInput_UsdcForDai() public {
+  function testFork_uniswapV2ExactInputPermit_UsdcForDai() public {
     address[] memory path = new address[](2);
     path[0] = address(Mainnet.USDC);
     path[1] = address(Mainnet.DAI);
@@ -298,7 +320,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     vm.expectEmit(true, true, true, true);
     emit Fee(address(0), address(Mainnet.DAI), 2 * 0, expectedFee);
 
-    facet.uniswapV2ExactInput(
+    facet.uniswapV2ExactInputPermit(
       IUniV2Router.ExactInputParams({
         amountIn: 2000 * (10 ** 6),
         amountOut: expectedSwapOut,
@@ -315,7 +337,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     assertEq(Mainnet.DAI.balanceOf(user), expectedSwapOut - expectedFee);
   }
 
-  function testFork_uniswapV2ExactInput_DaiWethWbtc() public {
+  function testFork_uniswapV2ExactInputPermit_DaiWethWbtc() public {
     address[] memory path = new address[](3);
     path[0] = address(Mainnet.DAI);
     path[1] = address(Mainnet.WETH);
@@ -346,7 +368,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     // vm.expectEmit(true, true, true, true);
     // emit Fee(address(0), address(Mainnet.DAI), 0, expectedFee);
 
-    facet.uniswapV2ExactInput(
+    facet.uniswapV2ExactInputPermit(
       IUniV2Router.ExactInputParams({
         amountIn: 2000 ether,
         amountOut: expectedSwapOut,
@@ -363,7 +385,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     assertEq(Mainnet.WBTC.balanceOf(user), expectedSwapOut - expectedFee);
   }
 
-  function testFork_uniswapV2ExactInput_UsdcForEth() public {
+  function testFork_uniswapV2ExactInputPermit_UsdcForEth() public {
     address[] memory path = new address[](2);
     path[0] = address(Mainnet.USDC);
     path[1] = address(0);
@@ -393,7 +415,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     vm.expectEmit(true, true, true, true);
     emit Fee(address(0), address(Mainnet.WETH), 2 * 0, expectedFee);
 
-    facet.uniswapV2ExactInput(
+    facet.uniswapV2ExactInputPermit(
       IUniV2Router.ExactInputParams({
         amountIn: 2000 * (10 ** 6),
         amountOut: expectedSwapOut,
@@ -435,14 +457,13 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
         deadline: (uint48)(deadline),
         partner: address(0),
         path: path
-      }),
-      emptyPermitParams
+      })
     );
 
     assertEq(Mainnet.DAI.balanceOf(user), expectedSwapOut - expectedFee);
   }
 
-  function testFork_uniswapV2ExactInput_Recipient() public {
+  function testFork_uniswapV2ExactInputPermit_Recipient() public {
     address recipient = makeAddr('recipient');
 
     address[] memory path = new address[](2);
@@ -474,7 +495,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     vm.expectEmit(true, true, true, true);
     emit Fee(address(0), address(Mainnet.DAI), 2 * 0, expectedFee);
 
-    facet.uniswapV2ExactInput(
+    facet.uniswapV2ExactInputPermit(
       IUniV2Router.ExactInputParams({
         amountIn: 2000 * (10 ** 6),
         amountOut: expectedSwapOut,
@@ -491,7 +512,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     assertEq(Mainnet.DAI.balanceOf(recipient), expectedSwapOut - expectedFee);
   }
 
-  function testFork_uniswapV2ExactInput_revertInsufficientOutputAmount() public {
+  function testFork_uniswapV2ExactInputPermit_revertInsufficientOutputAmount() public {
     address[] memory path = new address[](2);
     path[0] = address(Mainnet.USDC);
     path[1] = address(Mainnet.DAI);
@@ -519,7 +540,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
 
     vm.expectRevert(abi.encodeWithSelector(IUniV2Router.InsufficientOutputAmount.selector));
 
-    facet.uniswapV2ExactInput(
+    facet.uniswapV2ExactInputPermit(
       IUniV2Router.ExactInputParams({
         amountIn: 2000 * (10 ** 6),
         amountOut: expectedSwapOut + 1,
@@ -545,7 +566,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
 
     uint256 expectedSwapOut = 1991846446632959177237;
 
-    Mainnet.USDC.approve(address(Addresses.PERMIT2), 2000 * (10 ** 6));
+    Mainnet.USDC.approve(address(diamond), 2000 * (10 ** 6));
 
     IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
       IAllowanceTransfer.PermitDetails({
@@ -572,8 +593,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
         deadline: (uint48)(block.timestamp - 1),
         partner: address(0),
         path: path
-      }),
-      PermitParams({nonce: permit.details.nonce, signature: sig})
+      })
     );
   }
 
@@ -599,8 +619,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
         partner: address(0),
         tokenIn: address(0),
         tokenOut: address(Mainnet.DAI)
-      }),
-      emptyPermitParams
+      })
     );
 
     assertEq(Mainnet.DAI.balanceOf(user), expectedSwapOut - expectedFee);
@@ -620,12 +639,11 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
         partner: address(0),
         tokenIn: address(Mainnet.USDC),
         tokenOut: address(Mainnet.DAI)
-      }),
-      emptyPermitParams
+      })
     );
   }
 
-  function testFork_uniswapV2ExactInputSingle_revertInsufficientOutputAmount() public {
+  function testFork_uniswapV2ExactInputSinglePermit_revertInsufficientOutputAmount() public {
     deal(address(Mainnet.USDC), user, 2000 * (10 ** 6));
 
     vm.startPrank(user);
@@ -648,7 +666,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
 
     vm.expectRevert(abi.encodeWithSelector(IUniV2Router.InsufficientOutputAmount.selector));
 
-    facet.uniswapV2ExactInputSingle(
+    facet.uniswapV2ExactInputSinglePermit(
       IUniV2Router.ExactInputSingleParams({
         amountIn: 2000 * (10 ** 6),
         amountOut: expectedSwapOut + 1,
@@ -664,7 +682,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     );
   }
 
-  function testFork_uniswapV2ExactInputSingle_recipient() public {
+  function testFork_uniswapV2ExactInputSinglePermit_recipient() public {
     address recipient = makeAddr('recipient');
 
     deal(address(Mainnet.USDC), user, 2000 * (10 ** 6));
@@ -692,7 +710,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     vm.expectEmit(true, true, true, true);
     emit Fee(address(0), address(Mainnet.DAI), 2 * 0, expectedFee);
 
-    facet.uniswapV2ExactInputSingle(
+    facet.uniswapV2ExactInputSinglePermit(
       IUniV2Router.ExactInputSingleParams({
         amountIn: 2000 * (10 ** 6),
         amountOut: expectedSwapOut,
@@ -710,7 +728,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     assertEq(Mainnet.DAI.balanceOf(recipient), expectedSwapOut - expectedFee);
   }
 
-  function testFork_uniswapV2ExactInputSingle_UsdcForEth() public {
+  function testFork_uniswapV2ExactInputSinglePermit_UsdcForEth() public {
     deal(address(Mainnet.USDC), user, 2000 * (10 ** 6));
 
     vm.startPrank(user);
@@ -735,7 +753,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     vm.expectEmit(true, true, true, true);
     emit Fee(address(0), address(Mainnet.WETH), 2 * 0, expectedFee);
 
-    facet.uniswapV2ExactInputSingle(
+    facet.uniswapV2ExactInputSinglePermit(
       IUniV2Router.ExactInputSingleParams({
         amountIn: 2000 * (10 ** 6),
         amountOut: expectedSwapOut,
@@ -753,7 +771,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     assertEq(user.balance, expectedSwapOut - expectedFee);
   }
 
-  function testFork_uniswapV2ExactInputSingle_UsdcForDai() public {
+  function testFork_uniswapV2ExactInputSinglePermit_UsdcForDai() public {
     deal(address(Mainnet.USDC), user, 2000 * (10 ** 6));
 
     vm.startPrank(user);
@@ -779,7 +797,7 @@ contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
     vm.expectEmit(true, true, true, true);
     emit Fee(address(0), address(Mainnet.DAI), 2 * 0, expectedFee);
 
-    facet.uniswapV2ExactInputSingle(
+    facet.uniswapV2ExactInputSinglePermit(
       IUniV2Router.ExactInputSingleParams({
         amountIn: 2000 * (10 ** 6),
         amountOut: expectedSwapOut,

@@ -20,6 +20,10 @@ library LibUniV3Like {
     uint256 amount;
     address payer;
     address token;
+    /**
+     * Whether to use a permit transfer (0 or 1)
+     */
+    uint256 usePermit;
   }
 
   struct State {

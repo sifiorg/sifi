@@ -11,6 +11,11 @@ interface ICurve is ILibCurve, ILibStarVault, ILibWarp {
   error InsufficientOutputAmount();
   error EthTransferFailed();
 
+  /**
+   * A function expecting a permit was used when the input token is ETH
+   */
+  error PermitForEthToken();
+
   struct ExactInputSingleParams {
     uint256 amountIn;
     uint256 amountOut;
@@ -28,8 +33,12 @@ interface ICurve is ILibCurve, ILibStarVault, ILibWarp {
     bool underlying;
   }
 
-  function curveExactInputSingle(
+  function curveExactInputSinglePermit(
     ExactInputSingleParams memory params,
     PermitParams calldata permit
+  ) external payable returns (uint256 amountOut);
+
+  function curveExactInputSingle(
+    ExactInputSingleParams memory params
   ) external payable returns (uint256 amountOut);
 }
