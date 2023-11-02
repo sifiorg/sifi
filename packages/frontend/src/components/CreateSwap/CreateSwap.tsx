@@ -206,7 +206,7 @@ const CreateSwap = () => {
   }, [fromToken]);
 
   return (
-    <div className="m:w-full pt-2 sm:max-w-md">
+    <div className="m:w-full sm:max-w-md">
       <div className="bg-white pb-4 shadow sm:rounded-lg">
         <form className="space-y-6" onSubmit={handleSubmit(executeSwap)}>
           <div>
