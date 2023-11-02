@@ -129,6 +129,44 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
     );
   }
 
+  function testFork_uniswapV2LikeExactInput_sushiEthToUsdc() public {
+    deal(user, 1 ether);
+
+    address pool = getPair(
+      Mainnet.SUSHISWAP_V2_FACTORY,
+      address(Mainnet.WETH),
+      address(Mainnet.USDC)
+    );
+
+    address[] memory pools = new address[](1);
+    pools[0] = pool;
+
+    address[] memory tokens = new address[](2);
+    tokens[0] = address(0);
+    tokens[1] = address(Mainnet.USDC);
+
+    uint16[] memory poolFeesBps = new uint16[](2);
+    poolFeesBps[0] = 30;
+    poolFeesBps[1] = 30;
+
+    vm.prank(user);
+    facet.uniswapV2LikeExactInput{value: 1 ether}(
+      IUniV2Like.ExactInputParams({
+        amountIn: 1 ether,
+        amountOut: 1830 * (10 ** 6),
+        recipient: user,
+        slippageBps: 50,
+        feeBps: 10,
+        deadline: deadline,
+        partner: address(0),
+        tokens: tokens,
+        pools: pools,
+        poolFeesBps: poolFeesBps
+      }),
+      emptyPermitParams
+    );
+  }
+
   function testFork_uniswapV2LikeExactInputSingle_sushiWethToUsdc() public {
     address pool = getPair(
       Mainnet.SUSHISWAP_V2_FACTORY,
