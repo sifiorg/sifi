@@ -6,10 +6,12 @@ import { HeaderChainSelector } from '../HeaderChainSelector/HeaderChainSelector'
 
 const Header: FunctionComponent = () => {
   return (
-    <Navbar logo={logo}>
-      <HeaderChainSelector />
-      <HeaderMenu />
-    </Navbar>
+    <>
+      <Navbar logo={logo}>
+        <HeaderChainSelector />
+        <HeaderMenu />
+      </Navbar>
+    </>
   );
 };
 

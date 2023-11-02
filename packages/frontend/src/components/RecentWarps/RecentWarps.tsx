@@ -100,7 +100,6 @@ const RecentWarps: FunctionComponent = () => {
       <div className="mx-auto w-full max-w-2xl py-16">
         <div className="flex flex-col items-center justify-between gap-2">
           <h2 className="text-center text-3xl">Recent</h2>
-          <Stats />
           <div className="dark:border-darker-gray border-smoke w-full border-t mt-4">
             <Table>
               <thead>

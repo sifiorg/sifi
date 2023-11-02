@@ -2,8 +2,7 @@ const texts = {
   // index.html has to be manually updated
   NAME: 'Sifi',
   TITLE: 'On-Chain Swap',
-  DESCRIPTION:
-    "Swap from anything to anything in a single transaction. We'll find the best route. It's Sifi.",
+  DESCRIPTION: 'A futuristic swap machine. Trade assets cross-chain, in a single transaction.',
 };
 
 export { texts };
