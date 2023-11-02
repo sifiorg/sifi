@@ -36,8 +36,7 @@ contract WarpLinkOptimismTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      }),
-      emptyPermitParams
+      })
     );
   }
 
@@ -72,8 +71,7 @@ contract WarpLinkOptimismTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      }),
-      emptyPermitParams
+      })
     );
 
     assertEq(Optimism.USDT.balanceOf(user), expectedSwapOut - expectedFee, 'after');

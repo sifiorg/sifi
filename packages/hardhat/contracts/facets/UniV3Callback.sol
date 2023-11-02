@@ -24,13 +24,15 @@ contract UniV3Callback is IUniV3Callback {
 
     if (callback.payer == address(this)) {
       IERC20(callback.token).safeTransfer(msg.sender, callback.amount);
-    } else {
+    } else if (callback.usePermit == 1) {
       LibWarp.state().permit2.transferFrom(
         callback.payer,
         msg.sender,
         (uint160)(callback.amount),
         callback.token
       );
+    } else {
+      IERC20(callback.token).safeTransferFrom(callback.payer, msg.sender, callback.amount);
     }
 
     LibUniV3Like.state().isActive = 0;

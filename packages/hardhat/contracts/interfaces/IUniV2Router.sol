@@ -36,12 +36,20 @@ interface IUniV2Router is ILibStarVault, ILibWarp {
   }
 
   function uniswapV2ExactInputSingle(
-    ExactInputSingleParams memory params,
-    PermitParams calldata permit
+    ExactInputSingleParams calldata params
   ) external payable returns (uint256 amountOut);
 
-  function uniswapV2ExactInput(
-    ExactInputParams memory params,
+  function uniswapV2ExactInputSinglePermit(
+    ExactInputSingleParams calldata params,
     PermitParams calldata permit
+  ) external returns (uint256 amountOut);
+
+  function uniswapV2ExactInput(
+    ExactInputParams calldata params
   ) external payable returns (uint256 amountOut);
+
+  function uniswapV2ExactInputPermit(
+    ExactInputParams calldata params,
+    PermitParams calldata permit
+  ) external returns (uint256 amountOut);
 }

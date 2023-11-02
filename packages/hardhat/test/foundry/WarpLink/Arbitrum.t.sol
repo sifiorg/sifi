@@ -15,7 +15,7 @@ contract WarpLinkArbitrumTest is WarpLinkTestBase {
     setUpOn(42161, 130346515);
   }
 
-  function testFork_Wrap() public {
+  function testFork_warpLinkEngage_Wrap() public {
     bytes memory commands = abi.encodePacked(
       (uint8)(1), // Command count
       (uint8)(COMMAND_TYPE_WRAP)
@@ -36,12 +36,11 @@ contract WarpLinkArbitrumTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      }),
-      emptyPermitParams
+      })
     );
   }
 
-  function testFork_swapSingleUniV3() public {
+  function testFork_warpLinkEngage_swapSingleUniV3() public {
     uint256 amountIn = 1 ether;
     uint256 expectedSwapOut = 1578436830;
     uint256 expectedFee = 0;
@@ -72,8 +71,7 @@ contract WarpLinkArbitrumTest is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 0,
         deadline: deadline
-      }),
-      emptyPermitParams
+      })
     );
 
     assertEq(Arbitrum.USDC.balanceOf(user), expectedSwapOut - expectedFee, 'after');

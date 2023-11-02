@@ -57,23 +57,6 @@ contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
     uint8 i = getIndex(kind, pool, address(0));
     uint8 j = getIndex(kind, pool, address(Mainnet.STETH));
 
-    IAllowanceTransfer.PermitSingle memory emptyPermit = IAllowanceTransfer.PermitSingle(
-      IAllowanceTransfer.PermitDetails({
-        token: address(0),
-        amount: 0,
-        expiration: deadline,
-        nonce: 0
-      }),
-      address(diamond),
-      deadline
-    );
-
-    bytes memory emptyPermitSig = getPermitSignature(
-      emptyPermit,
-      privateKey,
-      permit2.DOMAIN_SEPARATOR()
-    );
-
     vm.expectEmit(true, true, true, true);
     emit LibWarp.Warp(address(0), address(0), address(Mainnet.STETH), 1 ether, 1000226977976805063);
 
@@ -94,14 +77,13 @@ contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
         tokenIndexOut: j,
         kind: kind,
         underlying: false
-      }),
-      PermitParams({nonce: emptyPermit.details.nonce, signature: emptyPermitSig})
+      })
     );
 
     assertApproxEqRel(Mainnet.STETH.balanceOf(user), 1000226977976805063, 0.001 ether);
   }
 
-  function testFork_curveExactInputSingle_StethToEth() public {
+  function testFork_curveExactInputSinglePermit_StethToEth() public {
     uint8 kind = 2;
 
     // NOTE: deal doesn't work for this token, borrow some coins from a whale istead
@@ -130,7 +112,7 @@ contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     vm.prank(user);
-    facet.curveExactInputSingle(
+    facet.curveExactInputSinglePermit(
       ICurve.ExactInputSingleParams({
         amountIn: 1 ether,
         amountOut: 1 ether,
@@ -153,7 +135,7 @@ contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
     assertApproxEqRel(user.balance, 1 ether, 0.01 ether);
   }
 
-  function testFork_curveExactInputSingle_DaiToUsdc() public {
+  function testFork_curveExactInputSinglePermit_DaiToUsdc() public {
     uint8 kind = 1;
 
     deal(address(Mainnet.DAI), user, 1000 ether);
@@ -179,7 +161,7 @@ contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     vm.prank(user);
-    facet.curveExactInputSingle(
+    facet.curveExactInputSinglePermit(
       ICurve.ExactInputSingleParams({
         amountIn: 1000 ether,
         amountOut: 1000 * (10 ** 6),
@@ -202,7 +184,7 @@ contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
     assertApproxEqRel(Mainnet.USDC.balanceOf(user), 1000 * (10 ** 6), 0.01 ether);
   }
 
-  function testFork_curveExactInputSingle_DaiToGusd() public {
+  function testFork_curveExactInputSinglePermit_DaiToGusd() public {
     uint8 kind = 1;
 
     deal(address(Mainnet.DAI), user, 1000 ether);
@@ -228,7 +210,7 @@ contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     vm.prank(user);
-    facet.curveExactInputSingle(
+    facet.curveExactInputSinglePermit(
       ICurve.ExactInputSingleParams({
         amountIn: 1000 ether,
         amountOut: 1000 * (10 ** 2),
@@ -251,7 +233,7 @@ contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
     assertApproxEqRel(Mainnet.GUSD.balanceOf(user), 1000 * (10 ** 2), 0.01 ether);
   }
 
-  function testFork_curveExactInputSingle_GusdToDai() public {
+  function testFork_curveExactInputSinglePermit_GusdToDai() public {
     uint8 kind = 1;
 
     // NOTE: deal doesn't work for this token, borrow some coins from a whale istead
@@ -279,7 +261,7 @@ contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     vm.prank(user);
-    facet.curveExactInputSingle(
+    facet.curveExactInputSinglePermit(
       ICurve.ExactInputSingleParams({
         amountIn: 1000 * (10 ** 2),
         amountOut: 1000 ether,
@@ -303,34 +285,11 @@ contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
   }
 
   function testFork_curveExactInputSingle_CurveTricryptoOptimizedWETH_useEth_from() public {
-    IAllowanceTransfer.PermitSingle memory emptyPermit = IAllowanceTransfer.PermitSingle(
-      IAllowanceTransfer.PermitDetails({
-        token: address(0),
-        amount: 0,
-        expiration: deadline,
-        nonce: 0
-      }),
-      address(diamond),
-      deadline
-    );
-
-    bytes memory emptyPermitSig = getPermitSignature(
-      emptyPermit,
-      privateKey,
-      permit2.DOMAIN_SEPARATOR()
-    );
-
-    console2.log('--- check 1');
-
     uint8 kind = 3;
-
-    console2.log('--- check 2');
 
     address pool = 0x7F86Bf177Dd4F3494b841a37e810A34dD56c829B;
     uint8 i = getIndex(kind, pool, address(Mainnet.WETH));
     uint8 j = getIndex(kind, pool, address(Mainnet.WBTC));
-
-    console2.log('--- check 3');
 
     deal(user, 1 ether);
 
@@ -351,14 +310,13 @@ contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
         tokenIndexOut: j,
         kind: kind,
         underlying: false
-      }),
-      PermitParams({nonce: emptyPermit.details.nonce, signature: emptyPermitSig})
+      })
     );
 
     assertEq(Mainnet.WBTC.balanceOf(user), 6315168);
   }
 
-  function testFork_curveExactInputSingle_CurveTricryptoOptimizedWETH_useEth_to() public {
+  function testFork_curveExactInputSinglePermit_CurveTricryptoOptimizedWETH_useEth_to() public {
     uint8 kind = 3;
     uint256 amountIn = 0.01 * (10 ** 8);
 
@@ -385,7 +343,7 @@ contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     vm.prank(user);
-    facet.curveExactInputSingle(
+    facet.curveExactInputSinglePermit(
       ICurve.ExactInputSingleParams({
         amountIn: amountIn,
         amountOut: 6315168,
@@ -406,6 +364,44 @@ contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
     );
 
     assertEq(user.balance, 6315168);
+  }
+
+  function testFork_curveExactInputSingle_StethToEth() public {
+    uint8 kind = 2;
+
+    // NOTE: deal doesn't work for this token, borrow some coins from a whale istead
+    vm.prank(0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0);
+    Mainnet.STETH.transfer(user, 1 ether);
+
+    // v0.2.8 Stableswap
+    address pool = 0xDC24316b9AE028F1497c275EB9192a3Ea0f67022;
+    uint8 i = getIndex(kind, pool, address(Mainnet.STETH));
+    uint8 j = getIndex(kind, pool, address(0));
+
+    vm.prank(user);
+    Mainnet.STETH.approve(address(diamond), 1 ether);
+
+    vm.prank(user);
+    facet.curveExactInputSingle(
+      ICurve.ExactInputSingleParams({
+        amountIn: 1 ether,
+        amountOut: 1 ether,
+        recipient: user,
+        slippageBps: 50,
+        feeBps: 0,
+        deadline: deadline,
+        partner: address(0),
+        tokenIn: address(Mainnet.STETH),
+        tokenOut: address(0),
+        pool: pool,
+        tokenIndexIn: i,
+        tokenIndexOut: j,
+        kind: kind,
+        underlying: false
+      })
+    );
+
+    assertApproxEqRel(user.balance, 1 ether, 0.01 ether);
   }
 
   receive() external payable {}

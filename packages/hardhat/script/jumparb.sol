@@ -124,7 +124,7 @@ contract JumpUsdcArb is Script, WarpLinkCommandTypes, PermitSignature {
       permitParams = PermitParams({nonce: nonce, signature: sig});
     }
 
-    IWarpLink(diamondAddr).warpLinkEngage{value: nativeWei}(
+    IWarpLink(diamondAddr).warpLinkEngagePermit{value: nativeWei}(
       IWarpLink.Params({
         tokenIn: address(Mainnet.USDC),
         tokenOut: address(Mainnet.USDC),

@@ -87,6 +87,10 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     address payer;
     address token;
     /**
+     * Whether to use a permit transfer (0 or 1). Only applicable when `payer` is not `address(this)`
+     */
+    uint256 usePermit;
+    /**
      * 0 or 1
      */
     uint256 jumped;
@@ -218,7 +222,12 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     t.token = address(0);
 
     if (shouldMoveTokensFirst) {
-      s.permit2.transferFrom(prevPayer, address(this), (uint160)(t.amount), address(s.weth));
+      if (t.usePermit == 1) {
+        s.permit2.transferFrom(prevPayer, address(this), (uint160)(t.amount), address(s.weth));
+      } else {
+        // NOTE: `t.usePermit` is left as 1
+        IERC20(address(s.weth)).transferFrom(prevPayer, address(this), t.amount);
+      }
     }
 
     s.weth.withdraw(t.amount);
@@ -263,7 +272,12 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       IERC20(t.token).safeTransfer(params.pool, t.amount);
     } else {
       // Transfer tokens from the sender to the pool
-      LibWarp.state().permit2.transferFrom(t.payer, params.pool, (uint160)(t.amount), t.token);
+      if (t.usePermit == 1) {
+        LibWarp.state().permit2.transferFrom(t.payer, params.pool, (uint160)(t.amount), t.token);
+      } else {
+        // NOTE: `t.usePermit` is left as 1
+        IERC20(t.token).safeTransferFrom(t.payer, params.pool, t.amount);
+      }
 
       // Update the payer to this contract
       t.payer = address(this);
@@ -362,8 +376,18 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       // Transfer tokens from this contract to the first pool
       IERC20(t.token).safeTransfer(params.pools[0], t.amount);
     } else {
-      // Transfer tokens from the sender to the first pool
-      LibWarp.state().permit2.transferFrom(t.payer, params.pools[0], (uint160)(t.amount), t.token);
+      if (t.usePermit == 1) {
+        // Transfer tokens from the sender to the first pool
+        LibWarp.state().permit2.transferFrom(
+          t.payer,
+          params.pools[0],
+          (uint160)(t.amount),
+          t.token
+        );
+      } else {
+        // NOTE: `t.usePermit` is left as 1
+        IERC20(t.token).safeTransferFrom(t.payer, params.pools[0], t.amount);
+      }
 
       // Update the payer to this contract
       t.payer = address(this);
@@ -438,7 +462,12 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     bool zeroForOne = t.token < params.tokenOut;
 
     LibUniV3Like.beforeCallback(
-      LibUniV3Like.CallbackState({payer: t.payer, token: t.token, amount: t.amount})
+      LibUniV3Like.CallbackState({
+        payer: t.payer,
+        token: t.token,
+        amount: t.amount,
+        usePermit: t.usePermit
+      })
     );
 
     if (zeroForOne) {
@@ -518,7 +547,12 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       bool zeroForOne = tokenIn < t.token;
 
       LibUniV3Like.beforeCallback(
-        LibUniV3Like.CallbackState({payer: t.payer, token: tokenIn, amount: t.amount})
+        LibUniV3Like.CallbackState({
+          payer: t.payer,
+          token: tokenIn,
+          amount: t.amount,
+          usePermit: t.usePermit
+        })
       );
 
       if (index == 0) {
@@ -604,8 +638,13 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     bool isToEth = params.tokenOut == address(0);
 
     if (t.payer != address(this)) {
-      // Transfer tokens from the sender to this contract
-      LibWarp.state().permit2.transferFrom(t.payer, address(this), (uint160)(t.amount), t.token);
+      if (t.usePermit == 1) {
+        // Transfer tokens from the sender to this contract
+        LibWarp.state().permit2.transferFrom(t.payer, address(this), (uint160)(t.amount), t.token);
+      } else {
+        // NOTE: `t.usePermit` is left as 1
+        IERC20(t.token).safeTransferFrom(t.payer, address(this), t.amount);
+      }
 
       // Update the payer to this contract
       t.payer = address(this);
@@ -709,8 +748,7 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
           amountOut: params.amountOut,
           deadline: params.deadline,
           commands: params.commands
-        }),
-        PermitParams({nonce: 0, signature: ''})
+        })
       )
     {} catch {
       // Refund tokens to the recipient
@@ -807,10 +845,21 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
 
     if (t.token != address(0)) {
       if (t.payer != address(this)) {
-        // Transfer tokens from the sender to this contract
-        LibWarp.state().permit2.transferFrom(t.payer, address(this), (uint160)(t.amount), t.token);
+        if (t.usePermit == 1) {
+          // Transfer tokens from the sender to this contract
+          LibWarp.state().permit2.transferFrom(
+            t.payer,
+            address(this),
+            (uint160)(t.amount),
+            t.token
+          );
+        } else {
+          // NOTE: `t.usePermit` is left as 1
+          IERC20(t.token).safeTransferFrom(t.payer, address(this), t.amount);
+        }
 
         // Update the payer to this contract
+        // TODO: Is this value ever read?
         t.payer = address(this);
       }
 
@@ -896,7 +945,7 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     return t;
   }
 
-  function warpLinkEngage(Params memory params, PermitParams calldata permit) external payable {
+  function warpLinkEngage(Params calldata params) external payable {
     if (block.timestamp > params.deadline) {
       revert DeadlineExpired();
     }
@@ -928,26 +977,98 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       t.payer = msg.sender;
 
       t.nativeValueRemaining = msg.value;
-
-      // Permit tokens / set allowance
-      // The signature is omitted when `warpLinkEngage` is called from `sgReceive`
-      if (permit.signature.length > 0) {
-        LibWarp.state().permit2.permit(
-          msg.sender,
-          IAllowanceTransfer.PermitSingle({
-            details: IAllowanceTransfer.PermitDetails({
-              token: params.tokenIn,
-              amount: (uint160)(params.amountIn),
-              expiration: (uint48)(params.deadline),
-              nonce: (uint48)(permit.nonce)
-            }),
-            spender: address(this),
-            sigDeadline: (uint256)(params.deadline)
-          }),
-          permit.signature
-        );
-      }
     }
+
+    uint256 stream = Stream.createStream(params.commands);
+
+    t = engageInternal(stream, t);
+
+    uint256 amountOut = t.amount;
+    address tokenOut = t.token;
+
+    if (tokenOut != params.tokenOut) {
+      revert UnexpectedTokenOut();
+    }
+
+    // Enforce minimum amount/max slippage
+    if (amountOut < LibWarp.applySlippage(params.amountOut, params.slippageBps)) {
+      revert InsufficientOutputAmount();
+    }
+
+    if (t.jumped == 1) {
+      // The coins have jumped away from this chain. Fees are colelcted before
+      // the jump or on the other chain.
+      //
+      // `t.nativeValueRemaining` is not checked since it should be zero
+      return;
+    }
+
+    // Collect fees
+    amountOut = LibStarVault.calculateAndRegisterFee(
+      params.partner,
+      params.tokenOut,
+      params.feeBps,
+      params.amountOut,
+      amountOut
+    );
+
+    if (amountOut == 0) {
+      revert InsufficientOutputAmount();
+    }
+
+    // Deliver tokens
+    if (tokenOut == address(0)) {
+      payable(params.recipient).transfer(amountOut);
+    } else {
+      IERC20(tokenOut).safeTransfer(params.recipient, amountOut);
+    }
+
+    if (t.nativeValueRemaining > 0) {
+      // TODO: Is this the correct recipient?
+      payable(msg.sender).transfer(t.nativeValueRemaining);
+    }
+
+    emit LibWarp.Warp(params.partner, params.tokenIn, params.tokenOut, params.amountIn, amountOut);
+  }
+
+  function warpLinkEngagePermit(
+    Params calldata params,
+    PermitParams calldata permit
+  ) external payable {
+    TransientState memory t;
+    t.paramPartner = params.partner;
+    t.paramFeeBps = params.feeBps;
+    t.paramSlippageBps = params.slippageBps;
+    t.paramRecipient = params.recipient;
+    t.paramTokenIn = params.tokenIn;
+    t.paramAmountIn = params.amountIn;
+    t.paramAmountOut = params.amountOut;
+    t.paramSlippageBps = params.slippageBps;
+    t.paramDeadline = params.deadline;
+    t.amount = params.amountIn;
+    t.token = params.tokenIn;
+    t.usePermit = 1;
+
+    // Tokens will initially moved from the sender
+    t.payer = msg.sender;
+
+    t.nativeValueRemaining = msg.value;
+
+    // Permit tokens / set allowance
+    LibWarp.state().permit2.permit(
+      msg.sender,
+      IAllowanceTransfer.PermitSingle({
+        details: IAllowanceTransfer.PermitDetails({
+          token: params.tokenIn,
+          amount: (uint160)(params.amountIn),
+          expiration: (uint48)(params.deadline),
+          nonce: (uint48)(permit.nonce)
+        }),
+        spender: address(this),
+        sigDeadline: (uint256)(params.deadline)
+      }),
+      permit.signature
+    );
 
     uint256 stream = Stream.createStream(params.commands);
 

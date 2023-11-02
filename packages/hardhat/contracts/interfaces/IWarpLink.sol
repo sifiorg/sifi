@@ -46,5 +46,10 @@ interface IWarpLink is ILibCurve, ILibStarVault, ILibUniV3Like, ILibWarp {
     bytes commands;
   }
 
-  function warpLinkEngage(Params memory params, PermitParams calldata permit) external payable;
+  function warpLinkEngage(Params calldata params) external payable;
+
+  function warpLinkEngagePermit(
+    Params calldata params,
+    PermitParams calldata permit
+  ) external payable;
 }

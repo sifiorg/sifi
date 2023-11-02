@@ -18,32 +18,21 @@ contract UniV2RouterFacet is IUniV2Router {
   using SafeERC20 for IERC20;
   using Address for address;
 
-  function uniswapV2ExactInputSingle(
-    ExactInputSingleParams memory params,
-    PermitParams calldata permit
-  ) external payable returns (uint256 amountOut) {
-    if (block.timestamp > params.deadline) {
-      revert DeadlineExpired();
-    }
-
+  /**
+   * NOTE: The tokens must already have been transferred to the pool
+   */
+  function uniswapV2ExactInputSingleInternal(
+    ExactInputSingleParams calldata params,
+    address pair
+  ) internal returns (uint256 amountOut) {
     LibUniV2Router.DiamondStorage storage s = LibUniV2Router.diamondStorage();
 
-    bool isFromEth = params.tokenIn == address(0);
-    bool isToEth = params.tokenOut == address(0);
-
-    if (isFromEth) {
-      params.tokenIn = address(s.weth);
-    }
-
-    if (isToEth) {
-      params.tokenOut = address(s.weth);
-    }
-
-    address pair = LibUniV2Router.pairFor(s.uniswapV2Factory, params.tokenIn, params.tokenOut);
+    address tokenIn = params.tokenIn == address(0) ? address(s.weth) : params.tokenIn;
+    address tokenOut = params.tokenOut == address(0) ? address(s.weth) : params.tokenOut;
 
     (uint256 reserveIn, uint256 reserveOut, ) = IUniswapV2Pair(pair).getReserves();
 
-    if (params.tokenIn > params.tokenOut) {
+    if (tokenIn > tokenOut) {
       (reserveIn, reserveOut) = (reserveOut, reserveIn);
     }
 
@@ -58,38 +47,7 @@ contract UniV2RouterFacet is IUniV2Router {
       revert InsufficientOutputAmount();
     }
 
-    if (isFromEth) {
-      // From ETH
-      if (msg.value != params.amountIn) {
-        revert IncorrectEthValue();
-      }
-
-      s.weth.deposit{value: msg.value}();
-
-      // Transfer tokens to the pool
-      IERC20(params.tokenIn).safeTransfer(pair, params.amountIn);
-    } else {
-      // Permit tokens / set allowance
-      s.permit2.permit(
-        msg.sender,
-        IAllowanceTransfer.PermitSingle({
-          details: IAllowanceTransfer.PermitDetails({
-            token: params.tokenIn,
-            amount: (uint160)(params.amountIn),
-            expiration: (uint48)(params.deadline),
-            nonce: (uint48)(permit.nonce)
-          }),
-          spender: address(this),
-          sigDeadline: (uint256)(params.deadline)
-        }),
-        permit.signature
-      );
-
-      // Transfer tokens from msg.sender to the pool
-      s.permit2.transferFrom(msg.sender, pair, (uint160)(params.amountIn), params.tokenIn);
-    }
-
-    bool zeroForOne = params.tokenIn < params.tokenOut ? true : false;
+    bool zeroForOne = tokenIn < tokenOut ? true : false;
 
     IUniswapV2Pair(pair).swap(
       zeroForOne ? 0 : amountOut,
@@ -101,7 +59,7 @@ contract UniV2RouterFacet is IUniV2Router {
     // NOTE: Fee is collected as WETH instead of ETH
     amountOut = LibStarVault.calculateAndRegisterFee(
       params.partner,
-      params.tokenOut,
+      tokenOut,
       params.feeBps,
       params.amountOut,
       amountOut
@@ -111,7 +69,7 @@ contract UniV2RouterFacet is IUniV2Router {
       revert ZeroAmountOut();
     }
 
-    if (isToEth) {
+    if (params.tokenOut == address(0)) {
       // Unwrap WETH
       s.weth.withdraw(amountOut);
 
@@ -121,22 +79,14 @@ contract UniV2RouterFacet is IUniV2Router {
         revert EthTransferFailed();
       }
     } else {
-      IERC20(params.tokenOut).safeTransfer(params.recipient, amountOut);
+      IERC20(tokenOut).safeTransfer(params.recipient, amountOut);
     }
 
-    emit LibWarp.Warp(
-      params.partner,
-      // NOTE: The tokens may have been rewritten to WETH
-      isFromEth ? address(0) : params.tokenIn,
-      isToEth ? address(0) : params.tokenOut,
-      params.amountIn,
-      amountOut
-    );
+    emit LibWarp.Warp(params.partner, params.tokenIn, params.tokenOut, params.amountIn, amountOut);
   }
 
-  function uniswapV2ExactInput(
-    ExactInputParams memory params,
-    PermitParams calldata permit
+  function uniswapV2ExactInputSingle(
+    ExactInputSingleParams calldata params
   ) external payable returns (uint256 amountOut) {
     if (block.timestamp > params.deadline) {
       revert DeadlineExpired();
@@ -144,30 +94,13 @@ contract UniV2RouterFacet is IUniV2Router {
 
     LibUniV2Router.DiamondStorage storage s = LibUniV2Router.diamondStorage();
 
-    uint256 pathLengthMinusOne = params.path.length - 1;
-    bool isFromEth = params.path[0] == address(0);
-    bool isToEth = params.path[pathLengthMinusOne] == address(0);
-
-    if (isFromEth) {
-      params.path[0] = address(s.weth);
-    }
-
-    if (isToEth) {
-      params.path[pathLengthMinusOne] = address(s.weth);
-    }
-
-    (address[] memory pairs, uint256[] memory amounts) = LibUniV2Router.getPairsAndAmountsFromPath(
+    address pair = LibUniV2Router.pairFor(
       s.uniswapV2Factory,
-      params.amountIn,
-      params.path
+      params.tokenIn == address(0) ? address(s.weth) : params.tokenIn,
+      params.tokenOut == address(0) ? address(s.weth) : params.tokenOut
     );
 
-    // Enforce minimum amount/max slippage
-    if (amounts[amounts.length - 1] < LibWarp.applySlippage(params.amountOut, params.slippage)) {
-      revert InsufficientOutputAmount();
-    }
-
-    if (isFromEth) {
+    if (params.tokenIn == address(0)) {
       // From ETH
       if (msg.value != params.amountIn) {
         revert IncorrectEthValue();
@@ -175,34 +108,74 @@ contract UniV2RouterFacet is IUniV2Router {
 
       s.weth.deposit{value: msg.value}();
 
-      // Transfer tokens to the first pool
-      IERC20(params.path[0]).safeTransfer(pairs[0], params.amountIn);
+      // Transfer tokens to the pool
+      IERC20(address(s.weth)).safeTransfer(pair, params.amountIn);
     } else {
-      // Permit tokens / set allowance
-      s.permit2.permit(
-        msg.sender,
-        IAllowanceTransfer.PermitSingle({
-          details: IAllowanceTransfer.PermitDetails({
-            token: params.path[0],
-            amount: (uint160)(params.amountIn),
-            expiration: (uint48)(params.deadline),
-            nonce: (uint48)(permit.nonce)
-          }),
-          spender: address(this),
-          sigDeadline: (uint256)(params.deadline)
-        }),
-        permit.signature
-      );
+      IERC20(params.tokenIn).safeTransferFrom(msg.sender, pair, params.amountIn);
+    }
 
-      // Transfer tokens from msg.sender to the first pool
-      s.permit2.transferFrom(msg.sender, pairs[0], (uint160)(params.amountIn), params.path[0]);
+    return uniswapV2ExactInputSingleInternal(params, pair);
+  }
+
+  function uniswapV2ExactInputSinglePermit(
+    ExactInputSingleParams calldata params,
+    PermitParams calldata permit
+  ) external returns (uint256 amountOut) {
+    LibUniV2Router.DiamondStorage storage s = LibUniV2Router.diamondStorage();
+
+    address pair = LibUniV2Router.pairFor(
+      s.uniswapV2Factory,
+      params.tokenIn,
+      params.tokenOut == address(0) ? address(s.weth) : params.tokenOut
+    );
+
+    // Permit tokens / set allowance
+    s.permit2.permit(
+      msg.sender,
+      IAllowanceTransfer.PermitSingle({
+        details: IAllowanceTransfer.PermitDetails({
+          token: params.tokenIn,
+          amount: (uint160)(params.amountIn),
+          expiration: (uint48)(params.deadline),
+          nonce: (uint48)(permit.nonce)
+        }),
+        spender: address(this),
+        sigDeadline: (uint256)(params.deadline)
+      }),
+      permit.signature
+    );
+
+    // Transfer tokens from msg.sender to the pool
+    s.permit2.transferFrom(msg.sender, pair, (uint160)(params.amountIn), params.tokenIn);
+
+    return uniswapV2ExactInputSingleInternal(params, pair);
+  }
+
+  /**
+   * NOTE: The tokens must already have been transferred to the first pool
+   *
+   * The path should be rewritten so address(0) is replaced by the WETH address
+   */
+  function uniswapV2ExactInputInternal(
+    ExactInputParams calldata params,
+    address[] memory path,
+    address[] memory pairs,
+    uint256[] memory amounts
+  ) internal returns (uint256 amountOut) {
+    LibUniV2Router.DiamondStorage storage s = LibUniV2Router.diamondStorage();
+
+    uint256 pathLengthMinusOne = params.path.length - 1;
+
+    // Enforce minimum amount/max slippage
+    if (amounts[amounts.length - 1] < LibWarp.applySlippage(params.amountOut, params.slippage)) {
+      revert InsufficientOutputAmount();
     }
 
     // https://github.com/Uniswap/v2-periphery/blob/master/contracts/UniswapV2Router02.sol
     for (uint index; index < pathLengthMinusOne; ) {
       uint256 indexPlusOne = index + 1;
-      bool zeroForOne = params.path[index] < params.path[indexPlusOne] ? true : false;
-      address to = index < params.path.length - 2 ? pairs[indexPlusOne] : address(this);
+      bool zeroForOne = path[index] < path[indexPlusOne] ? true : false;
+      address to = index < path.length - 2 ? pairs[indexPlusOne] : address(this);
 
       IUniswapV2Pair(pairs[index]).swap(
         zeroForOne ? 0 : amounts[indexPlusOne],
@@ -219,7 +192,7 @@ contract UniV2RouterFacet is IUniV2Router {
     // NOTE: Fee is collected as WETH instead of ETH
     amountOut = LibStarVault.calculateAndRegisterFee(
       params.partner,
-      params.path[pathLengthMinusOne],
+      path[pathLengthMinusOne],
       params.feeBps,
       params.amountOut,
       amounts[pathLengthMinusOne]
@@ -229,8 +202,8 @@ contract UniV2RouterFacet is IUniV2Router {
       revert ZeroAmountOut();
     }
 
-    if (isToEth) {
-      // Unwrap WETH
+    if (params.path[pathLengthMinusOne] == address(0)) {
+      // To ETH. Unwrap WETH
       s.weth.withdraw(amountOut);
 
       (bool sent, ) = params.recipient.call{value: amountOut}('');
@@ -239,16 +212,107 @@ contract UniV2RouterFacet is IUniV2Router {
         revert EthTransferFailed();
       }
     } else {
-      IERC20(params.path[pathLengthMinusOne]).safeTransfer(params.recipient, amountOut);
+      IERC20(path[pathLengthMinusOne]).safeTransfer(params.recipient, amountOut);
     }
 
     emit LibWarp.Warp(
       params.partner,
-      // NOTE: The tokens may have been rewritten to WETH
-      isFromEth ? address(0) : params.path[0],
-      isToEth ? address(0) : params.path[pathLengthMinusOne],
+      params.path[0],
+      params.path[pathLengthMinusOne],
       params.amountIn,
       amountOut
     );
+  }
+
+  function uniswapV2ExactInput(
+    ExactInputParams calldata params
+  ) external payable returns (uint256 amountOut) {
+    if (block.timestamp > params.deadline) {
+      revert DeadlineExpired();
+    }
+
+    LibUniV2Router.DiamondStorage storage s = LibUniV2Router.diamondStorage();
+
+    uint256 pathLengthMinusOne = params.path.length - 1;
+    address[] memory path = params.path;
+
+    if (params.path[0] == address(0)) {
+      // From ETH
+      path[0] = address(s.weth);
+    }
+
+    if (params.path[pathLengthMinusOne] == address(0)) {
+      // To ETH
+      path[pathLengthMinusOne] = address(s.weth);
+    }
+
+    (address[] memory pairs, uint256[] memory amounts) = LibUniV2Router.getPairsAndAmountsFromPath(
+      s.uniswapV2Factory,
+      params.amountIn,
+      path
+    );
+
+    // Enforce minimum amount/max slippage
+    if (amounts[amounts.length - 1] < LibWarp.applySlippage(params.amountOut, params.slippage)) {
+      revert InsufficientOutputAmount();
+    }
+
+    if (params.path[0] == address(0)) {
+      // From ETH
+      if (msg.value != params.amountIn) {
+        revert IncorrectEthValue();
+      }
+
+      s.weth.deposit{value: msg.value}();
+
+      // Transfer WETH tokens to the first pool
+      IERC20(path[0]).safeTransfer(pairs[0], params.amountIn);
+    } else {
+      IERC20(path[0]).safeTransferFrom(msg.sender, pairs[0], params.amountIn);
+    }
+
+    return uniswapV2ExactInputInternal(params, path, pairs, amounts);
+  }
+
+  function uniswapV2ExactInputPermit(
+    ExactInputParams calldata params,
+    PermitParams calldata permit
+  ) external returns (uint256 amountOut) {
+    LibUniV2Router.DiamondStorage storage s = LibUniV2Router.diamondStorage();
+
+    uint256 pathLengthMinusOne = params.path.length - 1;
+    address[] memory path = params.path;
+
+    if (params.path[pathLengthMinusOne] == address(0)) {
+      // To ETH
+      path[pathLengthMinusOne] = address(s.weth);
+    }
+
+    (address[] memory pairs, uint256[] memory amounts) = LibUniV2Router.getPairsAndAmountsFromPath(
+      s.uniswapV2Factory,
+      params.amountIn,
+      path
+    );
+
+    // Permit tokens / set allowance
+    s.permit2.permit(
+      msg.sender,
+      IAllowanceTransfer.PermitSingle({
+        details: IAllowanceTransfer.PermitDetails({
+          token: path[0],
+          amount: (uint160)(params.amountIn),
+          expiration: (uint48)(params.deadline),
+          nonce: (uint48)(permit.nonce)
+        }),
+        spender: address(this),
+        sigDeadline: (uint256)(params.deadline)
+      }),
+      permit.signature
+    );
+
+    // Transfer tokens from msg.sender to the first pool
+    s.permit2.transferFrom(msg.sender, pairs[0], (uint160)(params.amountIn), params.path[0]);
+
+    return uniswapV2ExactInputInternal(params, path, pairs, amounts);
   }
 }

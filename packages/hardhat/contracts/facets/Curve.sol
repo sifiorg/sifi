@@ -22,48 +22,17 @@ contract Curve is ICurve {
   using SafeERC20 for IERC20;
   using Address for address;
 
-  function curveExactInputSingle(
-    ExactInputSingleParams memory params,
-    PermitParams calldata permit
-  ) external payable returns (uint256 amountOut) {
-    if (block.timestamp > params.deadline) {
-      revert DeadlineExpired();
-    }
-
+  /**
+   * Perform the swap with tokens already moved to this contract
+   */
+  function curveExactInputSingleInternal(
+    ExactInputSingleParams calldata params
+  ) internal returns (uint256 amountOut) {
     bool isToEth = params.tokenOut == address(0);
 
     uint256 tokenOutBalancePrev = isToEth
       ? address(this).balance
       : IERC20(params.tokenOut).balanceOf(address(this));
-
-    if (params.tokenIn != address(0)) {
-      // TODO: Is this necessary to support USDT? @jflint256: Yes, I think so.
-      IERC20(params.tokenIn).forceApprove(params.pool, params.amountIn);
-
-      // Permit tokens / set allowance
-      LibWarp.state().permit2.permit(
-        msg.sender,
-        IAllowanceTransfer.PermitSingle({
-          details: IAllowanceTransfer.PermitDetails({
-            token: params.tokenIn,
-            amount: (uint160)(params.amountIn),
-            expiration: (uint48)(params.deadline),
-            nonce: (uint48)(permit.nonce)
-          }),
-          spender: address(this),
-          sigDeadline: (uint256)(params.deadline)
-        }),
-        permit.signature
-      );
-
-      // Transfer tokens from msg.sender to address(this)
-      LibWarp.state().permit2.transferFrom(
-        msg.sender,
-        address(this),
-        (uint160)(params.amountIn),
-        params.tokenIn
-      );
-    }
 
     LibCurve.exchange({
       kind: params.kind,
@@ -109,5 +78,60 @@ contract Curve is ICurve {
     }
 
     emit LibWarp.Warp(params.partner, params.tokenIn, params.tokenOut, params.amountIn, amountOut);
+  }
+
+  function curveExactInputSinglePermit(
+    ExactInputSingleParams calldata params,
+    PermitParams calldata permit
+  ) external payable returns (uint256 amountOut) {
+    if (params.tokenIn == address(0)) {
+      revert PermitForEthToken();
+    }
+
+    // TODO: Is this necessary to support USDT? @jflint256: Yes, I think so.
+    IERC20(params.tokenIn).forceApprove(params.pool, params.amountIn);
+
+    // Permit tokens / set allowance
+    LibWarp.state().permit2.permit(
+      msg.sender,
+      IAllowanceTransfer.PermitSingle({
+        details: IAllowanceTransfer.PermitDetails({
+          token: params.tokenIn,
+          amount: (uint160)(params.amountIn),
+          expiration: (uint48)(params.deadline),
+          nonce: (uint48)(permit.nonce)
+        }),
+        spender: address(this),
+        sigDeadline: (uint256)(params.deadline)
+      }),
+      permit.signature
+    );
+
+    // Transfer tokens from msg.sender to address(this)
+    LibWarp.state().permit2.transferFrom(
+      msg.sender,
+      address(this),
+      (uint160)(params.amountIn),
+      params.tokenIn
+    );
+
+    return curveExactInputSingleInternal(params);
+  }
+
+  function curveExactInputSingle(
+    ExactInputSingleParams calldata params
+  ) external payable returns (uint256 amountOut) {
+    if (block.timestamp > params.deadline) {
+      revert DeadlineExpired();
+    }
+
+    if (params.tokenIn != address(0)) {
+      // TODO: Is this necessary to support USDT? @jflint256: Yes, I think so.
+      IERC20(params.tokenIn).forceApprove(params.pool, params.amountIn);
+
+      IERC20(params.tokenIn).safeTransferFrom(msg.sender, address(this), params.amountIn);
+    }
+
+    return curveExactInputSingleInternal(params);
   }
 }

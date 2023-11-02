@@ -113,7 +113,7 @@ contract JumpAndEngageGoerli is Script, WarpLinkCommandTypes, PermitSignature {
 
     vm.startBroadcast(user);
 
-    IWarpLink(goerliDiamondAddr).warpLinkEngage{value: nativeWei}(
+    IWarpLink(goerliDiamondAddr).warpLinkEngagePermit{value: nativeWei}(
       IWarpLink.Params({
         tokenIn: Goerli.STARGATE_MOCK_USDC_ADDR,
         tokenOut: Goerli.STARGATE_MOCK_USDC_ADDR,

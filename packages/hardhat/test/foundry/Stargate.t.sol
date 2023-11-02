@@ -69,6 +69,47 @@ contract StargateMainnetTest is StargateTestBase {
     deal(user, lzFee);
 
     vm.prank(user);
+    Mainnet.USDC.approve(address(diamond), 1000 * (10 ** 6));
+
+    vm.prank(user);
+    facet.stargateJumpToken{value: lzFee}(
+      IStargate.JumpTokenParams({
+        amountIn: 1000 * (10 ** 6),
+        // TODO: Estimate using contracts
+        amountOutExpected: 1000 * (10 ** 6),
+        recipient: user,
+        slippageBps: 50,
+        feeBps: 15,
+        deadline: deadline,
+        partner: address(0),
+        token: address(Mainnet.USDC),
+        srcPoolId: 1,
+        dstPoolId: 1,
+        dstChainId: Optimism.STARGATE_CHAIN_ID
+      })
+    );
+
+    assertEq(Mainnet.USDC.balanceOf(user), 0);
+  }
+
+  function testFork_stargateJumpTokensPermit_Usdc() public {
+    deal(address(Mainnet.USDC), user, 1000 * (10 ** 6));
+
+    (uint256 lzFee, ) = IStargateComposer(Mainnet.STARGATE_COMPOSER_ADDR).quoteLayerZeroFee({
+      _dstChainId: Optimism.STARGATE_CHAIN_ID,
+      _functionType: 1, // swap remote
+      _toAddress: abi.encodePacked(user),
+      _transferAndCallPayload: '',
+      _lzTxParams: IStargateRouter.lzTxObj({
+        dstGasForCall: 0,
+        dstNativeAmount: 0,
+        dstNativeAddr: ''
+      })
+    });
+
+    deal(user, lzFee);
+
+    vm.prank(user);
     Mainnet.USDC.approve(address(Addresses.PERMIT2), 1000 * (10 ** 6));
 
     IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
@@ -85,7 +126,7 @@ contract StargateMainnetTest is StargateTestBase {
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     vm.prank(user);
-    facet.stargateJumpToken{value: lzFee}(
+    facet.stargateJumpTokenPermit{value: lzFee}(
       IStargate.JumpTokenParams({
         amountIn: 1000 * (10 ** 6),
         // TODO: Estimate using contracts

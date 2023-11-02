@@ -27,63 +27,29 @@ contract UniV3Like is IUniV3Like {
   using SafeERC20 for IERC20;
   using Address for address;
 
-  function uniswapV3LikeExactInputSingle(
-    ExactInputSingleParams memory params,
-    PermitParams calldata permit
-  ) external payable returns (uint256 amountOut) {
-    if (block.timestamp > params.deadline) {
-      revert DeadlineExpired();
-    }
-
+  function uniswapV3LikeExactInputSingleInternal(
+    ExactInputSingleParams calldata params,
+    uint256 usePermit
+  ) internal returns (uint256 amountOut) {
     bool isFromEth = params.tokenIn == address(0);
-    bool isToEth = params.tokenOut == address(0);
+    address tokenIn = isFromEth ? address(LibWarp.state().weth) : params.tokenIn;
 
-    if (isFromEth) {
-      IWETH weth = LibWarp.state().weth;
+    address tokenOut = params.tokenOut == address(0)
+      ? address(LibWarp.state().weth)
+      : params.tokenOut;
 
-      params.tokenIn = address(weth);
+    uint256 tokenOutBalancePrev = IERC20(tokenOut).balanceOf(address(this));
 
-      // From ETH
-      if (msg.value != params.amountIn) {
-        revert IncorrectEthValue();
-      }
-
-      weth.deposit{value: msg.value}();
-    }
-
-    if (isToEth) {
-      params.tokenOut = address(LibWarp.state().weth);
-    }
-
-    uint256 tokenOutBalancePrev = IERC20(params.tokenOut).balanceOf(address(this));
-
-    bool zeroForOne = params.tokenIn < params.tokenOut;
+    bool zeroForOne = tokenIn < tokenOut;
 
     LibUniV3Like.beforeCallback(
       LibUniV3Like.CallbackState({
         payer: isFromEth ? address(this) : msg.sender,
-        token: params.tokenIn,
-        amount: params.amountIn
+        token: tokenIn,
+        amount: params.amountIn,
+        usePermit: usePermit
       })
     );
-
-    if (!isFromEth) {
-      // Permit this contract to move tokens from the sender. The actual transfer happens inside UniV3Callback.
-      LibWarp.state().permit2.permit(
-        msg.sender,
-        IAllowanceTransfer.PermitSingle(
-          IAllowanceTransfer.PermitDetails({
-            token: params.tokenIn,
-            amount: (uint160)(params.amountIn),
-            expiration: params.deadline,
-            nonce: (uint48)(permit.nonce)
-          }),
-          address(this),
-          params.deadline
-        ),
-        permit.signature
-      );
-    }
 
     if (zeroForOne) {
       (, int256 amountOutSigned) = IUniswapV3Pool(params.pool).swap(
@@ -114,7 +80,7 @@ contract UniV3Like is IUniV3Like {
       revert InsufficientOutputAmount();
     }
 
-    uint256 nextTokenOutBalance = IERC20(params.tokenOut).balanceOf(address(this));
+    uint256 nextTokenOutBalance = IERC20(tokenOut).balanceOf(address(this));
 
     if (
       nextTokenOutBalance < tokenOutBalancePrev ||
@@ -126,15 +92,15 @@ contract UniV3Like is IUniV3Like {
     // NOTE: Fee is collected as WETH instead of ETH
     amountOut = LibStarVault.calculateAndRegisterFee(
       params.partner,
-      params.tokenOut,
+      tokenOut,
       params.feeBps,
       params.amountOut,
       amountOut
     );
 
-    if (isToEth) {
+    if (params.tokenOut == address(0)) {
+      // To ETH, unwrap WETH
       // TODO: This is read twice. Compare gas usage
-      // Unwrap WETH
       LibWarp.state().weth.withdraw(amountOut);
 
       (bool sent, ) = params.recipient.call{value: amountOut}('');
@@ -143,36 +109,22 @@ contract UniV3Like is IUniV3Like {
         revert EthTransferFailed();
       }
     } else {
-      IERC20(params.tokenOut).safeTransfer(params.recipient, amountOut);
+      IERC20(tokenOut).safeTransfer(params.recipient, amountOut);
     }
 
-    emit LibWarp.Warp(
-      params.partner,
-      // NOTE: The tokens may have been rewritten to WETH
-      isFromEth ? address(0) : params.tokenIn,
-      isToEth ? address(0) : params.tokenOut,
-      params.amountIn,
-      amountOut
-    );
+    emit LibWarp.Warp(params.partner, params.tokenIn, params.tokenOut, params.amountIn, amountOut);
   }
 
-  function uniswapV3LikeExactInput(
-    ExactInputParams memory params,
-    PermitParams calldata permit
+  function uniswapV3LikeExactInputSingle(
+    ExactInputSingleParams calldata params
   ) external payable returns (uint256 amountOut) {
     if (block.timestamp > params.deadline) {
       revert DeadlineExpired();
     }
 
-    uint256 poolLength = params.pools.length;
-    bool isFromEth = params.tokens[0] == address(0);
-    bool isToEth = params.tokens[poolLength] == address(0);
-    address payer = isFromEth ? address(this) : msg.sender;
-
-    if (isFromEth) {
+    if (params.tokenIn == address(0)) {
+      // From ETH, wrap it
       IWETH weth = LibWarp.state().weth;
-
-      params.tokens[0] = address(weth);
 
       // From ETH
       if (msg.value != params.amountIn) {
@@ -182,31 +134,51 @@ contract UniV3Like is IUniV3Like {
       weth.deposit{value: msg.value}();
     }
 
-    if (isToEth) {
-      params.tokens[poolLength] = address(LibWarp.state().weth);
+    return uniswapV3LikeExactInputSingleInternal(params, 0);
+  }
+
+  function uniswapV3LikeExactInputSinglePermit(
+    ExactInputSingleParams calldata params,
+    PermitParams calldata permit
+  ) external returns (uint256 amountOut) {
+    // Permit this contract to move tokens from the sender. The actual transfer happens inside UniV3Callback.
+    LibWarp.state().permit2.permit(
+      msg.sender,
+      IAllowanceTransfer.PermitSingle(
+        IAllowanceTransfer.PermitDetails({
+          token: params.tokenIn,
+          amount: (uint160)(params.amountIn),
+          expiration: params.deadline,
+          nonce: (uint48)(permit.nonce)
+        }),
+        address(this),
+        params.deadline
+      ),
+      permit.signature
+    );
+
+    return uniswapV3LikeExactInputSingleInternal(params, 1);
+  }
+
+  function uniswapV3LikeExactInputInternal(
+    ExactInputParams calldata params,
+    uint256 usePermit
+  ) internal returns (uint256 amountOut) {
+    uint256 poolLength = params.pools.length;
+    address payer = params.tokens[0] == address(0) ? address(this) : msg.sender;
+    address[] memory tokens = params.tokens;
+
+    if (params.tokens[0] == address(0)) {
+      tokens[0] = address(LibWarp.state().weth);
     }
 
-    uint256 tokenOutBalancePrev = IERC20(params.tokens[poolLength]).balanceOf(address(this));
+    if (params.tokens[poolLength] == address(0)) {
+      tokens[poolLength] = address(LibWarp.state().weth);
+    }
+
+    uint256 tokenOutBalancePrev = IERC20(tokens[poolLength]).balanceOf(address(this));
 
     amountOut = params.amountIn;
-
-    if (!isFromEth) {
-      // Permit this contract to move tokens from the sender. The actual transfer happens inside UniV3Callback.
-      LibWarp.state().permit2.permit(
-        msg.sender,
-        IAllowanceTransfer.PermitSingle(
-          IAllowanceTransfer.PermitDetails({
-            token: params.tokens[0],
-            amount: (uint160)(params.amountIn),
-            expiration: params.deadline,
-            nonce: (uint48)(permit.nonce)
-          }),
-          address(this),
-          (uint256)(params.deadline)
-        ),
-        permit.signature
-      );
-    }
 
     for (uint index; index < poolLength; ) {
       uint256 indexPlusOne;
@@ -215,10 +187,15 @@ contract UniV3Like is IUniV3Like {
         indexPlusOne = index + 1;
       }
 
-      bool zeroForOne = params.tokens[index] < params.tokens[indexPlusOne];
+      bool zeroForOne = tokens[index] < tokens[indexPlusOne];
 
       LibUniV3Like.beforeCallback(
-        LibUniV3Like.CallbackState({payer: payer, token: params.tokens[index], amount: amountOut})
+        LibUniV3Like.CallbackState({
+          payer: payer,
+          token: tokens[index],
+          amount: amountOut,
+          usePermit: usePermit
+        })
       );
 
       if (zeroForOne) {
@@ -256,7 +233,7 @@ contract UniV3Like is IUniV3Like {
       revert InsufficientOutputAmount();
     }
 
-    uint256 nextTokenOutBalance = IERC20(params.tokens[poolLength]).balanceOf(address(this));
+    uint256 nextTokenOutBalance = IERC20(tokens[poolLength]).balanceOf(address(this));
 
     if (
       nextTokenOutBalance < tokenOutBalancePrev ||
@@ -268,14 +245,14 @@ contract UniV3Like is IUniV3Like {
     // NOTE: Fee is collected as WETH instead of ETH
     amountOut = LibStarVault.calculateAndRegisterFee(
       params.partner,
-      params.tokens[poolLength],
+      tokens[poolLength],
       params.feeBps,
       params.amountOut,
       amountOut
     );
 
-    if (isToEth) {
-      // Unwrap WETH
+    if (params.tokens[poolLength] == address(0)) {
+      // To ETH, unwrap
       LibWarp.state().weth.withdraw(amountOut);
 
       (bool sent, ) = params.recipient.call{value: amountOut}('');
@@ -284,16 +261,57 @@ contract UniV3Like is IUniV3Like {
         revert EthTransferFailed();
       }
     } else {
-      IERC20(params.tokens[poolLength]).safeTransfer(params.recipient, amountOut);
+      IERC20(tokens[poolLength]).safeTransfer(params.recipient, amountOut);
     }
 
     emit LibWarp.Warp(
       params.partner,
-      // NOTE: The tokens may have been rewritten to WETH
-      isFromEth ? address(0) : params.tokens[0],
-      isToEth ? address(0) : params.tokens[poolLength],
+      params.tokens[0],
+      params.tokens[poolLength],
       params.amountIn,
       amountOut
     );
+  }
+
+  function uniswapV3LikeExactInput(
+    ExactInputParams calldata params
+  ) external payable returns (uint256 amountOut) {
+    if (block.timestamp > params.deadline) {
+      revert DeadlineExpired();
+    }
+
+    if (params.tokens[0] == address(0)) {
+      // From ETH, wrap it
+      if (msg.value != params.amountIn) {
+        revert IncorrectEthValue();
+      }
+
+      LibWarp.state().weth.deposit{value: msg.value}();
+    }
+
+    return uniswapV3LikeExactInputInternal(params, 0);
+  }
+
+  function uniswapV3LikeExactInputPermit(
+    ExactInputParams calldata params,
+    PermitParams calldata permit
+  ) external returns (uint256 amountOut) {
+    // Permit this contract to move tokens from the sender. The actual transfer happens inside UniV3Callback.
+    LibWarp.state().permit2.permit(
+      msg.sender,
+      IAllowanceTransfer.PermitSingle(
+        IAllowanceTransfer.PermitDetails({
+          token: params.tokens[0],
+          amount: (uint160)(params.amountIn),
+          expiration: params.deadline,
+          nonce: (uint48)(permit.nonce)
+        }),
+        address(this),
+        (uint256)(params.deadline)
+      ),
+      permit.signature
+    );
+
+    return uniswapV3LikeExactInputInternal(params, 1);
   }
 }
