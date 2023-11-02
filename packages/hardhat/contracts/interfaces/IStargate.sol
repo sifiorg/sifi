@@ -45,7 +45,9 @@ interface IStargate is ILibStarVault {
     uint8 dstPoolId;
   }
 
-  function stargateJumpToken(
+  function stargateJumpToken(JumpTokenParams calldata params) external payable;
+
+  function stargateJumpTokenPermit(
     JumpTokenParams calldata params,
     PermitParams calldata permit
   ) external payable;

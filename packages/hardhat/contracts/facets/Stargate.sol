@@ -14,33 +14,10 @@ import {PermitParams} from '../libraries/PermitParams.sol';
 contract Stargate is IStargate {
   using SafeERC20 for IERC20;
 
-  function stargateJumpToken(
-    JumpTokenParams calldata params,
-    PermitParams calldata permit
-  ) external payable {
-    LibWarp.state().permit2.permit(
-      msg.sender,
-      IAllowanceTransfer.PermitSingle(
-        IAllowanceTransfer.PermitDetails({
-          token: params.token,
-          amount: params.amountIn,
-          expiration: params.deadline,
-          nonce: uint48(permit.nonce)
-        }),
-        address(this),
-        params.deadline
-      ),
-      permit.signature
-    );
-
-    // Transfer tokens from the sender to this contract
-    LibWarp.state().permit2.transferFrom(
-      msg.sender,
-      address(this),
-      uint160(params.amountIn),
-      params.token
-    );
-
+  /**
+   * Jump tokens with Stargate with input tokens already moved to this contract
+   */
+  function stargateJumpTokenInternal(JumpTokenParams calldata params) internal {
     // NOTE: It is not possible to know how many tokens will be delivered. Therfore positive slippage
     // is never charged
     uint256 amountIn = LibStarVault.calculateAndRegisterFee(
@@ -82,6 +59,43 @@ contract Stargate is IStargate {
         _payload: ''
       });
     }
+  }
+
+  function stargateJumpTokenPermit(
+    JumpTokenParams calldata params,
+    PermitParams calldata permit
+  ) external payable {
+    LibWarp.state().permit2.permit(
+      msg.sender,
+      IAllowanceTransfer.PermitSingle(
+        IAllowanceTransfer.PermitDetails({
+          token: params.token,
+          amount: params.amountIn,
+          expiration: params.deadline,
+          nonce: uint48(permit.nonce)
+        }),
+        address(this),
+        params.deadline
+      ),
+      permit.signature
+    );
+
+    // Transfer tokens from the sender to this contract
+    LibWarp.state().permit2.transferFrom(
+      msg.sender,
+      address(this),
+      uint160(params.amountIn),
+      params.token
+    );
+
+    stargateJumpTokenInternal(params);
+  }
+
+  function stargateJumpToken(JumpTokenParams calldata params) external payable {
+    // Transfer tokens from the sender to this contract
+    IERC20(params.token).safeTransferFrom(msg.sender, address(this), params.amountIn);
+
+    stargateJumpTokenInternal(params);
   }
 
   function stargateJumpNative(JumpNativeParams calldata params) external payable {

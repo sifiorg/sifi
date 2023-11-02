@@ -14,7 +14,7 @@ contract WarpLinkMainnet18069811Test is WarpLinkTestBase {
     setUpOn(1, 18069811);
   }
 
-  function testFork_paraswapVector() public {
+  function testFork_warpLinkEngagePermit_paraswapVector() public {
     // 0. permit for APE
     IAllowanceTransfer.PermitDetails memory details = IAllowanceTransfer.PermitDetails({
       token: address(Mainnet.APE),
@@ -120,10 +120,10 @@ contract WarpLinkMainnet18069811Test is WarpLinkTestBase {
     deal(address(Mainnet.APE), user, 1000 ether);
 
     vm.prank(user);
-    Mainnet.APE.approve(address(Addresses.PERMIT2), 1000 ether);
+    Mainnet.APE.approve(address(diamond), 1000 ether);
 
     vm.prank(user);
-    facet.warpLinkEngage(
+    facet.warpLinkEngagePermit(
       IWarpLink.Params({
         tokenIn: address(Mainnet.APE),
         tokenOut: address(Mainnet.USDC),

@@ -88,8 +88,7 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
         tokenOut: address(Mainnet.USDC),
         pool: pool,
         poolFeeBps: 30
-      }),
-      emptyPermitParams
+      })
     );
   }
 
@@ -126,12 +125,41 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
         tokens: tokens,
         pools: pools,
         poolFeesBps: poolFeesBps
-      }),
-      emptyPermitParams
+      })
     );
   }
 
   function testFork_uniswapV2LikeExactInputSingle_sushiWethToUsdc() public {
+    address pool = getPair(
+      Mainnet.SUSHISWAP_V2_FACTORY,
+      address(Mainnet.WETH),
+      address(Mainnet.USDC)
+    );
+
+    deal(address(Mainnet.WETH), user, 1 ether);
+
+    vm.prank(user);
+    Mainnet.WETH.approve(address(diamond), 1 ether);
+
+    vm.prank(user);
+    facet.uniswapV2LikeExactInputSingle(
+      IUniV2Like.ExactInputSingleParams({
+        amountIn: 1 ether,
+        amountOut: 1830 * (10 ** 6),
+        recipient: user,
+        slippageBps: 50,
+        feeBps: 10,
+        deadline: deadline,
+        partner: address(0),
+        tokenIn: address(Mainnet.WETH),
+        tokenOut: address(Mainnet.USDC),
+        pool: pool,
+        poolFeeBps: 30
+      })
+    );
+  }
+
+  function testFork_uniswapV2LikeExactInputSinglePermit_sushiWethToUsdc() public {
     address pool = getPair(
       Mainnet.SUSHISWAP_V2_FACTORY,
       address(Mainnet.WETH),
@@ -157,7 +185,7 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
     Mainnet.WETH.approve(address(Addresses.PERMIT2), 1 ether);
 
     vm.prank(user);
-    facet.uniswapV2LikeExactInputSingle(
+    facet.uniswapV2LikeExactInputSinglePermit(
       IUniV2Like.ExactInputSingleParams({
         amountIn: 1 ether,
         amountOut: 1830 * (10 ** 6),
@@ -198,6 +226,52 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
 
     // NOTE: Uniswaps deployed Permit2 contract. Expect that some users already
     // have approved it for USDC
+    Mainnet.DAI.approve(address(diamond), 2000 ether);
+
+    vm.expectEmit(true, true, true, true);
+    emit LibWarp.Warp(address(0), tokens[0], tokens[2], 2000 ether, expectedSwapOut - expectedFee);
+
+    facet.uniswapV2LikeExactInput(
+      IUniV2Like.ExactInputParams({
+        amountIn: 2000 ether,
+        amountOut: expectedSwapOut,
+        recipient: user,
+        slippageBps: 0,
+        feeBps: 10,
+        deadline: deadline,
+        partner: address(0),
+        tokens: tokens,
+        pools: pools,
+        poolFeesBps: poolFeesBps
+      })
+    );
+
+    assertEq(Mainnet.WBTC.balanceOf(user), expectedSwapOut - expectedFee);
+  }
+
+  function testFork_uniswapV2LikeExactInputPermit_DaiWethWbtc() public {
+    address[] memory tokens = new address[](3);
+    tokens[0] = address(Mainnet.DAI);
+    tokens[1] = address(Mainnet.WETH);
+    tokens[2] = address(Mainnet.WBTC);
+
+    address[] memory pools = new address[](2);
+    pools[0] = getPair(Mainnet.SUSHISWAP_V2_FACTORY, address(Mainnet.DAI), address(Mainnet.WETH));
+    pools[1] = getPair(Mainnet.SUSHISWAP_V2_FACTORY, address(Mainnet.WETH), address(Mainnet.WBTC));
+
+    uint16[] memory poolFeesBps = new uint16[](2);
+    poolFeesBps[0] = 30;
+    poolFeesBps[1] = 30;
+
+    deal(address(Mainnet.DAI), user, 2000 ether);
+
+    vm.startPrank(user);
+
+    uint256 expectedSwapOut = 1234;
+    uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
+
+    // NOTE: Uniswaps deployed Permit2 contract. Expect that some users already
+    // have approved it for USDC
     Mainnet.DAI.approve(address(Addresses.PERMIT2), 2000 ether);
 
     IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
@@ -216,7 +290,7 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
     vm.expectEmit(true, true, true, true);
     emit LibWarp.Warp(address(0), tokens[0], tokens[2], 2000 ether, expectedSwapOut - expectedFee);
 
-    facet.uniswapV2LikeExactInput(
+    facet.uniswapV2LikeExactInputPermit(
       IUniV2Like.ExactInputParams({
         amountIn: 2000 ether,
         amountOut: expectedSwapOut,
@@ -258,12 +332,11 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
         tokenOut: address(Mainnet.USDT),
         pool: pool,
         poolFeeBps: 25
-      }),
-      emptyPermitParams
+      })
     );
   }
 
-  function testFork_uniswapV2LikeExactInput_DifferentPoolFees() public {
+  function testFork_uniswapV2LikeExactInputPermit_DifferentPoolFees() public {
     address[] memory tokens = new address[](3);
     tokens[0] = address(Mainnet.DAI);
     tokens[1] = address(Mainnet.WETH);
@@ -305,7 +378,7 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
 
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
-    facet.uniswapV2LikeExactInput(
+    facet.uniswapV2LikeExactInputPermit(
       IUniV2Like.ExactInputParams({
         amountIn: 2000 ether,
         amountOut: expectedSwapOut,
@@ -351,8 +424,7 @@ contract UniV2LikeFacetArbitrumTest is UniV2LikeFacetTestBase {
         tokenOut: 0xaf88d065e77c8cC2239327C5EDb3A432268e5831,
         pool: pool,
         poolFeeBps: 0x1e
-      }),
-      emptyPermitParams
+      })
     );
 
     assertApproxEqRel(Arbitrum.USDC.balanceOf(user), 130346515, 0.05 ether);
@@ -366,7 +438,7 @@ contract UniV2LikeFacetBsc17853419Test is UniV2LikeFacetTestBase {
     super.setUpOn(Bsc.CHAIN_ID, 32592190);
   }
 
-  function testFork_uniswapV2LikeExactInputSingle_busdtBnb() public {
+  function testFork_uniswapV2LikeExactInputSinglePermit_busdtBnb() public {
     address tokenIn = 0x55d398326f99059fF775485246999027B3197955;
     address pool = 0x20bCC3b8a0091dDac2d0BC30F68E6CBb97de59Cd; // Pancake V2, BUSDT/WBNB
     uint256 amountIn = 1 ether;
@@ -390,7 +462,7 @@ contract UniV2LikeFacetBsc17853419Test is UniV2LikeFacetTestBase {
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     vm.prank(user);
-    facet.uniswapV2LikeExactInputSingle(
+    facet.uniswapV2LikeExactInputSinglePermit(
       IUniV2Like.ExactInputSingleParams({
         amountIn: amountIn,
         amountOut: 4833427033295669,

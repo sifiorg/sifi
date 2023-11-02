@@ -40,12 +40,20 @@ interface IUniV3Like is ILibStarVault, ILibUniV3Like, ILibWarp {
   }
 
   function uniswapV3LikeExactInputSingle(
-    ExactInputSingleParams memory params,
-    PermitParams calldata permit
+    ExactInputSingleParams calldata params
   ) external payable returns (uint256 amountOut);
 
-  function uniswapV3LikeExactInput(
-    ExactInputParams memory params,
+  function uniswapV3LikeExactInputSinglePermit(
+    ExactInputSingleParams calldata params,
     PermitParams calldata permit
+  ) external returns (uint256 amountOut);
+
+  function uniswapV3LikeExactInput(
+    ExactInputParams calldata params
   ) external payable returns (uint256 amountOut);
+
+  function uniswapV3LikeExactInputPermit(
+    ExactInputParams calldata params,
+    PermitParams calldata permit
+  ) external returns (uint256 amountOut);
 }

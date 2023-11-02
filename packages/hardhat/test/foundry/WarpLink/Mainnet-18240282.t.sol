@@ -19,7 +19,7 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
     setUpOn(1, 18240282);
   }
 
-  function testFork_jumpStargate_EthToUsdc() public {
+  function testFork_warpLinkEngage_jumpStargate_EthToUsdc() public {
     uint256 amountIn = 1 ether;
 
     bytes memory commands = abi.encodePacked(
@@ -56,21 +56,6 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
 
     console2.log('Native fee: %s', nativeWei);
 
-    vm.prank(user);
-
-    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
-      IAllowanceTransfer.PermitDetails({
-        token: address(0),
-        amount: uint160(amountIn),
-        expiration: deadline,
-        nonce: 0
-      }),
-      address(diamond),
-      deadline
-    );
-
-    bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
-
     vm.expectEmit(true, true, true, true);
     emit LibWarp.Warp(address(0), address(0), address(Mainnet.USDC), amountIn, 1673762736);
 
@@ -87,12 +72,63 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
         feeBps: 0,
         slippageBps: 100,
         deadline: deadline
-      }),
-      PermitParams({nonce: permit.details.nonce, signature: sig})
+      })
     );
   }
 
-  function testFork_jumpStargate_Usdc() public {
+  function testFork_warpLinkEngage_jumpStargate_Usdc() public {
+    uint256 amountIn = 1000 * (10 ** 6);
+    address tokenIn = address(Mainnet.USDC);
+
+    bytes memory commands = abi.encodePacked(
+      (uint8)(1), // Command count
+      (uint8)(COMMAND_TYPE_JUMP_STARGATE),
+      (uint16)(106), // dstChainId (Avalanche)
+      (uint8)(1), // srcPoolId (USDC, Ethereum)
+      (uint8)(1), // dstPoolId (USDC, Avalanche)
+      uint32(0) // dstGasForCall
+    );
+
+    uint256 expectedSwapOut = 1000 * (10 ** 6);
+
+    (uint256 nativeWei, ) = IStargateComposer(Mainnet.STARGATE_COMPOSER_ADDR).quoteLayerZeroFee({
+      _dstChainId: 106,
+      _functionType: 1, // swap remote
+      _toAddress: abi.encodePacked(user),
+      _transferAndCallPayload: '',
+      _lzTxParams: IStargateRouter.lzTxObj({
+        dstGasForCall: 0,
+        dstNativeAmount: 0,
+        dstNativeAddr: ''
+      })
+    });
+
+    vm.deal(user, nativeWei);
+    deal(tokenIn, user, amountIn);
+
+    console2.log('Native fee: %s', nativeWei);
+
+    vm.prank(user);
+    IERC20(tokenIn).approve(address(diamond), amountIn);
+
+    vm.prank(user);
+    facet.warpLinkEngage{value: nativeWei}(
+      IWarpLink.Params({
+        tokenIn: tokenIn,
+        tokenOut: tokenIn,
+        commands: commands,
+        amountIn: amountIn,
+        amountOut: expectedSwapOut,
+        recipient: user,
+        partner: address(0),
+        feeBps: 0,
+        slippageBps: 200,
+        deadline: deadline
+      })
+    );
+  }
+
+  function testFork_warpLinkEngagePermit_jumpStargate_Usdc() public {
     uint256 amountIn = 1000 * (10 ** 6);
     address tokenIn = address(Mainnet.USDC);
 
@@ -141,7 +177,7 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     vm.prank(user);
-    facet.warpLinkEngage{value: nativeWei}(
+    facet.warpLinkEngagePermit{value: nativeWei}(
       IWarpLink.Params({
         tokenIn: tokenIn,
         tokenOut: tokenIn,
@@ -162,7 +198,7 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
    * Bridge USDC from Ethereum to Arbitrum. Then simuilate the USD being received, but on the
    * Ethereum chain, and swap it to USDT
    */
-  function testFork_jumpAndSwap() public {
+  function testFork_warpLinkEngage_jumpAndSwapToken() public {
     bytes memory destCommands = abi.encodePacked(
       (uint8)(1), // Command count
       encoder.encodeWarpUniV3LikeExactInputSingle({
@@ -172,8 +208,108 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
     );
 
     IWarpLink.Params memory destParams = IWarpLink.Params({
-      tokenIn: address(Mainnet.USDT),
-      tokenOut: address(Mainnet.WETH),
+      tokenIn: address(Mainnet.USDC),
+      tokenOut: address(Mainnet.USDT),
+      commands: destCommands,
+      amountIn: 0, // Unused
+      amountOut: 990 * (10 ** 6), // TODO
+      recipient: user,
+      partner: address(0),
+      feeBps: 0,
+      slippageBps: 0,
+      deadline: deadline
+    });
+
+    bytes memory destParamsEncoded = abi.encode(destParams);
+
+    uint256 srcAmountIn = 1000 * (10 ** 6);
+    address srcTokenIn = address(Mainnet.USDC);
+    uint256 dstGasForCall = 500_000;
+
+    bytes memory sourceCommands = bytes.concat(
+      abi.encodePacked(
+        (uint8)(1), // Command count
+        (uint8)(COMMAND_TYPE_JUMP_STARGATE),
+        (uint16)(111), // dstChainId (Optimism)
+        (uint8)(1), // srcPoolId (USDC, Ethereum)
+        (uint8)(1), // dstPoolId (USDC, Optimism),
+        uint32(dstGasForCall), // dstGasForCall, 500K
+        address(Mainnet.WETH), // destParams.tokenOut
+        uint256(990 * (10 ** 6)), // destParams.amountOut
+        uint256(destCommands.length), // destParams.commands.length
+        destCommands // destParams.commands
+      )
+    );
+
+    (uint256 nativeWei, ) = IStargateComposer(Mainnet.STARGATE_COMPOSER_ADDR).quoteLayerZeroFee({
+      _dstChainId: 111, // Optimism
+      _functionType: 1, // Swap remote
+      _toAddress: abi.encodePacked(address(diamond)),
+      _transferAndCallPayload: destParamsEncoded,
+      _lzTxParams: IStargateRouter.lzTxObj({
+        dstGasForCall: dstGasForCall,
+        dstNativeAmount: 0,
+        dstNativeAddr: ''
+      })
+    });
+
+    vm.deal(user, nativeWei);
+    deal(srcTokenIn, user, srcAmountIn);
+
+    console2.log('Native fee: %s', nativeWei);
+
+    vm.prank(user);
+    IERC20(srcTokenIn).approve(address(diamond), srcAmountIn);
+
+    vm.prank(user);
+    facet.warpLinkEngage{value: nativeWei}(
+      IWarpLink.Params({
+        tokenIn: srcTokenIn,
+        tokenOut: srcTokenIn,
+        commands: sourceCommands,
+        amountIn: srcAmountIn,
+        amountOut: 0, // TODO
+        recipient: user,
+        partner: address(0),
+        feeBps: 0,
+        slippageBps: 100,
+        deadline: deadline
+      })
+    );
+
+    // The router delivers 999 USDC to the diamond
+    deal(address(Mainnet.USDC), address(diamond), 999 * (10 ** 6));
+
+    // And calls sgReceive
+    vm.prank(Mainnet.STARGATE_COMPOSER_ADDR);
+    facet.sgReceive(
+      uint16(Mainnet.CHAIN_ID), // _srcChain
+      abi.encodePacked(address(diamond)), // _srcAddress
+      0, // _nonce
+      address(Mainnet.USDC), // _token
+      990 * (10 ** 6), // amountLD
+      destParamsEncoded // payload
+    );
+
+    assertApproxEqRel(Mainnet.USDC.balanceOf(user), 990 * (10 ** 6), 0.001 ether);
+  }
+
+  /**
+   * Bridge USDC from Ethereum to Arbitrum. Then simuilate the USD being received, but on the
+   * Ethereum chain, and swap it to USDT
+   */
+  function testFork_warpLinkEngagePermit_jumpAndSwap() public {
+    bytes memory destCommands = abi.encodePacked(
+      (uint8)(1), // Command count
+      encoder.encodeWarpUniV3LikeExactInputSingle({
+        tokenOut: address(Mainnet.USDT),
+        pool: 0x7858E59e0C01EA06Df3aF3D20aC7B0003275D4Bf
+      })
+    );
+
+    IWarpLink.Params memory destParams = IWarpLink.Params({
+      tokenIn: address(Mainnet.USDC),
+      tokenOut: address(Mainnet.USDT),
       commands: destCommands,
       amountIn: 0, // Unused
       amountOut: 990 * (10 ** 6), // TODO
@@ -239,7 +375,7 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     vm.prank(user);
-    facet.warpLinkEngage{value: nativeWei}(
+    facet.warpLinkEngagePermit{value: nativeWei}(
       IWarpLink.Params({
         tokenIn: srcTokenIn,
         tokenOut: srcTokenIn,
@@ -272,7 +408,7 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
     assertApproxEqRel(Mainnet.USDC.balanceOf(user), 990 * (10 ** 6), 0.001 ether);
   }
 
-  function testFork_jumpAndSwapEth() public {
+  function testFork_warpLinkEngage_jumpAndSwapEth() public {
     bytes memory destCommands = abi.encodePacked(
       (uint8)(2), // Command count
       (uint8)(COMMAND_TYPE_WRAP),
@@ -332,8 +468,6 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
 
     console2.log('Native fee: %s', nativeWei);
 
-    PermitParams memory permitParams;
-
     vm.prank(user);
     facet.warpLinkEngage{value: nativeWei + srcAmountIn}(
       IWarpLink.Params({
@@ -347,8 +481,7 @@ contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
         feeBps: 0, // Unused
         slippageBps: 100,
         deadline: deadline
-      }),
-      permitParams
+      })
     );
 
     vm.deal(address(facet), (srcAmountIn * 99) / 100);

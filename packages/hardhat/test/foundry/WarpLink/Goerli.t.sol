@@ -17,7 +17,7 @@ contract WarpLinkGoerliTest is WarpLinkTestBase {
     setUpOn(Goerli.CHAIN_ID, 9755539);
   }
 
-  function testFork_jumpStargate_Usdc() public {
+  function testFork_warpLinkEngagePermit_jumpStargate_Usdc() public {
     uint256 amountIn = 1000 * (10 ** 6);
 
     // NOTE: Mock USDC from https://stargateprotocol.gitbook.io/stargate/developers/contract-addresses/testnet
@@ -66,7 +66,7 @@ contract WarpLinkGoerliTest is WarpLinkTestBase {
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     vm.prank(user);
-    facet.warpLinkEngage{value: nativeWei}(
+    facet.warpLinkEngagePermit{value: nativeWei}(
       IWarpLink.Params({
         tokenIn: tokenIn,
         tokenOut: tokenIn,
