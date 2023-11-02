@@ -171,6 +171,10 @@ contract UniV2LikeFacet is IUniV2Like {
     bool isFromEth = params.tokens[0] == address(0);
     bool isToEth = params.tokens[poolLength] == address(0);
 
+    if (isFromEth) {
+      params.tokens[0] = address(s.weth);
+    }
+
     uint256 tokenOutBalancePrev = isToEth
       ? address(this).balance
       : IERC20(params.tokens[poolLength]).balanceOf(address(this));
