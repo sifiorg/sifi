@@ -24,7 +24,19 @@ const PRODUCTION_CHAINS: Chain[] = [
   // The order in which the chains are displayed in the UI
   mainnet,
   arbitrum,
-  avalanche,
+  {
+    ...avalanche,
+    blockExplorers: {
+      etherscan: {
+          name: "Avascan",
+          url: "https://avascan.info/blockchain/c",
+      },
+      default: {
+          name: "Avascan",
+          url: "https://avascan.info/blockchain/c",
+      },
+  },
+  },
   base,
   {
     ...bsc,
