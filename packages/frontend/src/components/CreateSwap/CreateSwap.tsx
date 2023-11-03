@@ -206,11 +206,11 @@ const CreateSwap = () => {
   }, [fromToken]);
 
   return (
-    <div className="m:w-full py-2 sm:max-w-md">
-      <div className="bg-white pb-8 shadow sm:rounded-lg">
+    <div className="m:w-full sm:max-w-md">
+      <div className="bg-white pb-4 shadow sm:rounded-lg">
         <form className="space-y-6" onSubmit={handleSubmit(executeSwap)}>
           <div>
-            <div className="py-4">
+            <div className="pb-2">
               <div className="mb-2">
                 <div className="flex justify-between align-bottom items-end">
                   <div className="font-display text-smoke">{ShiftInputLabel.from}</div>
