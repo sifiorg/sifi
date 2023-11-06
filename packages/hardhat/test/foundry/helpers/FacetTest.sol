@@ -24,9 +24,6 @@ abstract contract FacetTest is DiamondHelpers, PermitSignature {
   uint256 internal privateKey;
   address internal user;
   address internal partner = makeAddr('Partner');
-  IAllowanceTransfer.PermitSingle internal emptyPermit;
-  bytes internal emptyPermitSig;
-  PermitParams internal emptyPermitParams;
 
   function setUp() public virtual {
     setUpOn(Mainnet.CHAIN_ID, 17853419);
@@ -56,20 +53,5 @@ abstract contract FacetTest is DiamondHelpers, PermitSignature {
     (user, privateKey) = makeAddrAndKey('User');
     permit2 = IPermit2(Addresses.PERMIT2);
     deadline = (uint48)(block.timestamp + 60 * 60);
-
-    emptyPermit = IAllowanceTransfer.PermitSingle(
-      IAllowanceTransfer.PermitDetails({
-        token: address(0),
-        amount: 0,
-        expiration: deadline,
-        nonce: 0
-      }),
-      address(diamond),
-      deadline
-    );
-
-    emptyPermitSig = getPermitSignature(emptyPermit, privateKey, permit2.DOMAIN_SEPARATOR());
-
-    emptyPermitParams = PermitParams({nonce: emptyPermit.details.nonce, signature: emptyPermitSig});
   }
 }
