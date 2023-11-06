@@ -49,7 +49,7 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
         !isAllowanceAboveFromAmount &&
         !isFromEthereum &&
         hasSufficientBalance
-    ) || isApproving;
+    ) && !isApproving;
 
   const isSwapButtonDisabled =
     !isConnected ||
