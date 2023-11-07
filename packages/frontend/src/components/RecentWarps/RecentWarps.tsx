@@ -3,7 +3,7 @@ import { FunctionComponent } from 'react';
 import { useRecentWarps } from 'src/hooks/useRecentWarps';
 import { useTokens } from 'src/hooks/useTokens';
 import { getIconFromSymbol } from 'src/utils';
-import { Stats } from '../Stats/Stats';
+import { getChainIcon } from 'src/utils/chains';
 
 const RecentWarpsTableData: FunctionComponent = () => {
   const { data: warps, error, isLoading } = useRecentWarps();
@@ -45,11 +45,17 @@ const RecentWarpsTableData: FunctionComponent = () => {
                     From
                   </span>
                   <div className="flex items-center">
-                    <img
-                      className="mr-3 h-6 w-6 rounded-full"
-                      src={getIconFromSymbol(warp.tokenIn.symbol, fromTokens)}
-                      alt="Logo"
-                    />
+                    <div className="relative mr-3 ">
+                      <img
+                        className="h-6 w-6 rounded-full"
+                        src={getIconFromSymbol(warp.tokenIn.symbol, fromTokens)}
+                        alt="Logo"
+                      />
+                      <img
+                        src={getChainIcon(warp.chainId)}
+                        className="w-3 h-3 -right-1 -bottom-1 absolute"
+                      />
+                    </div>
                     <span>{`${formatTokenAmount(warp.amountInDecimal)} ${
                       warp.tokenIn.symbol
                     }`}</span>
@@ -75,11 +81,17 @@ const RecentWarpsTableData: FunctionComponent = () => {
                     To
                   </span>
                   <div className="flex items-center sm:pl-8">
-                    <img
-                      className="mr-3 h-6 w-6 rounded-full"
-                      src={getIconFromSymbol(warp.tokenOut.symbol, fromTokens)}
-                      alt="Logo"
-                    />
+                    <div className="relative mr-3 ">
+                      <img
+                        className="h-6 w-6 rounded-full"
+                        src={getIconFromSymbol(warp.tokenOut.symbol, fromTokens)}
+                        alt="Logo"
+                      />
+                      <img
+                        src={getChainIcon(warp.chainId)}
+                        className="w-3 h-3 -right-1 -bottom-1 absolute"
+                      />
+                    </div>
                     <span>{`${formatTokenAmount(warp.amountOutDecimal)} ${
                       warp.tokenOut.symbol
                     }`}</span>
