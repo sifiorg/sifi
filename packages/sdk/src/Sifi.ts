@@ -1,3 +1,14 @@
+import { serializeJson } from './helpers';
+
+// From @uniswap/token-lists/dist/types.d.ts
+export type Token = {
+  chainId: number;
+  address: string;
+  name: string;
+  decimals: number;
+  symbol: string;
+  logoURI?: string;
+};
 export type GetQuoteOptions = {
   /**
    * The Chain ID of the chain to swap from. Defaults to 1 (Ethereum mainnet).
@@ -13,7 +24,9 @@ export type GetQuoteOptions = {
 };
 
 export type Quote = {
-  id: string;
+  fromAmount: bigint;
+  fromToken: Token;
+  toToken: Token;
   toAmount: bigint;
   estimatedGas: bigint;
   /**
@@ -28,13 +41,17 @@ export type Quote = {
    */
   approveAddress?: string;
   toAmountAfterFeesUsd: string;
+  source: {
+    name: string;
+    data: unknown;
+  };
 };
 
 export type GetSwapOptions = {
   /**
-   * Quote ID or Quote object.
+   * Quote object from `getQuote`
    */
-  quote: Quote | string;
+  quote: Quote;
   /**
    * Address of the token to swap from.
    */
@@ -102,16 +119,6 @@ export type Swap = {
 
 export type GetTokensOptions = {
   chainId: number;
-};
-
-// From @uniswap/token-lists/dist/types.d.ts
-export type Token = {
-  chainId: number;
-  address: string;
-  name: string;
-  decimals: number;
-  symbol: string;
-  logoURI?: string;
 };
 
 export type TokenUsdPrice = {
@@ -183,47 +190,26 @@ export class Sifi {
     const response = (await fetch(`${this.baseUrl}quote?${query}`).then(handleResponse)) as any;
 
     return {
-      id: response.id,
+      fromAmount: BigInt(response.fromAmount),
+      fromToken: response.fromToken,
+      toToken: response.toToken,
       toAmount: BigInt(response.toAmount),
       estimatedGas: BigInt(response.estimatedGas),
       approveAddress: response.approveAddress,
       permit2Address: response.permit2Address,
       toAmountAfterFeesUsd: response.toAmountAfterFeesUsd,
+      source: response.source,
     };
   }
 
   async getSwap(options: GetSwapOptions): Promise<Swap> {
-    const params: Record<string, string> = {
-      quoteId: typeof options.quote === 'string' ? options.quote : options.quote.id,
-      fromAddress: options.fromAddress,
-    };
-
-    if (options.toAddress !== undefined) {
-      params.toAddress = options.toAddress;
-    }
-
-    if (options.slippage !== undefined) {
-      params.slippage = options.slippage.toString();
-    }
-
-    if (options.partner !== undefined) {
-      params.partner = options.partner;
-    }
-
-    if (options.feeBps !== undefined) {
-      params.feeBps = options.feeBps.toString();
-    }
-
-    if (options.permit !== undefined) {
-      params.permitNonce = options.permit.nonce.toString();
-      params.permitDeadline = options.permit.deadline.toString();
-      params.permitSignature = options.permit.signature;
-    }
-
-    const query = new URLSearchParams(params).toString();
-
-    const response = (await fetch(`${this.baseUrl}swap?${query}`).then(handleResponse)) as any;
-
+    const response = (await fetch(`${this.baseUrl}swap`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: serializeJson(options),
+    }).then(handleResponse)) as any;
     return {
       tx: response.tx,
       estimatedGasTotalUsd: response.estimatedGasTotalUsd,
