@@ -2,7 +2,7 @@ import { getNamedAccounts, network } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { uniqBy } from 'lodash';
 import pMap from 'p-map';
-import { deploy, getFunctionSelectorsFromContract, verify } from '../deploy-helpers';
+import { addressEquals, deploy, getFunctionSelectorsFromContract, verify } from '../deploy-helpers';
 import { networkAddresses } from '../deploy-helpers/addresses';
 import { DiamondCutFacet, DiamondLoupeFacet } from '../typechain-types';
 import { FacetCutAction } from '../types/diamond.t';
@@ -178,7 +178,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
   );
 
   const addedFacets = nextFacets.filter(
-    facet => !prevFacets.some(other => other.facetAddress === facet.address)
+    facet => !prevFacets.some(other => addressEquals(other.facetAddress, facet.address))
   );
 
   // Init functions are only supported for added facets
@@ -238,7 +238,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
       return acc;
     }
 
-    if (prevSelectorToAddress[selector] === address) {
+    if (addressEquals(prevSelectorToAddress[selector], address)) {
       // Unchanged
       return acc;
     }
@@ -257,7 +257,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
 
   let cuts = [...cutsAddActions, ...cutsReplaceActions, ...cutsRemoveActions].map(cut => ({
     ...cut,
-    facetName: nextFacets.find(facet => facet.address === cut.facetAddress)?.name,
+    facetName: nextFacets.find(facet => addressEquals(facet.address, cut.facetAddress))?.name,
   }));
 
   if (!cuts.length) {
