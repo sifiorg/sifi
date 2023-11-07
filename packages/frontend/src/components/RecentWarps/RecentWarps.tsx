@@ -2,8 +2,9 @@ import { Table, formatTokenAmount, Skeleton } from '@sifi/shared-ui';
 import { FunctionComponent } from 'react';
 import { useRecentWarps } from 'src/hooks/useRecentWarps';
 import { useTokens } from 'src/hooks/useTokens';
-import { getIconFromSymbol } from 'src/utils';
-import { getChainIcon } from 'src/utils/chains';
+import { getChainById, getChainIcon } from 'src/utils/chains';
+import { firstAndLast, getEvmTxUrl, getIconFromSymbol } from 'src/utils';
+import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 
 const RecentWarpsTableData: FunctionComponent = () => {
   const { data: warps, error, isLoading } = useRecentWarps();
@@ -36,9 +37,11 @@ const RecentWarpsTableData: FunctionComponent = () => {
   return (
     <>
       {warps?.map(warp => {
+        const hash = warp.id.split('-')[0];
+
         return (
           <Table.Row className="overflow-y-auto max-w-xs m-auto sm:max-w-none" key={warp.addedAt}>
-            <Table.Cell className="mb-2 w-full sm:mb-0">
+            <Table.Cell className="mb-4 w-full sm:w-2/3 md:w-4/5 sm:mb-0">
               <div className="mx-auto grid items-center sm:grid-cols-[3fr_1fr_3fr]">
                 <div className="mb-4 grid grid-cols-[1fr_3fr] sm:mb-0 sm:inline-block sm:pl-8">
                   <span className="dark:text-flashbang-white text-new-black font-medium uppercase sm:hidden">
@@ -99,6 +102,21 @@ const RecentWarpsTableData: FunctionComponent = () => {
                 </div>
               </div>
             </Table.Cell>
+            <Table.Cell className="sm:w-1/3 md:w-1/5 w-full">
+              <div className="grid grid-cols-[1fr_3fr] sm:mb-0 sm:inline-block">
+                <span className="dark:text-flashbang-white text-new-black font-medium uppercase sm:hidden">
+                  TX
+                </span>
+                <a
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href={getEvmTxUrl(getChainById(warp.chainId), hash)}
+                  className="dark:text-pixel-blue underline"
+                >
+                  {firstAndLast(hash)}
+                </a>
+              </div>
+            </Table.Cell>
           </Table.Row>
         );
       })}
@@ -115,14 +133,15 @@ const RecentWarps: FunctionComponent = () => {
           <div className="dark:border-darker-gray border-smoke w-full border-t mt-4">
             <Table>
               <thead>
-                <Table.Row>
-                  <Table.Heading className="w-full">
-                    <div className="mx-auto grid max-w-2xl sm:grid-cols-[3fr_1fr_3fr]">
-                      <span className="font-text col-span-2 inline-block font-medium sm:pl-8">
-                        From
-                      </span>
-                      <span className="font-text font-medium sm:pl-8">To</span>
+                <Table.Row className="font-text">
+                  <Table.Heading className="md:w-4/5 sm:w-2/3">
+                    <div className="mx-auto grid max-w-2xl sm:grid-cols-[3fr_1fr_3fr] font-medium">
+                      <span className="col-span-2 inline-block sm:pl-8">From</span>
+                      <span className="sm:pl-8">To</span>
                     </div>
+                  </Table.Heading>
+                  <Table.Heading className="md:w-1/5 sm:w-1/3 font-medium">
+                    Transaction
                   </Table.Heading>
                 </Table.Row>
               </thead>
