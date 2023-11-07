@@ -94,3 +94,7 @@ export async function deploy(
 
   throw lastrError;
 }
+
+export function addressEquals(a: string, b: string) {
+  return a.toLowerCase() === b.toLowerCase();
+}
