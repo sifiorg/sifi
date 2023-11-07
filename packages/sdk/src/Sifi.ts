@@ -168,7 +168,7 @@ async function handleResponse(response: Response) {
 export const ETH_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
 
 export class Sifi {
-  constructor(private readonly baseUrl = 'https://api.sideshift.fi/v1/') {}
+  constructor(private readonly baseUrl = 'https://api.sifi.org/v1/') {}
 
   async getQuote(options: GetQuoteOptions): Promise<Quote> {
     const params: Record<string, string> = {
