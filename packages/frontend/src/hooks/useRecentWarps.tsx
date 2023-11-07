@@ -6,6 +6,7 @@ import { SUPPORTED_CHAINS } from 'src/utils/chains';
 const RECENT_WARPS_QUERY = gql`
   query recentWarps($since: BigInt!) {
     warps(first: 5, where: { addedAt_gt: $since }, orderBy: addedAt, orderDirection: desc) {
+      id
       addedAt
       amountInDecimal
       tokenIn {
@@ -21,6 +22,7 @@ const RECENT_WARPS_QUERY = gql`
 `;
 
 type Warp = {
+  id: string;
   addedAt: string;
   chainId: number;
   amountInDecimal: string;
