@@ -28,6 +28,7 @@ import { useSyncTokenUrlParams } from 'src/hooks/useSyncTokenUrlParams';
 import { enableSwapInformation } from 'src/utils/featureFlags';
 import { useUsdValue } from 'src/hooks/useUsdValue';
 import { useSpaceTravel } from 'src/providers/SpaceTravelProvider';
+import { defaultFeeBps } from 'src/config';
 
 const CreateSwap = () => {
   useCullQueries('quote');
@@ -100,7 +101,7 @@ const CreateSwap = () => {
         quote,
         permit,
         partner: partnerAddress || undefined,
-        feeBps: partnerFeeBps && partnerAddress ? Number(partnerFeeBps) : undefined,
+        feeBps: partnerFeeBps && partnerAddress ? Number(partnerFeeBps) : defaultFeeBps,
       });
 
       const res = await walletClient.sendTransaction({
