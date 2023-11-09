@@ -2,8 +2,8 @@
   "name": "sifi",
   "version": "1.0.0",
   "main": "index.js",
-  "repository": "https://github.com/sideshiftfi/sifi",
-  "author": "sideshift",
+  "repository": "https://github.com/sifiorg/sifi",
+  "author": "sifiorg",
   "private": true,
   "workspaces": {
     "packages": [
