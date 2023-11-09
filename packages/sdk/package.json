@@ -2,11 +2,11 @@
   "name": "@sifi/sdk",
   "version": "1.11.0",
   "license": "MIT",
-  "description": "🛸 SDK for integrating with SideShift.fi",
+  "description": "🛸 SDK for integrating with Sifi.org",
   "repository": {
     "type": "git",
     "directory": "packages/sdk",
-    "url": "git+https://github.com/sideshiftfi/sifi.git"
+    "url": "git+https://github.com/sifiorg/sifi.git"
   },
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -15,7 +15,8 @@
   ],
   "module": "dist/sdk.esm.js",
   "keywords": [
-    "sideshift.fi",
+    "sifi",
+    "sifi.org",
     "ethereum",
     "swap"
   ],
