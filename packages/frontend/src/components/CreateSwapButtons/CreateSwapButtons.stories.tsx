@@ -21,4 +21,4 @@ Loading.args = { isLoading: true };
 // TODO: Add missing states
 // - Wrong network (requires Wagmi chain id mocking)
 // - Insufficient balance (requires form mocking)
-// - Shift state - (requires from mocking)
+// - Swap state - (requires from mocking)
