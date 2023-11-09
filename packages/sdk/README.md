@@ -1,6 +1,6 @@
-# SideShift.fi SDK
+# Sifi.org SDK
 
-SDK for integrating with SideShift.fi 🛸
+SDK for integrating with Sifi.org 🛸
 
 ## Install
 
