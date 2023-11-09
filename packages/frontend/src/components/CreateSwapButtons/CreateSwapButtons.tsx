@@ -40,7 +40,7 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
   const fromAmountInWei = fromToken ? parseUnits(fromAmount || '0', fromToken.decimals) : BigInt(0);
   const hasSufficientBalance = fromBalance && fromBalance.value >= fromAmountInWei;
 
-  const isShiftButtonLoading = isLoading || isFetchingAllowance || isFetchingQuote;
+  const isSwapButtonLoading = isLoading || isFetchingAllowance || isFetchingQuote;
 
   const showApproveButton =
     Boolean(
@@ -51,7 +51,7 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
         hasSufficientBalance
     ) || isApproving;
 
-  const isShiftButtonDisabled =
+  const isSwapButtonDisabled =
     !isConnected ||
     showApproveButton ||
     !fromAmount ||
@@ -59,9 +59,9 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
     !quote ||
     !isValidTokenAmount(fromAmount);
 
-  const getShiftButtonLabel = () => {
+  const getSwapButtonLabel = () => {
     if (fromToken?.address === toToken?.address && fromChain?.id === toChain?.id) {
-      return 'Cannot shift same tokens';
+      return 'Cannot swap same tokens';
     }
 
     if (!fromAmount) return 'Enter an amount';
@@ -82,8 +82,8 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
   return (
     <>
       {showApproveButton && <ApproveButton />}
-      <Button isLoading={isShiftButtonLoading} disabled={isShiftButtonDisabled}>
-        {getShiftButtonLabel()}
+      <Button isLoading={isSwapButtonLoading} disabled={isSwapButtonDisabled}>
+        {getSwapButtonLabel()}
       </Button>
     </>
   );

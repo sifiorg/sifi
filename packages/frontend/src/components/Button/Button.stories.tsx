@@ -6,7 +6,7 @@ export default {
   component: Button,
 } as Meta<typeof Button>;
 
-const Template: StoryFn<typeof Button> = args => <Button {...args}>Shift</Button>;
+const Template: StoryFn<typeof Button> = args => <Button {...args}>Execute Swap</Button>;
 
 export const Default = Template.bind({});
 

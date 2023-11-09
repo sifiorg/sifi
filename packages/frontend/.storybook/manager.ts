@@ -1,6 +1,6 @@
-import { addons } from "@storybook/addons";
-import SideShiftTheme from "./SideShiftTheme";
+import { addons } from '@storybook/addons';
+import SifiTheme from './SifiTheme';
 
 addons.setConfig({
-  theme: SideShiftTheme,
+  theme: SifiTheme,
 });
