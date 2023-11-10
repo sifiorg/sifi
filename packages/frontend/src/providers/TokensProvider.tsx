@@ -32,8 +32,8 @@ const TokensProvider: FunctionComponent<{ children: ReactNode }> = ({ children }
   const { fromChain, toChain } = useSwapFormValues();
   const [fromTokens, setFromTokens] = useState<Token[]>([]);
   const [toTokens, setToTokens] = useState<Token[]>([]);
-  const { fetchTokens: fetchFromTokens } = useFetchTokens(fromChain.id);
-  const { fetchTokens: fetchToTokens } = useFetchTokens(toChain.id);
+  const { fetchTokens: fetchFromTokens } = useFetchTokens([fromChain.id]);
+  const { fetchTokens: fetchToTokens } = useFetchTokens([toChain.id]);
 
   useEffect(() => {
     const shouldRefetchFromTokens = fromChain.id !== fromTokens?.[0]?.chainId;
