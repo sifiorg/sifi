@@ -15,6 +15,11 @@ Large.args = {
   size: 'large',
 };
 
+export const Small = Template.bind({});
+Large.args = {
+  size: 'small',
+};
+
 export const Disabled = Template.bind({});
 Disabled.args = {
   disabled: true,
