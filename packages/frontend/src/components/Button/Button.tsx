@@ -3,7 +3,7 @@ import { Spinner } from '../Spinner/Spinner';
 
 type ButtonProps = {
   isLoading?: boolean;
-  size?: 'large' | 'normal';
+  size?: 'large' | 'normal' | 'small';
 } & ButtonHTMLAttributes<HTMLButtonElement>;
 
 const Button: FunctionComponent<ButtonProps> = ({
@@ -15,6 +15,7 @@ const Button: FunctionComponent<ButtonProps> = ({
   const styles = {
     large: 'h-24',
     normal: 'h-20',
+    small: 'p-4 text-sm w-auto',
   };
 
   return (
