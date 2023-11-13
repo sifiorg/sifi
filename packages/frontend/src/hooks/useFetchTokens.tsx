@@ -3,14 +3,19 @@ import { showToast } from '@sifi/shared-ui';
 import { getOrderedTokenList } from 'src/utils/tokens';
 import { useSifi } from 'src/providers/SDKProvider';
 
-const useFetchTokens = (chainId: number) => {
+const useFetchTokens = (chainIds: number[]) => {
   const sifi = useSifi();
 
-  const { refetch } = useQuery(
-    ['tokens', chainId],
+  const { data, refetch } = useQuery(
+    ['tokens', chainIds],
     async () => {
-      const data = await sifi.getTokens(chainId);
-      return getOrderedTokenList(data);
+      const allTokens = await Promise.all(
+        chainIds.map(async chainId => {
+          const data = await sifi.getTokens(chainId);
+          return getOrderedTokenList(data);
+        })
+      );
+      return allTokens.flat();
     },
     { enabled: false }
   );
@@ -23,14 +28,14 @@ const useFetchTokens = (chainId: number) => {
       }
     } catch (error) {
       showToast({
-        text: `Failed to fetch tokens for ${chainId}`,
+        text: `Failed to fetch tokens.`,
         type: 'error',
       });
     }
     return [];
   };
 
-  return { fetchTokens };
+  return { fetchTokens, data };
 };
 
 export { useFetchTokens };
