@@ -2,6 +2,7 @@ import { FunctionComponent } from 'react';
 import { Menu, useWalletBranding } from '@sifi/shared-ui';
 import { useAccount, useDisconnect, useEnsName, useNetwork } from 'wagmi';
 import { formatAddress, formatEnsName } from 'src/utils';
+import { useNavigate } from 'react-router-dom';
 
 const HeaderMenu: FunctionComponent = () => {
   const { address, isConnected } = useAccount();
@@ -10,11 +11,17 @@ const HeaderMenu: FunctionComponent = () => {
   const { disconnect } = useDisconnect();
   const { icon, text } = useWalletBranding();
 
+  const navigate = useNavigate();
+
   if (!address || !isConnected) return null;
 
   const label = ensName ? formatEnsName(ensName) : formatAddress(address);
 
   const menuLinks = [
+    {
+      title: 'Dashboard',
+      onClick: () => navigate('/dashboard'),
+    },
     {
       title: 'Disconnect Wallet',
       onClick: () => disconnect(),
@@ -22,7 +29,11 @@ const HeaderMenu: FunctionComponent = () => {
   ];
 
   return (
-    <Menu icon={icon ? { src: icon, alt: `${text} icon`} : undefined} label={label} links={menuLinks}>
+    <Menu
+      icon={icon ? { src: icon, alt: `${text} icon` } : undefined}
+      label={label}
+      links={menuLinks}
+    >
       <div className="px-6 py-4">
         <span className="mb-3 block text-sm" id="network-label">
           Network

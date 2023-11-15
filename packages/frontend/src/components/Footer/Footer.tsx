@@ -7,6 +7,10 @@ const Footer: FunctionComponent = () => {
   const columnLinks = [
     [
       {
+        title: 'Dashboard',
+        href: '/dashboard',
+      },
+      {
         href: 'https://docs.sifi.org',
         title: 'Docs',
         external: true,
