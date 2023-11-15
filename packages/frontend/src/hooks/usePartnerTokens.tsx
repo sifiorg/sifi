@@ -22,29 +22,31 @@ const PARTNER_TOKENS_QUERY = gql`
   }
 `;
 
+type TokenOfPartner = {
+  id: string;
+  balance: string;
+  balanceDecimal: string;
+  balanceUsd: string;
+  withdrawn: string;
+  withdrawnDecimal: string;
+  withdrawnUsd: string;
+  modifiedAt: string;
+  modifiedAtBlock: string;
+  modifiedAtTransaction: string;
+};
+
 type PartnerTokensResponse = {
   partner: {
     id: string;
-    tokens: Array<{
-      id: string;
-      balance: string;
-      balanceDecimal: string;
-      balanceUsd: string;
-      withdrawn: string;
-      withdrawnDecimal: string;
-      withdrawnUsd: string;
-      modifiedAt: string;
-      modifiedAtBlock: string;
-      modifiedAtTransaction: string;
-    }>;
+    tokens: Array<TokenOfPartner>;
   };
 };
 
-type PartnerTokens = Record<string, PartnerTokensResponse | null>;
+type PartnerTokensByChain = Record<string, PartnerTokensResponse | null>;
 
 const usePartnerTokens = (address: string) => {
   return useQuery(
-    ['partnerTokens', address],
+    ['partnerTokensByChain', address],
     async () => {
       const responses = await Promise.all(
         Object.entries(GRAPH_URLS).map(([chainId, url]) =>
@@ -75,4 +77,4 @@ const usePartnerTokens = (address: string) => {
 };
 
 export { usePartnerTokens };
-export type { PartnerTokens };
+export type { PartnerTokensByChain, TokenOfPartner };
