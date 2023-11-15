@@ -49,6 +49,7 @@ const TokenRow: FC<TokenRowProps> = ({
     getChainById(Number(chainId)),
     withdrawnTokens[token.id] || token.modifiedAtTransaction
   );
+  const hasBalance = Number(token.balanceDecimal) > 0;
 
   return (
     <Table.Row className="overflow-y-auto max-w-xs m-auto sm:max-w-none my-2" key={token.id}>
@@ -64,10 +65,10 @@ const TokenRow: FC<TokenRowProps> = ({
                 />
               </div>
               <div className="flex flex-col pl-4">
-                <span>
-                  {formatTokenAmount(token.balanceDecimal)} {tokenDetails?.symbol}
+                <span>{`${formatTokenAmount(token.balanceDecimal)} ${tokenDetails?.symbol}`}</span>
+                <span className="text-sm">
+                  {hasBalance && `≈ ${formatTokenAmount(token.balanceUsd)} USD`}
                 </span>
-                <span className="text-sm">≈ {formatTokenAmount(token.balanceUsd)} USD</span>
               </div>
             </div>
           </div>
