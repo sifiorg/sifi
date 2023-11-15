@@ -13,7 +13,9 @@ const Layout: FunctionComponent<{ children: ReactNode }> = ({ children }) => {
       <SpaceTravelCanvas />
       <div className="relative">
         <Header />
-        <main className="px-2 sm:px-8 relative">{children}</main>
+        <main className="px-2 sm:px-8 relative flex min-h-[90vh] flex-col md:justify-center">
+          {children}
+        </main>
         <Footer />
       </div>
     </>
@@ -23,10 +25,8 @@ const Layout: FunctionComponent<{ children: ReactNode }> = ({ children }) => {
 const Home: FunctionComponent = () => {
   return (
     <>
-      <div className="flex min-h-[90vh] flex-col md:justify-center">
-        <Hero />
-        <RecentWarps />
-      </div>
+      <Hero />
+      <RecentWarps />
     </>
   );
 };
