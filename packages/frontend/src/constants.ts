@@ -18,6 +18,8 @@ const ERC20_ABI = [
 // Based on various interactions with the Sifi Smart Contract
 const SWAP_MAX_GAS_UNITS = 150000;
 
+const SIFI_CONTRACT_ADDRESS = '0x65c49E9996A877d062085B71E1460fFBe3C4c5Aa';
+
 export {
   ETH_CONTRACT_ADDRESS,
   MIN_ALLOWANCE,
