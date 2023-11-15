@@ -1,7 +1,7 @@
 import { Skeleton, Table, formatTokenAmount } from '@sifi/shared-ui';
 import { FC, useEffect, useState } from 'react';
 import { Button } from 'src/components/Button';
-import { PartnerTokens, usePartnerTokens } from 'src/hooks/usePartnerTokens';
+import { PartnerTokens } from 'src/hooks/usePartnerTokens';
 import { getChainById, getChainIcon } from 'src/utils/chains';
 import { useAccount, useNetwork, useSwitchNetwork } from 'wagmi';
 import { useFetchTokens } from 'src/hooks/useFetchTokens';
@@ -9,41 +9,12 @@ import { usePartnerWithdraw } from 'src/hooks/usePartnerWithdraw';
 import { ConnectWallet } from 'src/components/ConnectWallet/ConnectWallet';
 import { firstAndLast, getEvmTxUrl } from 'src/utils';
 import { ETH_CONTRACT_ADDRESS, ETH_ZERO_ADDRESS } from 'src/constants';
+import { usePartnerData } from 'src/hooks/usePartnerData';
 
 const extractTokenAddress = (id: string): string => {
   // The id is a concatenation of two Ethereum addresses,
   // the token address is last 40 characters of the id.
   return '0x' + id.slice(-40);
-};
-
-const calculateTotalBalanceUsd = (partnerTokens: PartnerTokens) => {
-  return partnerTokens
-    ? Object.values(partnerTokens).reduce((total, data) => {
-        if (data?.partner?.tokens) {
-          const totalForChain = data.partner.tokens.reduce(
-            (total, token) => total + parseFloat(token.balanceUsd),
-            0
-          );
-          return total + totalForChain;
-        }
-        return parseFloat(total.toFixed(2));
-      }, 0)
-    : 0;
-};
-
-const calculateLifetimeEarningsUsd = (partnerTokens: PartnerTokens) => {
-  return partnerTokens
-    ? Object.values(partnerTokens).reduce((total, data) => {
-        if (data?.partner?.tokens) {
-          const totalForChain = data.partner.tokens.reduce(
-            (total, token) => total + parseFloat(token.balanceUsd) + parseFloat(token.withdrawnUsd),
-            0
-          );
-          return total + totalForChain;
-        }
-        return parseFloat(total.toFixed(2));
-      }, 0)
-    : 0;
 };
 
 type PartnerTokensTableProps = {
@@ -184,9 +155,9 @@ const PartnerTokensTable: FC<PartnerTokensTableProps> = ({ partnerTokens }) => {
 
 const Dashboard = () => {
   const { address, isConnected } = useAccount();
-  const { data: partnerTokens, isLoading } = usePartnerTokens(address || '');
-  const totalBalanceUsd = partnerTokens ? calculateTotalBalanceUsd(partnerTokens) : 0;
-  const lifetimeEarningsUsd = partnerTokens ? calculateLifetimeEarningsUsd(partnerTokens) : 0;
+  const { partnerTokens, totalBalanceUsd, lifetimeEarningsUsd, isLoading } = usePartnerData(
+    address || ''
+  );
 
   return (
     <section className="mt-8 min-h-[50rem]">
