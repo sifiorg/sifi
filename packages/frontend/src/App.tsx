@@ -6,6 +6,7 @@ import { Hero } from './components/Hero/Hero';
 import { Route, Routes } from 'react-router-dom';
 import { SpaceTravelCanvas } from './space-travel/SpaceTravelCanvas';
 import { RecentWarps } from './components/RecentWarps/RecentWarps';
+import { Dashboard } from 'src/pages/Dashboard';
 
 const Layout: FunctionComponent<{ children: ReactNode }> = ({ children }) => {
   return (
@@ -39,6 +40,7 @@ const App = () => {
           <Route path="/:ref" element={<Home />} />
           <Route path="/:fromToken/:toToken" element={<Home />} />
           <Route path="/:fromToken/:toToken/:ref" element={<Home />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </Layout>
