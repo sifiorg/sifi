@@ -153,6 +153,29 @@ const PartnerTokensTable: FC<PartnerTokensTableProps> = ({ partnerTokens }) => {
   );
 };
 
+const StatsCard = ({
+  title,
+  value,
+  isLoading,
+}: {
+  title: string;
+  value: number;
+  isLoading: boolean;
+}) => (
+  <div className="flex flex-wrap place-items-center text-center gap-x-4 gap-y-2 bg-white px-4 py-5 sm:px-6 xl:px-8">
+    <dt className="text-sm font-medium text-gray-500 text-center w-full">{title}</dt>
+    <dd className="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900 justify-center">
+      {isLoading ? (
+        <div>
+          <Skeleton className="h-10" />
+        </div>
+      ) : (
+        <div>{value} USD</div>
+      )}
+    </dd>
+  </div>
+);
+
 const Dashboard = () => {
   const { address, isConnected } = useAccount();
   const { partnerTokens, totalBalanceUsd, lifetimeEarningsUsd, isLoading } = usePartnerData(
@@ -167,34 +190,12 @@ const Dashboard = () => {
       {isConnected ? (
         <>
           <dl className="mx-auto grid grid-cols-2 gap-px bg-gray-900/5 place-items-center max-w-md">
-            <div className="flex flex-wrap place-items-center text-center gap-x-4 gap-y-2 bg-white px-4 py-5 sm:px-6 xl:px-8">
-              <dt className="text-sm font-medium text-gray-500 text-center w-full">
-                Lifetime Earnings
-              </dt>
-              <dd className="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900 justify-center">
-                {isLoading ? (
-                  <div>
-                    <Skeleton className="h-10" />
-                  </div>
-                ) : (
-                  <div>{lifetimeEarningsUsd} USD</div>
-                )}
-              </dd>
-            </div>
-            <div className="flex flex-wrap place-items-center text-center gap-x-4 gap-y-2 bg-white px-4 py-5 sm:px-6 xl:px-8">
-              <dt className="text-sm font-medium text-gray-500 text-center w-full">
-                Withdrawable Amount
-              </dt>
-              <dd className="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900 justify-center">
-                {isLoading ? (
-                  <div>
-                    <Skeleton className="h-10" />
-                  </div>
-                ) : (
-                  <div>{totalBalanceUsd} USD</div>
-                )}
-              </dd>
-            </div>
+            <StatsCard
+              title="Lifetime Earnings"
+              value={lifetimeEarningsUsd}
+              isLoading={isLoading}
+            />
+            <StatsCard title="Withdrawable Amount" value={totalBalanceUsd} isLoading={isLoading} />
           </dl>
           {partnerTokens && <PartnerTokensTable partnerTokens={partnerTokens} />}
         </>
