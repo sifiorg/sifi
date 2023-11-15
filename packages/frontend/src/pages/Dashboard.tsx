@@ -8,6 +8,7 @@ import { useFetchTokens } from 'src/hooks/useFetchTokens';
 import { usePartnerWithdraw } from 'src/hooks/usePartnerWithdraw';
 import { ConnectWallet } from 'src/components/ConnectWallet/ConnectWallet';
 import { firstAndLast, getEvmTxUrl } from 'src/utils';
+import { ETH_CONTRACT_ADDRESS, ETH_ZERO_ADDRESS } from 'src/constants';
 
 const extractTokenAddress = (id: string): string => {
   // The id is a concatenation of two Ethereum addresses,
@@ -53,7 +54,7 @@ const PartnerTokensTable: FC<PartnerTokensTableProps> = ({ partnerTokens }) => {
   const { chain: activeChain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
   const chainIds = Object.keys(partnerTokens).map(Number);
-  const { fetchTokens, tokensByAddress } = useFetchTokens(chainIds);
+  const { fetchTokens, tokensByChainIdAndAddress } = useFetchTokens(chainIds);
   const [withdrawnTokens, setWithdrawnTokens] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
@@ -92,8 +93,12 @@ const PartnerTokensTable: FC<PartnerTokensTableProps> = ({ partnerTokens }) => {
                 {Object.entries(partnerTokens).map(
                   ([chainId, data]) =>
                     data?.partner?.tokens?.map(token => {
-                      const tokenAddress = extractTokenAddress(token.id);
-                      const tokenDetails = tokensByAddress[tokenAddress];
+                      let tokenAddress = extractTokenAddress(token.id);
+                      if (tokenAddress === ETH_ZERO_ADDRESS) {
+                        tokenAddress = ETH_CONTRACT_ADDRESS.toLowerCase();
+                      }
+                      const tokenKey = `${chainId}-${tokenAddress}`;
+                      const tokenDetails = tokensByChainIdAndAddress[tokenKey];
                       const showWithdrawalButton =
                         Number(token.balanceDecimal) > 0 && !withdrawnTokens[token.id];
                       const lastWithdrwalHash =
@@ -126,7 +131,7 @@ const PartnerTokensTable: FC<PartnerTokensTableProps> = ({ partnerTokens }) => {
                                   <div className="flex flex-col pl-4">
                                     <span>
                                       {formatTokenAmount(token.balanceDecimal)}{' '}
-                                      {tokensByAddress[tokenAddress]?.symbol}
+                                      {tokenDetails?.symbol}
                                     </span>
                                     <span className="text-sm">
                                       ≈ {formatTokenAmount(token.balanceUsd)} USD
