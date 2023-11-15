@@ -2,9 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 import { showToast } from '@sifi/shared-ui';
 import { getOrderedTokenList } from 'src/utils/tokens';
 import { useSifi } from 'src/providers/SDKProvider';
+import { useEffect, useState } from 'react';
+import { Token } from '@sifi/sdk';
 
 const useFetchTokens = (chainIds: number[]) => {
   const sifi = useSifi();
+  const [tokensByAddress, setTokensByAddress] = useState<Record<string, Token>>({});
 
   const { data, refetch } = useQuery(
     ['tokens', chainIds],
@@ -24,6 +27,12 @@ const useFetchTokens = (chainIds: number[]) => {
     try {
       const { data: tokensData } = await refetch();
       if (tokensData) {
+        const lookup = tokensData.reduce<Record<string, Token>>((acc, token) => {
+          acc[token.address.toLowerCase()] = token;
+          return acc;
+        }, {});
+        setTokensByAddress(lookup);
+
         return tokensData;
       }
     } catch (error) {
@@ -35,7 +44,7 @@ const useFetchTokens = (chainIds: number[]) => {
     return [];
   };
 
-  return { fetchTokens, data };
+  return { fetchTokens, data, tokensByAddress };
 };
 
 export { useFetchTokens };
