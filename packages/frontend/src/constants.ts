@@ -20,6 +20,60 @@ const SWAP_MAX_GAS_UNITS = 150000;
 
 const SIFI_CONTRACT_ADDRESS = '0x65c49E9996A877d062085B71E1460fFBe3C4c5Aa';
 
+const STAR_VAULT_ABI = [
+  { inputs: [], name: 'EthTransferFailed', type: 'error' },
+  {
+    inputs: [{ internalType: 'uint256', name: 'available', type: 'uint256' }],
+    name: 'InsufficientOwnerBalance',
+    type: 'error',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'partner', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'token', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'PartnerWithdraw',
+    type: 'event',
+  },
+  {
+    inputs: [
+      { internalType: 'address', name: 'token', type: 'address' },
+      { internalType: 'uint256', name: 'amount', type: 'uint256' },
+      { internalType: 'address payable', name: 'to', type: 'address' },
+    ],
+    name: 'ownerWithdraw',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'address', name: 'partner', type: 'address' },
+      { internalType: 'address', name: 'token', type: 'address' },
+    ],
+    name: 'partnerTokenBalance',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'address', name: 'partner', type: 'address' }],
+    name: 'partnerTokens',
+    outputs: [{ internalType: 'address[]', name: 'tokens_', type: 'address[]' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'address', name: 'token', type: 'address' }],
+    name: 'partnerWithdraw',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+];
+
 export {
   ETH_CONTRACT_ADDRESS,
   MIN_ALLOWANCE,
@@ -27,4 +81,6 @@ export {
   POPULAR_TOKEN_SYMBOLS,
   SWAP_MAX_GAS_UNITS,
   ERC20_ABI,
+  SIFI_CONTRACT_ADDRESS,
+  STAR_VAULT_ABI,
 };
