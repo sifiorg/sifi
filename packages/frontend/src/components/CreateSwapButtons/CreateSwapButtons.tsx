@@ -81,10 +81,13 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
 
   return (
     <>
-      {showApproveButton && <ApproveButton />}
-      <Button isLoading={isSwapButtonLoading} disabled={isSwapButtonDisabled}>
-        {getSwapButtonLabel()}
-      </Button>
+      {showApproveButton ? (
+        <ApproveButton />
+      ) : (
+        <Button isLoading={isSwapButtonLoading} disabled={isSwapButtonDisabled}>
+          {getSwapButtonLabel()}
+        </Button>
+      )}
     </>
   );
 };
