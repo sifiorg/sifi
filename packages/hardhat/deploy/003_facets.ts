@@ -29,6 +29,7 @@ let FACET_NAMES = [
   'WarpLink',
   'Curve',
   'Stargate',
+  'Stateless',
 ];
 
 if (addresses?.uniswapV2Router02 && addresses?.uniswapV2Factory) {
@@ -105,6 +106,7 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
   initForFacet.WarpLink = initForFacet.UniV2LikeFacet;
   initForFacet.Curve = initForFacet.UniV2LikeFacet;
   initForFacet.Stargate = initForFacet.UniV2LikeFacet;
+  initForFacet.Stateless = initForFacet.UniV2LikeFacet;
 
   for (const facetName of FACET_NAMES) {
     const args: unknown[] = [];
