@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 import {IWETH} from '@uniswap/v2-periphery/contracts/interfaces/IWETH.sol';
 import {IPermit2} from '../interfaces/external/IPermit2.sol';
 import {IStargateComposer} from '../interfaces/external/IStargateComposer.sol';
+import {IEnergyShield} from '../interfaces/IEnergyShield.sol';
 
 /**
  * NOTE: Events and errors must be copied to ILibWarp
@@ -21,6 +22,7 @@ library LibWarp {
     IWETH weth;
     IPermit2 permit2;
     IStargateComposer stargateComposer;
+    IEnergyShield energyShield;
   }
 
   bytes32 constant DIAMOND_STORAGE_SLOT = keccak256('diamond.storage.LibWarp');
