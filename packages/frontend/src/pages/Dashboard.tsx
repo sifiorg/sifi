@@ -68,7 +68,7 @@ const TokenRow: FC<TokenRowProps> = ({
               </div>
             </div>
           </div>
-          <div className="flex place-items-center align-middle justify-center my-2 sm:m-auto">
+          <Table.Cell className="flex place-items-center align-middle justify-center my-2 sm:m-auto">
             {showWithdrawalButton ? (
               <Button
                 role="button"
@@ -95,7 +95,7 @@ const TokenRow: FC<TokenRowProps> = ({
                 </div>
               </div>
             )}
-          </div>
+          </Table.Cell>
         </div>
       </Table.Cell>
     </Table.Row>
