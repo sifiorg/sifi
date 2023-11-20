@@ -41,7 +41,7 @@ const TokenRow: FC<TokenRowProps> = ({
   const tokenDetails = tokensByChainIdAndAddress[tokenKey];
   const showWithdrawalButton = Number(token.balanceDecimal) > 0 && !withdrawnTokens[tokenAddress];
   const lastWithdrwalHash = withdrawnTokens[token.id] || token.modifiedAtTransaction;
-  const lastWithdrwalUrl = getEvmTxUrl(
+  const lastWithdrawalUrl = getEvmTxUrl(
     getChainById(Number(chainId)),
     withdrawnTokens[token.id] || token.modifiedAtTransaction
   );
@@ -83,7 +83,7 @@ const TokenRow: FC<TokenRowProps> = ({
                 <div>
                   <a
                     className="dark:text-pixel-blue underline"
-                    href={lastWithdrwalUrl}
+                    href={lastWithdrawalUrl}
                     target="_blank"
                     rel="noreferrer"
                     aria-label={`Link to last withdrawal transaction ${firstAndLast(
