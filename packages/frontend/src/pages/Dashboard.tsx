@@ -136,7 +136,7 @@ const PartnerTokensTable: FC<PartnerTokensTableProps> = ({ partnerTokensByChain 
     <section>
       <div className="mx-auto w-full max-w-xl">
         <div className="flex flex-col items-center justify-between gap-2">
-          <div className="dark:border-darker-gray border-smoke w-full border-t mt-4">
+          <div className=" w-full mt-4">
             <Table>
               <Table.Body>
                 {Object.entries(partnerTokensByChain).map(
