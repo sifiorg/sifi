@@ -12,12 +12,6 @@ import { firstAndLast, getEvmTxUrl } from 'src/utils';
 import { ETH_CONTRACT_ADDRESS, ETH_ZERO_ADDRESS } from 'src/constants';
 import { usePartnerData } from 'src/hooks/usePartnerData';
 
-const extractTokenAddress = (id: string): string => {
-  // The id is a concatenation of two Ethereum addresses,
-  // the token address is last 40 characters of the id.
-  return '0x' + id.slice(-40);
-};
-
 type PartnerTokensTableProps = {
   partnerTokensByChain: PartnerTokensByChain;
 };
@@ -25,7 +19,7 @@ type PartnerTokensTableProps = {
 type TokenRowProps = {
   token: TokenOfPartner;
   chainId: string;
-  handleWithdraw: (id: string, chainId: number) => void;
+  handleWithdraw: (tokenAddress: string, chainId: number) => void;
   withdrawnTokens: { [key: string]: string };
   tokensByChainIdAndAddress: Record<string, Token>;
 };
@@ -37,13 +31,15 @@ const TokenRow: FC<TokenRowProps> = ({
   withdrawnTokens,
   tokensByChainIdAndAddress,
 }) => {
-  let tokenAddress = extractTokenAddress(token.id);
-  if (tokenAddress === ETH_ZERO_ADDRESS) {
-    tokenAddress = ETH_CONTRACT_ADDRESS.toLowerCase();
+  const tokenAddress = token.token.address;
+  let normalizedTokenAddress = tokenAddress;
+  if (normalizedTokenAddress === ETH_ZERO_ADDRESS) {
+    normalizedTokenAddress = ETH_CONTRACT_ADDRESS.toLowerCase();
   }
-  const tokenKey = `${chainId}-${tokenAddress}`;
+
+  const tokenKey = `${chainId}-${normalizedTokenAddress}`;
   const tokenDetails = tokensByChainIdAndAddress[tokenKey];
-  const showWithdrawalButton = Number(token.balanceDecimal) > 0 && !withdrawnTokens[token.id];
+  const showWithdrawalButton = Number(token.balanceDecimal) > 0 && !withdrawnTokens[tokenAddress];
   const lastWithdrwalHash = withdrawnTokens[token.id] || token.modifiedAtTransaction;
   const lastWithdrwalUrl = getEvmTxUrl(
     getChainById(Number(chainId)),
@@ -77,7 +73,7 @@ const TokenRow: FC<TokenRowProps> = ({
               <Button
                 role="button"
                 size="small"
-                onClick={() => handleWithdraw(token.id, Number(chainId))}
+                onClick={() => handleWithdraw(tokenAddress, Number(chainId))}
               >
                 Withdraw
               </Button>
@@ -119,9 +115,7 @@ const PartnerTokensTable: FC<PartnerTokensTableProps> = ({ partnerTokensByChain 
 
   const partnerWithdrawMutation = usePartnerWithdraw();
 
-  const handleWithdraw = async (id: string, chainId: number) => {
-    const tokenAddress = extractTokenAddress(id);
-
+  const handleWithdraw = async (tokenAddress: string, chainId: number) => {
     if (switchNetwork && chainId !== activeChain?.id) {
       switchNetwork(chainId);
     }
@@ -131,8 +125,7 @@ const PartnerTokensTable: FC<PartnerTokensTableProps> = ({ partnerTokensByChain 
       {
         onSuccess: async receipt => {
           if (receipt) {
-            // Refetching is not reliable, so we just update the state manually
-            setWithdrawnTokens(prev => ({ ...prev, [id]: receipt }));
+            setWithdrawnTokens(prev => ({ ...prev, [tokenAddress]: receipt }));
           }
         },
       }

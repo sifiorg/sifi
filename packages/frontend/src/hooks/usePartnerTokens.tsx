@@ -11,12 +11,15 @@ const PARTNER_TOKENS_QUERY = gql`
         balance
         balanceDecimal
         balanceUsd
-        withdrawn
-        withdrawnDecimal
-        withdrawnUsd
         modifiedAt
         modifiedAtBlock
         modifiedAtTransaction
+        token {
+          address
+        }
+        withdrawn
+        withdrawnDecimal
+        withdrawnUsd
       }
     }
   }
@@ -27,12 +30,15 @@ type TokenOfPartner = {
   balance: string;
   balanceDecimal: string;
   balanceUsd: string;
-  withdrawn: string;
-  withdrawnDecimal: string;
-  withdrawnUsd: string;
   modifiedAt: string;
   modifiedAtBlock: string;
   modifiedAtTransaction: string;
+  token: {
+    address: string;
+  };
+  withdrawn: string;
+  withdrawnDecimal: string;
+  withdrawnUsd: string;
 };
 
 type PartnerTokensResponse = {
