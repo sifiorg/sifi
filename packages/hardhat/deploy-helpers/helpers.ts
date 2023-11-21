@@ -21,13 +21,7 @@ export async function verify(contactAdress: string, args: unknown[], attempts = 
       return;
     }
 
-    if (error.message.match(/bytecode does NOT match/i) && network.name === 'polygon') {
-      console.error('Giving up verifying contract on Polygon');
-
-      return;
-    }
-
-    if (error.message.match(/does not have bytecode/)) {
+    if (error.message.match(/does not have bytecode|bytecode does NOT match/i)) {
       if (attempts > 20) {
         throw error;
       }
