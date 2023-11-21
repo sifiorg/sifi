@@ -108,7 +108,13 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
   initForFacet.Stargate = initForFacet.UniV2LikeFacet;
   initForFacet.Stateless = initForFacet.UniV2LikeFacet;
 
+  const onlyFacets = process.env.ONLY_FACETS?.split(',');
+
   for (const facetName of FACET_NAMES) {
+    if (onlyFacets && !onlyFacets.includes(facetName)) {
+      continue;
+    }
+
     const args: unknown[] = [];
 
     const facet = await deploy(hre, facetName, {
@@ -266,6 +272,12 @@ const func = async function (hre: HardhatRuntimeEnvironment) {
     console.log('Diamond cuts are already up to date');
 
     return;
+  }
+
+  if (onlyFacets) {
+    console.log(`Only cutting facets: ${onlyFacets.join(', ')}`);
+
+    cuts = cuts.filter(cut => cut.facetName && onlyFacets.includes(cut.facetName));
   }
 
   console.log('Cuts:');
