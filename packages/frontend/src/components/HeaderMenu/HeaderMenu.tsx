@@ -16,13 +16,21 @@ const HeaderMenu: FunctionComponent = () => {
 
   const menuLinks = [
     {
+      title: 'Dashboard',
+      href: '/dashboard',
+    },
+    {
       title: 'Disconnect Wallet',
       onClick: () => disconnect(),
     },
   ];
 
   return (
-    <Menu icon={icon ? { src: icon, alt: `${text} icon`} : undefined} label={label} links={menuLinks}>
+    <Menu
+      icon={icon ? { src: icon, alt: `${text} icon` } : undefined}
+      label={label}
+      links={menuLinks}
+    >
       <div className="px-6 py-4">
         <span className="mb-3 block text-sm" id="network-label">
           Network
