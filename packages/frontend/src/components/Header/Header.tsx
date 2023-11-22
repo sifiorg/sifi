@@ -6,7 +6,7 @@ import HeaderMenu from '../HeaderMenu/HeaderMenu';
 const Header: FunctionComponent = () => {
   return (
     <>
-      <Navbar logo={logo}>
+      <Navbar Logo={<img src="logo" alt="Sifi logo" />}>
         <HeaderMenu />
       </Navbar>
     </>
