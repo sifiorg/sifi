@@ -12,7 +12,7 @@ const RecentWarpsTableData: FunctionComponent = () => {
 
   if (error) {
     return (
-      <Table.Row width="100%">
+      <Table.Row className="w-100">
         <Table.Cell className="text-center">
           <span className="dark:text-punk-red">Something went wrong loading the recent warps</span>
         </Table.Cell>
