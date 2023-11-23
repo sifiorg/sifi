@@ -19,6 +19,7 @@ import {PermitParams} from '../libraries/PermitParams.sol';
 import {IStargateRouter} from '../interfaces/external/IStargateRouter.sol';
 import {IStargateReceiver} from '../interfaces/external/IStargateReceiver.sol';
 import {IStargateComposer} from '../interfaces/external/IStargateComposer.sol';
+import {IEnergyShield} from '../interfaces/IEnergyShield.sol';
 
 abstract contract WarpLinkCommandTypes {
   uint256 internal constant COMMAND_TYPE_WRAP = 1;
@@ -30,6 +31,8 @@ abstract contract WarpLinkCommandTypes {
   uint256 internal constant COMMAND_TYPE_WARP_UNI_V3_LIKE_EXACT_INPUT = 7;
   uint256 internal constant COMMAND_TYPE_WARP_CURVE_EXACT_INPUT_SINGLE = 8;
   uint256 internal constant COMMAND_TYPE_JUMP_STARGATE = 9;
+  uint256 internal constant COMMAND_TYPE_WARP_STATELESS_SINGLE = 10;
+  uint256 internal constant COMMAND_TYPE_WARP_STATELESS_MULTI = 11;
 }
 
 contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
@@ -72,6 +75,27 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     uint256 dstPoolId;
     uint256 dstGasForCall;
     bytes payload;
+  }
+
+  struct WarpStatelessSingleParams {
+    address tokenOut;
+    address target;
+    bytes data;
+    bool push;
+    bool delivers;
+  }
+
+  struct WarpStatelessMultiParams {
+    address tokenOut;
+    address[] targets;
+    bytes data;
+    uint256[] offsets;
+    /**
+     * The current token amount will be written as uint256 to these offsets in the data.
+     */
+    uint256[] amountOffsets;
+    bool push;
+    bool delivers;
   }
 
   struct TransientState {
@@ -904,6 +928,213 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     return t;
   }
 
+  /**
+   * Warp using the Energy shield (single call)
+   *
+   * While the target call is not trusted, the Energy Shield is trusted to report
+   * the correct output amount.
+   *
+   * The payer can be the sender or this contract. The token may be ETH (0)
+   *
+   * After this operation, the token will be `params.tokenOut` and the amount will
+   * be the output of the swap. The next payer will be this contract.
+   *
+   * Params are read from the stream as:
+   *  - tokenOut (address)
+   *  - target (address)
+   *  - data (bytes)
+   *  - amountOffset (uint16), when > 0 the amount is written this many bytes into `data`
+   *  - push (uint8, 0 or 1)
+   *  - delivers (uint8, 0 or 1)
+   */
+  function processWarpStatelessSingle(
+    uint256 stream,
+    TransientState memory t
+  ) internal returns (TransientState memory) {
+    WarpStatelessSingleParams memory params;
+
+    params.tokenOut = stream.readAddress();
+    params.target = stream.readAddress();
+
+    bytes memory data = stream.readBytes();
+
+    uint256 amountOffset = stream.readUint16();
+
+    if (amountOffset > 0) {
+      uint256 amount = t.amount;
+
+      // Write amount at the offset in data
+      assembly {
+        mstore(add(add(data, 32), amountOffset), amount)
+      }
+    }
+
+    params.data = data;
+    params.push = stream.readUint8() == 1;
+    params.delivers = stream.readUint8() == 1;
+
+    IEnergyShield energyShield = LibWarp.state().energyShield;
+
+    // Transfer tokens from the sender to this contract when `params.push` is true, else to the target
+    // Native tokens are never pushed to the target, but included as value in the call
+    if (t.payer == address(this)) {
+      if (t.token != address(0)) {
+        IERC20(t.token).safeTransfer(params.push ? params.target : address(energyShield), t.amount);
+      }
+    } else {
+      // Transfer tokens from the sender to the energy shield
+      if (t.usePermit == 1) {
+        // NOTE: `t.usePermit` is left as 1
+        LibWarp.state().permit2.transferFrom(
+          t.payer,
+          params.push ? params.target : address(energyShield),
+          uint160(t.amount),
+          t.token
+        );
+      } else {
+        IERC20(t.token).safeTransferFrom(
+          t.payer,
+          params.push ? params.target : address(energyShield),
+          t.amount
+        );
+      }
+
+      // Update the payer to this contract
+      t.payer = address(this);
+    }
+
+    // NOTE: The EnergyShield is trusted to report the correct output amount
+    t.amount = LibWarp.state().energyShield.single{value: t.token == address(0) ? t.amount : 0}(
+      IEnergyShield.SingleParams({
+        tokenOut: params.tokenOut,
+        target: params.target,
+        data: params.data,
+        delivers: params.delivers
+      })
+    );
+
+    t.token = params.tokenOut;
+
+    return t;
+  }
+
+  /**
+   * Warp using the Energy Shield (multi call)
+   *
+   * While the target call is not trusted, the Energy Shield is trusted to report
+   * the correct output amount.
+   *
+   * The payer can be the sender or this contract. The token may be ETH (0)
+   *
+   * After this operation, the token will be `params.tokenOut` and the amount will
+   * be the output of the swap. The next payer will be this contract.
+   *
+   * Params are read from the stream as:
+   *  - tokenOut (address)
+   *  - target count (uint8)
+   *  - targets (target count of address)
+   *  - data (bytes)
+   *  - offsets (target count - 1 of uint16)
+   *  - push (uint8, 0 or 1)
+   *  - delivers (uint8, 0 or 1)
+   */
+  function processWarpStatelessMulti(
+    uint256 stream,
+    TransientState memory t
+  ) internal returns (TransientState memory) {
+    WarpStatelessMultiParams memory params;
+
+    params.tokenOut = stream.readAddress();
+
+    uint256 targetCount = stream.readUint8();
+    params.targets = new address[](targetCount);
+
+    unchecked {
+      for (uint256 index; index < targetCount; index++) {
+        params.targets[index] = stream.readAddress();
+      }
+    }
+
+    bytes memory data = stream.readBytes();
+
+    unchecked {
+      params.offsets = new uint256[](targetCount - 1);
+    }
+
+    unchecked {
+      for (uint256 index = 0; index < targetCount - 1; index++) {
+        params.offsets[index] = stream.readUint16();
+      }
+    }
+
+    uint256 amountOffsetsLength = stream.readUint8();
+
+    unchecked {
+      for (uint256 index; index < amountOffsetsLength; index++) {
+        uint256 amountOffset = stream.readUint16();
+
+        uint256 amount = t.amount;
+
+        // Write amount at the offset in data
+        assembly {
+          mstore(add(add(data, 32), amountOffset), amount)
+        }
+      }
+    }
+
+    params.data = data;
+    params.push = stream.readUint8() == 1;
+    params.delivers = stream.readUint8() == 1;
+
+    IEnergyShield energyShield = LibWarp.state().energyShield;
+
+    // Transfer tokens from the sender to this contract when `params.push` is true, else to the target
+    // Native tokens are never pushed to the target, but included as value in the call
+    if (t.payer == address(this)) {
+      if (t.token != address(0)) {
+        IERC20(t.token).safeTransfer(
+          params.push ? params.targets[0] : address(energyShield),
+          t.amount
+        );
+      }
+    } else {
+      // Transfer tokens from the sender to the energy shield
+      if (t.usePermit == 1) {
+        // NOTE: `t.usePermit` is left as 1
+        LibWarp.state().permit2.transferFrom(
+          t.payer,
+          params.push ? params.targets[0] : address(energyShield),
+          uint160(t.amount),
+          t.token
+        );
+      } else {
+        IERC20(t.token).safeTransferFrom(
+          t.payer,
+          params.push ? params.targets[0] : address(energyShield),
+          t.amount
+        );
+      }
+
+      // Update the payer to this contract
+      t.payer = address(this);
+    }
+
+    // NOTE: The EnergyShield is trusted to report the correct output amount
+    t.amount = LibWarp.state().energyShield.multi{value: t.token == address(0) ? t.amount : 0}(
+      IEnergyShield.MultiParams({
+        tokenOut: params.tokenOut,
+        targets: params.targets,
+        data: params.data,
+        offsets: params.offsets,
+        delivers: params.delivers
+      })
+    );
+
+    t.token = params.tokenOut;
+
+    return t;
+  }
+
   function engageInternal(
     uint256 stream,
     TransientState memory t
@@ -937,6 +1168,10 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
         }
 
         t = processJumpStargate(stream, t);
+      } else if (commandType == COMMAND_TYPE_WARP_STATELESS_SINGLE) {
+        t = processWarpStatelessSingle(stream, t);
+      } else if (commandType == COMMAND_TYPE_WARP_STATELESS_MULTI) {
+        t = processWarpStatelessMulti(stream, t);
       } else {
         revert UnhandledCommand();
       }
