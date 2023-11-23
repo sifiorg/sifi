@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import {IUniswapV2Router02} from '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol';
+import {IWETH} from '@uniswap/v2-periphery/contracts/interfaces/IWETH.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {IUniswapV2Factory} from 'contracts/interfaces/external/IUniswapV2Factory.sol';
 import {IWarpLink} from 'contracts/interfaces/IWarpLink.sol';
 import {IAllowanceTransfer} from 'contracts/interfaces/external/IAllowanceTransfer.sol';
 import {PermitParams} from 'contracts/libraries/PermitParams.sol';
@@ -1387,5 +1390,246 @@ contract WarpLinkMainnet17853419Test is WarpLinkTestBase, CurveHelpers {
     );
 
     assertEq(Mainnet.WETH.balanceOf(user), 6315168, 'balance');
+  }
+
+  function testFork_warpLinkEngage_warpStatelessSingle_wrap() public {
+    bytes memory data = abi.encodeWithSelector(IWETH.deposit.selector);
+
+    bytes memory commands = abi.encodePacked(
+      uint8(1), // Command count
+      uint8(COMMAND_TYPE_WARP_STATELESS_SINGLE),
+      address(Mainnet.WETH), // tokenOut
+      address(Mainnet.WETH), // target
+      uint256(data.length), // data.length
+      data, // data
+      uint16(0), // amountOffset
+      uint8(0), // push
+      uint8(0) // delivers
+    );
+
+    vm.deal(user, 1 ether);
+    vm.prank(user);
+
+    facet.warpLinkEngage{value: 1 ether}(
+      IWarpLink.Params({
+        tokenIn: address(0),
+        tokenOut: address(Mainnet.WETH),
+        commands: commands,
+        amountIn: 1 ether,
+        amountOut: 1 ether,
+        recipient: user,
+        partner: partner,
+        feeBps: 10,
+        slippageBps: 0,
+        deadline: deadline
+      })
+    );
+
+    assertEq(Mainnet.WETH.balanceOf(user), 0.999 ether, 'balance');
+  }
+
+  function testFork_warpLinkEngage_warpStatelessSingle_ethToWbtc() public {
+    address tokenIn = address(0);
+    address tokenOut = address(Mainnet.WBTC);
+
+    IUniswapV2Router02 router = IUniswapV2Router02(Mainnet.UNISWAP_V2_ROUTER_02_ADDR);
+
+    address[] memory path = new address[](2);
+    path[0] = address(Mainnet.WETH);
+    path[1] = tokenOut;
+
+    bytes memory data = abi.encodeWithSelector(
+      router.swapExactETHForTokens.selector,
+      1,
+      path,
+      address(diamond),
+      deadline
+    );
+
+    bytes memory commands = abi.encodePacked(
+      uint8(1), // Command count
+      uint8(COMMAND_TYPE_WARP_STATELESS_SINGLE),
+      address(tokenOut), // tokenOut
+      address(router), // target
+      uint256(data.length), // data.length
+      data, // data
+      uint16(0), // amountOffset
+      uint8(0), // push
+      uint8(1) // delivers
+    );
+
+    vm.deal(user, 1 ether);
+    vm.prank(user);
+
+    facet.warpLinkEngage{value: 1 ether}(
+      IWarpLink.Params({
+        tokenIn: tokenIn,
+        tokenOut: tokenOut,
+        commands: commands,
+        amountIn: 1 ether,
+        amountOut: 6316483,
+        recipient: user,
+        partner: partner,
+        feeBps: 10,
+        slippageBps: 0,
+        deadline: deadline
+      })
+    );
+
+    assertEq(Mainnet.WBTC.balanceOf(user), 6310167, 'balance');
+  }
+
+  function testFork_warpLinkEngage_warpStatelessMulti_usdcToWbtc() public {
+    uint256 amountIn = 2000 * (10 ** 6);
+    address tokenIn = address(Mainnet.USDC);
+    address tokenOut = address(Mainnet.WBTC);
+
+    IUniswapV2Router02 router = IUniswapV2Router02(Mainnet.UNISWAP_V2_ROUTER_02_ADDR);
+
+    bytes memory dataApprove = abi.encodeWithSelector(
+      IERC20.approve.selector,
+      address(router),
+      0 // This will be overwritten
+    );
+
+    address[] memory path = new address[](2);
+    path[0] = tokenIn;
+    path[1] = tokenOut;
+
+    bytes memory dataSwap = abi.encodeWithSelector(
+      router.swapExactTokensForTokens.selector,
+      0, // This will be overwritten
+      6572604,
+      path,
+      address(diamond),
+      deadline
+    );
+
+    bytes memory data = bytes.concat(dataApprove, dataSwap);
+
+    bytes memory commands = abi.encodePacked(
+      uint8(1), // Command count
+      uint8(COMMAND_TYPE_WARP_STATELESS_MULTI),
+      address(tokenOut), // tokenOut
+      uint8(2), // targets.length
+      address(Mainnet.USDC), // targets[0]
+      address(router), // targets[1]
+      uint256(data.length), // data.length
+      data, // data
+      uint16(dataApprove.length), // offsets[0]
+      uint8(2), // amountOffsets.length
+      uint16(4 + 32), // amountOffsets[0], after selector and approve address (all params are 32 bytes)
+      uint16(dataApprove.length + 4), // amountOffsets[1], after approve data and swap function selector
+      uint8(0), // push
+      uint8(1) // delivers
+    );
+
+    deal(address(Mainnet.USDC), user, amountIn);
+
+    vm.prank(user);
+    Mainnet.USDC.approve(address(diamond), amountIn);
+
+    vm.deal(user, 1 ether);
+    vm.prank(user);
+
+    facet.warpLinkEngage(
+      IWarpLink.Params({
+        tokenIn: tokenIn,
+        tokenOut: tokenOut,
+        commands: commands,
+        amountIn: amountIn,
+        amountOut: 6572604,
+        recipient: user,
+        partner: partner,
+        feeBps: 10,
+        slippageBps: 10,
+        deadline: deadline
+      })
+    );
+
+    assertEq(Mainnet.WBTC.balanceOf(user), 6566032, 'balance');
+  }
+
+  function testFork_warpLinkEngagePermit_warpStatelessMulti_usdcToWbtc() public {
+    uint256 amountIn = 2000 * (10 ** 6);
+    address tokenIn = address(Mainnet.USDC);
+    address tokenOut = address(Mainnet.WBTC);
+
+    IUniswapV2Router02 router = IUniswapV2Router02(Mainnet.UNISWAP_V2_ROUTER_02_ADDR);
+
+    bytes memory dataApprove = abi.encodeWithSelector(
+      IERC20.approve.selector,
+      address(router),
+      0 // This will be overwritten
+    );
+
+    address[] memory path = new address[](2);
+    path[0] = tokenIn;
+    path[1] = tokenOut;
+
+    bytes memory dataSwap = abi.encodeWithSelector(
+      router.swapExactTokensForTokens.selector,
+      0, // This will be overwritten
+      6572604,
+      path,
+      address(diamond),
+      deadline
+    );
+
+    bytes memory data = bytes.concat(dataApprove, dataSwap);
+
+    bytes memory commands = abi.encodePacked(
+      uint8(1), // Command count
+      uint8(COMMAND_TYPE_WARP_STATELESS_MULTI),
+      address(tokenOut), // tokenOut
+      uint8(2), // targets.length
+      address(Mainnet.USDC), // targets[0]
+      address(router), // targets[1]
+      uint256(data.length), // data.length
+      data, // data
+      uint16(dataApprove.length), // offsets[0]
+      uint8(2), // amountOffsets.length
+      uint16(4 + 32), // amountOffsets[0], after selector and approve address (all params are 32 bytes)
+      uint16(dataApprove.length + 4), // amountOffsets[1], after approve data and swap function selector
+      uint8(0), // push
+      uint8(1) // delivers
+    );
+
+    deal(address(Mainnet.USDC), user, amountIn);
+
+    vm.prank(user);
+    Mainnet.USDC.approve(address(Addresses.PERMIT2), amountIn);
+
+    IAllowanceTransfer.PermitDetails memory details = IAllowanceTransfer.PermitDetails({
+      token: address(Mainnet.USDC),
+      amount: (uint160)(amountIn),
+      expiration: deadline,
+      nonce: 0
+    });
+
+    bytes memory sig = getPermitSignature(
+      IAllowanceTransfer.PermitSingle(details, address(diamond), deadline),
+      privateKey,
+      permit2.DOMAIN_SEPARATOR()
+    );
+
+    vm.prank(user);
+    facet.warpLinkEngagePermit(
+      IWarpLink.Params({
+        tokenIn: tokenIn,
+        tokenOut: tokenOut,
+        commands: commands,
+        amountIn: amountIn,
+        amountOut: 6572604,
+        recipient: user,
+        partner: partner,
+        feeBps: 10,
+        slippageBps: 10,
+        deadline: deadline
+      }),
+      PermitParams({nonce: details.nonce, signature: sig})
+    );
+
+    assertEq(Mainnet.WBTC.balanceOf(user), 6566032, 'balance');
   }
 }
