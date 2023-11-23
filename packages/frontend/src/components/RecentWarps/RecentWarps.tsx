@@ -4,7 +4,6 @@ import { useRecentWarps } from 'src/hooks/useRecentWarps';
 import { useTokens } from 'src/hooks/useTokens';
 import { getChainById, getChainIcon } from 'src/utils/chains';
 import { firstAndLast, getEvmTxUrl, getIconFromSymbol } from 'src/utils';
-import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 
 const RecentWarpsTableData: FunctionComponent = () => {
   const { data: warps, error, isLoading } = useRecentWarps();
@@ -12,7 +11,7 @@ const RecentWarpsTableData: FunctionComponent = () => {
 
   if (error) {
     return (
-      <Table.Row width="100%">
+      <Table.Row className="w-full">
         <Table.Cell className="text-center">
           <span className="dark:text-punk-red">Something went wrong loading the recent warps</span>
         </Table.Cell>
