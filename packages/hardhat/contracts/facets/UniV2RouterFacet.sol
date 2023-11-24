@@ -252,11 +252,6 @@ contract UniV2RouterFacet is IUniV2Router {
       path
     );
 
-    // Enforce minimum amount/max slippage
-    if (amounts[amounts.length - 1] < LibWarp.applySlippage(params.amountOut, params.slippage)) {
-      revert InsufficientOutputAmount();
-    }
-
     if (params.path[0] == address(0)) {
       // From ETH
       if (msg.value != params.amountIn) {
