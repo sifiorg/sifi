@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {Address} from '@openzeppelin/contracts/utils/Address.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IUniswapV2Pair} from '../interfaces/external/IUniswapV2Pair.sol';
@@ -29,7 +28,6 @@ import {PermitParams} from '../libraries/PermitParams.sol';
  */
 contract UniV2LikeFacet is IUniV2Like {
   using SafeERC20 for IERC20;
-  using Address for address;
 
   /**
    * NOTE: The tokens must already have been moved to the first pool

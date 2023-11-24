@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {Address} from '@openzeppelin/contracts/utils/Address.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {ICurve} from '../interfaces/ICurve.sol';
@@ -20,7 +19,6 @@ import {PermitParams} from '../libraries/PermitParams.sol';
  */
 contract Curve is ICurve {
   using SafeERC20 for IERC20;
-  using Address for address;
 
   /**
    * Perform the swap with tokens already moved to this contract

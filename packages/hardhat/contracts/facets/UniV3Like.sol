@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {Address} from '@openzeppelin/contracts/utils/Address.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IWETH} from '@uniswap/v2-periphery/contracts/interfaces/IWETH.sol';
@@ -25,7 +24,6 @@ import {PermitParams} from '../libraries/PermitParams.sol';
  */
 contract UniV3Like is IUniV3Like {
   using SafeERC20 for IERC20;
-  using Address for address;
 
   function uniswapV3LikeExactInputSingleInternal(
     ExactInputSingleParams calldata params,
