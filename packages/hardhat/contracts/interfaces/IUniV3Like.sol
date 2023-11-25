@@ -8,7 +8,6 @@ import {ILibUniV3Like} from '../interfaces/ILibUniV3Like.sol';
 import {ILibWarp} from '../interfaces/ILibWarp.sol';
 
 interface IUniV3Like is ILibStarVault, ILibUniV3Like, ILibWarp {
-  error InsufficienTokensDelivered();
   error DeadlineExpired();
   error InsufficientOutputAmount();
   error EthTransferFailed();

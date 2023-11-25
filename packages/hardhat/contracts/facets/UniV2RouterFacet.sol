@@ -41,18 +41,21 @@ contract UniV2RouterFacet is IUniV2Router {
     }
 
     // Enforce minimum amount/max slippage
-    if (amountOut < LibWarp.applySlippage(params.amountOut, params.slippage)) {
+    if (amountOut == 0 || amountOut < LibWarp.applySlippage(params.amountOut, params.slippage)) {
       revert InsufficientOutputAmount();
     }
 
     bool zeroForOne = tokenIn < tokenOut ? true : false;
 
+    // NOTE: The router is trusted to swap the correct amount of tokens
     IUniswapV2Pair(pair).swap(
       zeroForOne ? 0 : amountOut,
       zeroForOne ? amountOut : 0,
       address(this),
       ''
     );
+
+    emit LibWarp.Warp(params.partner, params.tokenIn, params.tokenOut, params.amountIn, amountOut);
 
     // NOTE: Fee is collected as WETH instead of ETH
     amountOut = LibStarVault.calculateAndRegisterFee(
@@ -62,10 +65,6 @@ contract UniV2RouterFacet is IUniV2Router {
       params.amountOut,
       amountOut
     );
-
-    if (amountOut == 0) {
-      revert ZeroAmountOut();
-    }
 
     if (params.tokenOut == address(0)) {
       // Unwrap WETH
@@ -79,8 +78,6 @@ contract UniV2RouterFacet is IUniV2Router {
     } else {
       IERC20(tokenOut).safeTransfer(params.recipient, amountOut);
     }
-
-    emit LibWarp.Warp(params.partner, params.tokenIn, params.tokenOut, params.amountIn, amountOut);
   }
 
   function uniswapV2ExactInputSingle(
@@ -165,7 +162,10 @@ contract UniV2RouterFacet is IUniV2Router {
     uint256 pathLengthMinusOne = params.path.length - 1;
 
     // Enforce minimum amount/max slippage
-    if (amounts[amounts.length - 1] < LibWarp.applySlippage(params.amountOut, params.slippage)) {
+    if (
+      amounts[pathLengthMinusOne] == 0 ||
+      amounts[pathLengthMinusOne] < LibWarp.applySlippage(params.amountOut, params.slippage)
+    ) {
       revert InsufficientOutputAmount();
     }
 
@@ -175,6 +175,7 @@ contract UniV2RouterFacet is IUniV2Router {
       bool zeroForOne = path[index] < path[indexPlusOne] ? true : false;
       address to = index < path.length - 2 ? pairs[indexPlusOne] : address(this);
 
+      // NOTE: The router is trusted to swap the correct amount of tokens
       IUniswapV2Pair(pairs[index]).swap(
         zeroForOne ? 0 : amounts[indexPlusOne],
         zeroForOne ? amounts[indexPlusOne] : 0,
@@ -187,6 +188,14 @@ contract UniV2RouterFacet is IUniV2Router {
       }
     }
 
+    emit LibWarp.Warp(
+      params.partner,
+      params.path[0],
+      params.path[pathLengthMinusOne],
+      params.amountIn,
+      amounts[pathLengthMinusOne]
+    );
+
     // NOTE: Fee is collected as WETH instead of ETH
     amountOut = LibStarVault.calculateAndRegisterFee(
       params.partner,
@@ -195,10 +204,6 @@ contract UniV2RouterFacet is IUniV2Router {
       params.amountOut,
       amounts[pathLengthMinusOne]
     );
-
-    if (amountOut == 0) {
-      revert ZeroAmountOut();
-    }
 
     if (params.path[pathLengthMinusOne] == address(0)) {
       // To ETH. Unwrap WETH
@@ -212,14 +217,6 @@ contract UniV2RouterFacet is IUniV2Router {
     } else {
       IERC20(path[pathLengthMinusOne]).safeTransfer(params.recipient, amountOut);
     }
-
-    emit LibWarp.Warp(
-      params.partner,
-      params.path[0],
-      params.path[pathLengthMinusOne],
-      params.amountIn,
-      amountOut
-    );
   }
 
   function uniswapV2ExactInput(

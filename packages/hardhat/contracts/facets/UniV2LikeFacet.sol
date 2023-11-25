@@ -78,9 +78,18 @@ contract UniV2LikeFacet is IUniV2Like {
     amountOut = IERC20(params.tokenOut).balanceOf(address(this)) - tokenOutBalancePrev;
 
     // Enforce minimum amount/max slippage
-    if (amountOut < LibWarp.applySlippage(params.amountOut, params.slippageBps)) {
+    if (amountOut == 0 || amountOut < LibWarp.applySlippage(params.amountOut, params.slippageBps)) {
       revert InsufficientOutputAmount();
     }
+
+    emit LibWarp.Warp(
+      params.partner,
+      // NOTE: The tokens may have been rewritten to WETH
+      isFromEth ? address(0) : params.tokenIn,
+      isToEth ? address(0) : params.tokenOut,
+      params.amountIn,
+      amountOut
+    );
 
     // NOTE: Fee is collected as WETH instead of ETH
     amountOut = LibStarVault.calculateAndRegisterFee(
@@ -103,15 +112,6 @@ contract UniV2LikeFacet is IUniV2Like {
     } else {
       IERC20(params.tokenOut).safeTransfer(params.recipient, amountOut);
     }
-
-    emit LibWarp.Warp(
-      params.partner,
-      // NOTE: The tokens may have been rewritten to WETH
-      isFromEth ? address(0) : params.tokenIn,
-      isToEth ? address(0) : params.tokenOut,
-      params.amountIn,
-      amountOut
-    );
   }
 
   function uniswapV2LikeExactInputSingle(
@@ -222,6 +222,14 @@ contract UniV2LikeFacet is IUniV2Like {
       revert InsufficientOutputAmount();
     }
 
+    emit LibWarp.Warp(
+      params.partner,
+      params.tokens[0],
+      params.tokens[poolLength],
+      params.amountIn,
+      amountOut
+    );
+
     // NOTE: Fee is collected as WETH instead of ETH
     amountOut = LibStarVault.calculateAndRegisterFee(
       params.partner,
@@ -243,15 +251,6 @@ contract UniV2LikeFacet is IUniV2Like {
     } else {
       IERC20(tokens[poolLength]).safeTransfer(params.recipient, amountOut);
     }
-
-    emit LibWarp.Warp(
-      params.partner,
-      // NOTE: The tokens may have been rewritten to WETH
-      isFromEth ? address(0) : tokens[0],
-      isToEth ? address(0) : tokens[poolLength],
-      params.amountIn,
-      amountOut
-    );
   }
 
   function uniswapV2LikeExactInput(
