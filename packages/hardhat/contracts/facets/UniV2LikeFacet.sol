@@ -40,10 +40,6 @@ contract UniV2LikeFacet is IUniV2Like {
     bool isFromEth = params.tokenIn == address(0);
     bool isToEth = params.tokenOut == address(0);
 
-    uint256 tokenOutBalancePrev = isToEth
-      ? address(this).balance
-      : IERC20(params.tokenOut).balanceOf(address(this));
-
     if (isFromEth) {
       params.tokenIn = address(s.weth);
     }
@@ -51,6 +47,8 @@ contract UniV2LikeFacet is IUniV2Like {
     if (isToEth) {
       params.tokenOut = address(s.weth);
     }
+
+    uint256 tokenOutBalancePrev = IERC20(params.tokenOut).balanceOf(address(this));
 
     (uint256 reserveIn, uint256 reserveOut, ) = IUniswapV2Pair(params.pool).getReserves();
 
@@ -67,11 +65,6 @@ contract UniV2LikeFacet is IUniV2Like {
         ((reserveIn * 10_000) + (params.amountIn * feeFactor));
     }
 
-    // Enforce minimum amount/max slippage
-    if (amountOut < LibWarp.applySlippage(params.amountOut, params.slippageBps)) {
-      revert InsufficientOutputAmount();
-    }
-
     bool zeroForOne = params.tokenIn < params.tokenOut ? true : false;
 
     IUniswapV2Pair(params.pool).swap(
@@ -81,13 +74,12 @@ contract UniV2LikeFacet is IUniV2Like {
       ''
     );
 
-    uint256 nextTokenOutBalance = IERC20(params.tokenOut).balanceOf(address(this));
+    // Set amountOut to the *actual* amount of tokens received
+    amountOut = IERC20(params.tokenOut).balanceOf(address(this)) - tokenOutBalancePrev;
 
-    if (
-      nextTokenOutBalance < tokenOutBalancePrev ||
-      nextTokenOutBalance < tokenOutBalancePrev + amountOut
-    ) {
-      revert InsufficienTokensDelivered();
+    // Enforce minimum amount/max slippage
+    if (amountOut < LibWarp.applySlippage(params.amountOut, params.slippageBps)) {
+      revert InsufficientOutputAmount();
     }
 
     // NOTE: Fee is collected as WETH instead of ETH
@@ -191,9 +183,11 @@ contract UniV2LikeFacet is IUniV2Like {
       tokens[0] = address(s.weth);
     }
 
-    uint256 tokenOutBalancePrev = isToEth
-      ? address(this).balance
-      : IERC20(tokens[poolLength]).balanceOf(address(this));
+    if (isToEth) {
+      tokens[poolLength] = address(s.weth);
+    }
+
+    uint256 tokenOutBalancePrev = IERC20(tokens[poolLength]).balanceOf(address(this));
 
     uint256[] memory amounts = LibUniV2Like.getAmountsOut(
       params.poolFeesBps,
@@ -201,11 +195,6 @@ contract UniV2LikeFacet is IUniV2Like {
       tokens,
       params.pools
     );
-
-    // Enforce minimum amount/max slippage
-    if (amounts[amounts.length - 1] < LibWarp.applySlippage(params.amountOut, params.slippageBps)) {
-      revert InsufficientOutputAmount();
-    }
 
     // From https://github.com/Uniswap/v2-periphery/blob/master/contracts/UniswapV2Router02.sol
     for (uint index; index < poolLength; ) {
@@ -225,14 +214,12 @@ contract UniV2LikeFacet is IUniV2Like {
       }
     }
 
-    uint256 nextTokenOutBalance = IERC20(tokens[poolLength]).balanceOf(address(this));
+    // Set amountOut to the *actual* amount of tokens received
+    amountOut = IERC20(tokens[poolLength]).balanceOf(address(this)) - tokenOutBalancePrev;
 
-    if (
-      // TOOD: Is this overflow check necessary?
-      nextTokenOutBalance < tokenOutBalancePrev ||
-      nextTokenOutBalance < tokenOutBalancePrev + amountOut
-    ) {
-      revert InsufficienTokensDelivered();
+    // Enforce minimum amount/max slippage
+    if (amountOut == 0 || amountOut < LibWarp.applySlippage(params.amountOut, params.slippageBps)) {
+      revert InsufficientOutputAmount();
     }
 
     // NOTE: Fee is collected as WETH instead of ETH
