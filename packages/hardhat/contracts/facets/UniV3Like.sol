@@ -73,19 +73,15 @@ contract UniV3Like is IUniV3Like {
 
     LibUniV3Like.afterCallback();
 
+    // Set amountOut to the *actual* amount of tokens received
+    amountOut = IERC20(tokenOut).balanceOf(address(this)) - tokenOutBalancePrev;
+
     // Enforce minimum amount/max slippage
-    if (amountOut < LibWarp.applySlippage(params.amountOut, params.slippageBps)) {
+    if (amountOut == 0 || amountOut < LibWarp.applySlippage(params.amountOut, params.slippageBps)) {
       revert InsufficientOutputAmount();
     }
 
-    uint256 nextTokenOutBalance = IERC20(tokenOut).balanceOf(address(this));
-
-    if (
-      nextTokenOutBalance < tokenOutBalancePrev ||
-      nextTokenOutBalance < tokenOutBalancePrev + amountOut
-    ) {
-      revert InsufficienTokensDelivered();
-    }
+    emit LibWarp.Warp(params.partner, params.tokenIn, params.tokenOut, params.amountIn, amountOut);
 
     // NOTE: Fee is collected as WETH instead of ETH
     amountOut = LibStarVault.calculateAndRegisterFee(
@@ -109,8 +105,6 @@ contract UniV3Like is IUniV3Like {
     } else {
       IERC20(tokenOut).safeTransfer(params.recipient, amountOut);
     }
-
-    emit LibWarp.Warp(params.partner, params.tokenIn, params.tokenOut, params.amountIn, amountOut);
   }
 
   function uniswapV3LikeExactInputSingle(
@@ -226,19 +220,21 @@ contract UniV3Like is IUniV3Like {
       index = indexPlusOne;
     }
 
+    // Set amountOut to the *actual* amount of tokens received
+    amountOut = IERC20(tokens[poolLength]).balanceOf(address(this)) - tokenOutBalancePrev;
+
     // Enforce minimum amount/max slippage
-    if (amountOut < LibWarp.applySlippage(amountOut, params.slippageBps)) {
+    if (amountOut == 0 || amountOut < LibWarp.applySlippage(amountOut, params.slippageBps)) {
       revert InsufficientOutputAmount();
     }
 
-    uint256 nextTokenOutBalance = IERC20(tokens[poolLength]).balanceOf(address(this));
-
-    if (
-      nextTokenOutBalance < tokenOutBalancePrev ||
-      nextTokenOutBalance < tokenOutBalancePrev + amountOut
-    ) {
-      revert InsufficienTokensDelivered();
-    }
+    emit LibWarp.Warp(
+      params.partner,
+      params.tokens[0],
+      params.tokens[poolLength],
+      params.amountIn,
+      amountOut
+    );
 
     // NOTE: Fee is collected as WETH instead of ETH
     amountOut = LibStarVault.calculateAndRegisterFee(
@@ -261,14 +257,6 @@ contract UniV3Like is IUniV3Like {
     } else {
       IERC20(tokens[poolLength]).safeTransfer(params.recipient, amountOut);
     }
-
-    emit LibWarp.Warp(
-      params.partner,
-      params.tokens[0],
-      params.tokens[poolLength],
-      params.amountIn,
-      amountOut
-    );
   }
 
   function uniswapV3LikeExactInput(

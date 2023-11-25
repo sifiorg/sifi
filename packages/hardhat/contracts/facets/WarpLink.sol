@@ -818,7 +818,14 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       params.payload = abi.encode(destParams);
     }
 
+    // Enforce minimum amount/max slippage
+    if (t.amount < LibWarp.applySlippage(t.paramAmountOut, t.paramSlippageBps)) {
+      revert InsufficientOutputAmount();
+    }
+
     if (t.token != t.paramTokenIn) {
+      emit LibWarp.Warp(t.paramPartner, t.paramTokenIn, t.token, t.paramAmountIn, t.amount);
+
       if (params.payload.length == 0) {
         // If the tokens are being delivered directly to the recipient without a second
         // WarpLink engage, the fee is charged on this chain
@@ -832,13 +839,6 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
           t.amount
         );
       }
-
-      emit LibWarp.Warp(t.paramPartner, t.paramTokenIn, t.token, t.paramAmountIn, t.amount);
-    }
-
-    // Enforce minimum amount/max slippage
-    if (t.amount < LibWarp.applySlippage(t.paramAmountOut, t.paramSlippageBps)) {
-      revert InsufficientOutputAmount();
     }
 
     IStargateComposer stargateComposer = LibWarp.state().stargateComposer;
@@ -1082,7 +1082,7 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     }
 
     // Enforce minimum amount/max slippage
-    if (amountOut < LibWarp.applySlippage(params.amountOut, params.slippageBps)) {
+    if (amountOut == 0 || amountOut < LibWarp.applySlippage(params.amountOut, params.slippageBps)) {
       revert InsufficientOutputAmount();
     }
 
@@ -1094,6 +1094,8 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       return;
     }
 
+    emit LibWarp.Warp(params.partner, params.tokenIn, params.tokenOut, params.amountIn, amountOut);
+
     // Collect fees
     amountOut = LibStarVault.calculateAndRegisterFee(
       params.partner,
@@ -1102,10 +1104,6 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       params.amountOut,
       amountOut
     );
-
-    if (amountOut == 0) {
-      revert InsufficientOutputAmount();
-    }
 
     // Deliver tokens
     if (tokenOut == address(0)) {
@@ -1118,7 +1116,5 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       // TODO: Is this the correct recipient?
       payable(msg.sender).transfer(t.nativeValueRemaining);
     }
-
-    emit LibWarp.Warp(params.partner, params.tokenIn, params.tokenOut, params.amountIn, amountOut);
   }
 }

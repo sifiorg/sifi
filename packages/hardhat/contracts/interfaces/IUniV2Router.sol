@@ -7,7 +7,6 @@ import {ILibWarp} from '../interfaces/ILibWarp.sol';
 
 interface IUniV2Router is ILibStarVault, ILibWarp {
   error EthTransferFailed();
-  error ZeroAmountOut();
   error IncorrectEthValue();
   error InsufficientOutputAmount();
   error DeadlineExpired();

@@ -92,6 +92,44 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
     );
   }
 
+  function testFork_uniswapV2LikeExactInputSingle_sushiUsdcToEth() public {
+    uint256 amountIn = 4321 * (10 ** 6);
+    uint256 amountOutBase = 2354487144069140341;
+    uint256 amountOutExpected = amountOutBase - ((amountOutBase * 10) / 10_000);
+
+    address pool = getPair(
+      Mainnet.SUSHISWAP_V2_FACTORY,
+      address(Mainnet.WETH),
+      address(Mainnet.USDC)
+    );
+
+    deal(address(Mainnet.USDC), user, amountIn);
+
+    vm.prank(user);
+    Mainnet.USDC.approve(address(diamond), amountIn);
+
+    vm.prank(user);
+    facet.uniswapV2LikeExactInputSingle(
+      IUniV2Like.ExactInputSingleParams({
+        amountIn: amountIn,
+        amountOut: amountOutBase,
+        recipient: user,
+        slippageBps: 50,
+        feeBps: 10,
+        deadline: deadline,
+        partner: address(0),
+        tokenIn: address(Mainnet.USDC),
+        tokenOut: address(0),
+        pool: pool,
+        poolFeeBps: 30
+      })
+    );
+
+    uint256 amountOutActual = user.balance;
+
+    assertEq(amountOutActual, amountOutExpected);
+  }
+
   function testFork_uniswapV2LikeExactInput_sushiEthToUsdc() public {
     deal(user, 1 ether);
 
@@ -221,7 +259,7 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
 
     vm.startPrank(user);
 
-    uint256 expectedSwapOut = 1234;
+    uint256 expectedSwapOut = 6847138;
     uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
 
     // NOTE: Uniswaps deployed Permit2 contract. Expect that some users already
@@ -229,7 +267,7 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
     Mainnet.DAI.approve(address(diamond), 2000 ether);
 
     vm.expectEmit(true, true, true, true);
-    emit LibWarp.Warp(address(0), tokens[0], tokens[2], 2000 ether, expectedSwapOut - expectedFee);
+    emit LibWarp.Warp(address(0), tokens[0], tokens[2], 2000 ether, expectedSwapOut);
 
     facet.uniswapV2LikeExactInput(
       IUniV2Like.ExactInputParams({
@@ -267,7 +305,7 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
 
     vm.startPrank(user);
 
-    uint256 expectedSwapOut = 1234;
+    uint256 expectedSwapOut = 6847138;
     uint256 expectedFee = (expectedSwapOut * 10) / 10_000;
 
     // NOTE: Uniswaps deployed Permit2 contract. Expect that some users already
@@ -288,7 +326,7 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
     bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
 
     vm.expectEmit(true, true, true, true);
-    emit LibWarp.Warp(address(0), tokens[0], tokens[2], 2000 ether, expectedSwapOut - expectedFee);
+    emit LibWarp.Warp(address(0), tokens[0], tokens[2], 2000 ether, expectedSwapOut);
 
     facet.uniswapV2LikeExactInputPermit(
       IUniV2Like.ExactInputParams({

@@ -32,6 +32,13 @@ contract Stateless is IStateless {
       })
     );
 
+    // Enforce minimum amount/max slippage
+    if (amountOut == 0 || amountOut < LibWarp.applySlippage(params.amountOut, params.slippageBps)) {
+      revert InsufficientOutputAmount();
+    }
+
+    emit LibWarp.Warp(params.partner, params.tokenIn, params.tokenOut, params.amountIn, amountOut);
+
     amountOut = LibStarVault.calculateAndRegisterFee(
       params.partner,
       params.tokenOut,
@@ -39,11 +46,6 @@ contract Stateless is IStateless {
       params.amountOut,
       amountOut
     );
-
-    // Enforce minimum amount/max slippage
-    if (amountOut < LibWarp.applySlippage(params.amountOut, params.slippageBps)) {
-      revert InsufficientOutputAmount();
-    }
 
     if (params.tokenOut == address(0)) {
       (bool sent, ) = params.recipient.call{value: amountOut}('');
@@ -54,8 +56,6 @@ contract Stateless is IStateless {
     } else {
       IERC20(params.tokenOut).safeTransfer(params.recipient, amountOut);
     }
-
-    emit LibWarp.Warp(params.partner, params.tokenIn, params.tokenOut, params.amountIn, amountOut);
   }
 
   function warpStatelessSinglePermit(
@@ -127,6 +127,13 @@ contract Stateless is IStateless {
       })
     );
 
+    // Enforce minimum amount/max slippage
+    if (amountOut == 0 || amountOut < LibWarp.applySlippage(params.amountOut, params.slippageBps)) {
+      revert InsufficientOutputAmount();
+    }
+
+    emit LibWarp.Warp(params.partner, params.tokenIn, params.tokenOut, params.amountIn, amountOut);
+
     amountOut = LibStarVault.calculateAndRegisterFee(
       params.partner,
       params.tokenOut,
@@ -134,11 +141,6 @@ contract Stateless is IStateless {
       params.amountOut,
       amountOut
     );
-
-    // Enforce minimum amount/max slippage
-    if (amountOut < LibWarp.applySlippage(params.amountOut, params.slippageBps)) {
-      revert InsufficientOutputAmount();
-    }
 
     if (params.tokenOut == address(0)) {
       (bool sent, ) = params.recipient.call{value: amountOut}('');
@@ -149,8 +151,6 @@ contract Stateless is IStateless {
     } else {
       IERC20(params.tokenOut).safeTransfer(params.recipient, amountOut);
     }
-
-    emit LibWarp.Warp(params.partner, params.tokenIn, params.tokenOut, params.amountIn, amountOut);
   }
 
   function warpStatelessMultiPermit(

@@ -53,9 +53,11 @@ contract Curve is ICurve {
     amountOut = nextTokenOutBalance - tokenOutBalancePrev;
 
     // Enforce minimum amount/max slippage
-    if (amountOut < LibWarp.applySlippage(params.amountOut, params.slippageBps)) {
+    if (amountOut == 0 || amountOut < LibWarp.applySlippage(params.amountOut, params.slippageBps)) {
       revert InsufficientOutputAmount();
     }
+
+    emit LibWarp.Warp(params.partner, params.tokenIn, params.tokenOut, params.amountIn, amountOut);
 
     amountOut = LibStarVault.calculateAndRegisterFee(
       params.partner,
@@ -74,8 +76,6 @@ contract Curve is ICurve {
     } else {
       IERC20(params.tokenOut).safeTransfer(params.recipient, amountOut);
     }
-
-    emit LibWarp.Warp(params.partner, params.tokenIn, params.tokenOut, params.amountIn, amountOut);
   }
 
   function curveExactInputSinglePermit(
