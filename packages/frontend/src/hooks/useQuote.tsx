@@ -55,6 +55,7 @@ const useQuote = () => {
         toastId: `quote-error-${fromToken?.symbol}-${fromChain.id}-${toToken?.symbol}-${toChain.id}`,
       });
     }
+    setValue(SwapFormKey.ToAmount, '');
   };
 
   const enabled =
@@ -78,10 +79,11 @@ const useQuote = () => {
     retry: failureCount => failureCount < 1, // Retry once on failure
   });
 
-  // To avoid showing the last quote
   useEffect(() => {
-    setValue(SwapFormKey.ToAmount, '');
-  }, [fromAmount, fromToken, toToken]);
+    if (!enabled) {
+      setValue(SwapFormKey.ToAmount, '');
+    }
+  }, [enabled]);
 
   return {
     quote,
