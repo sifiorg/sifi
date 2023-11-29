@@ -17,7 +17,13 @@ import { ETH_CONTRACT_ADDRESS } from 'src/constants';
 import { useTokens } from './useTokens';
 import { useSwapFormValues } from './useSwapFormValues';
 
-const useQuote = () => {
+type UseQuoteReturnType = {
+  quote?: Quote;
+  isLoading: boolean;
+  isFetching: boolean;
+};
+
+const useQuote = (): UseQuoteReturnType => {
   const sifi = useSifi();
   const {
     fromToken: fromTokenSymbol,
@@ -70,14 +76,31 @@ const useQuote = () => {
   const {
     data: quote,
     error,
-    ...rest
-  } = useQuery(queryKey, async () => sifi.getQuote(quoteRequest), {
+    isSuccess,
+    isError,
+    isFetching,
+    isLoading,
+  } = useQuery({
+    queryKey,
+    queryFn: async () => sifi.getQuote(quoteRequest),
     enabled,
-    onSuccess: handleSuccesfulQuoteFetch,
-    onError: handleQuoteFetchError,
     staleTime: 60_000,
     retry: failureCount => failureCount < 1, // Retry once on failure
   });
+
+  // Callbacks were removed with react-query v5
+  // https://github.com/TanStack/query/discussions/5279
+  useEffect(() => {
+    if (isSuccess && quote) {
+      handleSuccesfulQuoteFetch(quote);
+    }
+  }, [isSuccess]);
+
+  useEffect(() => {
+    if (isError && error) {
+      handleQuoteFetchError(error);
+    }
+  }, [isError]);
 
   useEffect(() => {
     if (!enabled) {
@@ -87,7 +110,8 @@ const useQuote = () => {
 
   return {
     quote,
-    ...rest,
+    isLoading,
+    isFetching,
   };
 };
 

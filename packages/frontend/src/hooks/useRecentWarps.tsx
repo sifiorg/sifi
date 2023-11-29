@@ -36,6 +36,8 @@ type Warp = {
   };
 };
 
+const FIVE_MINUTES = 1000 * 60 * 5;
+
 type RecentWarpsResponse = {
   warps: Warp[];
 };
@@ -54,35 +56,35 @@ const getRecentWarpsForChainId = async (chainId: number): Promise<Warp[]> => {
   return response.warps.map(warp => ({ ...warp, chainId })) as Warp[];
 };
 
-const useRecentWarps = () => {
-  return useQuery(
-    ['recentWarps'],
-    async () => {
-      const responses = await Promise.allSettled(
-        SUPPORTED_CHAINS.map(({ id }) => getRecentWarpsForChainId(id))
-      );
-
-      return responses
-        .map(response => {
-          if (
-            response.status === 'fulfilled' &&
-            (response satisfies PromiseFulfilledResult<Warp[]>) &&
-            response.value?.length
-          ) {
-            return response.value;
-          }
-
-          return [];
-        })
-        .flat()
-        .sort((a, b) => (Number(a.addedAt) < Number(b.addedAt) ? 1 : -1))
-        .slice(0, 10);
-    },
-    {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      refetchOnWindowFocus: false,
-    }
+const fetchRecentWarps = async () => {
+  const responses = await Promise.allSettled(
+    SUPPORTED_CHAINS.map(({ id }) => getRecentWarpsForChainId(id))
   );
+
+  return responses
+    .map(response => {
+      if (
+        response.status === 'fulfilled' &&
+        (response satisfies PromiseFulfilledResult<Warp[]>) &&
+        response.value?.length
+      ) {
+        return response.value;
+      }
+
+      return [];
+    })
+    .flat()
+    .sort((a, b) => (Number(a.addedAt) < Number(b.addedAt) ? 1 : -1))
+    .slice(0, 10);
+};
+
+const useRecentWarps = () => {
+  return useQuery({
+    queryKey: ['recentWarps'],
+    queryFn: fetchRecentWarps,
+    staleTime: FIVE_MINUTES,
+    refetchOnWindowFocus: false,
+  });
 };
 
 export { useRecentWarps };

@@ -16,35 +16,38 @@ type AllTimeStatsResponse = {
   };
 };
 
+const FIVE_MINUTES = 1000 * 60 * 5;
+
 const useAllTimeStats = () => {
-  return useQuery(
-    ['allTimeStats'],
-    async () => {
-      const responses = await Promise.all(
-        Object.entries(GRAPH_URLS).map(([chainId, url]) =>
-          request(url, ALL_TIME_STATS_QUERY)
-            .then<AllTimeStatsResponse>()
-            .catch((error: any) => {
-              console.error(`Failed to fetch data for ${chainId}:`, error);
 
-              return { allTimeStats: { volumeUsd: '0' } };
-            })
-        )
-      );
+  const fetchAllTimeStats = async () => {
+    const responses = await Promise.all(
+      Object.entries(GRAPH_URLS).map(([chainId, url]) =>
+        request(url, ALL_TIME_STATS_QUERY)
+          .then<AllTimeStatsResponse>()
+          .catch((error: any) => {
+            console.error(`Failed to fetch data for ${chainId}:`, error);
 
-      const totalVolumeUsd = responses.reduce(
-        (sum: number, response: AllTimeStatsResponse) =>
-          sum + Number(response.allTimeStats?.volumeUsd ?? '0'),
-        0
-      );
+            return { allTimeStats: { volumeUsd: '0' } };
+          })
+      )
+    );
 
-      return Math.round(totalVolumeUsd);
-    },
-    {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      refetchOnWindowFocus: false,
-    }
-  );
+    const totalVolumeUsd = responses.reduce(
+      (sum: number, response: AllTimeStatsResponse) =>
+        sum + Number(response.allTimeStats?.volumeUsd ?? '0'),
+      0
+    );
+
+    return Math.round(totalVolumeUsd);
+  };
+
+  return useQuery({
+    queryKey: ['allTimeStats'],
+    queryFn: fetchAllTimeStats,
+    staleTime: FIVE_MINUTES,
+    refetchOnWindowFocus: false,
+  });
 };
 
 export { useAllTimeStats };

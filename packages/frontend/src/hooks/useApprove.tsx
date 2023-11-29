@@ -58,7 +58,11 @@ const useApprove = () => {
     setIsLoading(false);
   };
 
-  const mutation = useMutation(['requestApproval'], requestApproval, { retry: 0 });
+  const mutation = useMutation({
+    mutationKey: ['requestApproval'],
+    mutationFn: requestApproval,
+    retry: 0
+  });
 
   return { ...mutation, isApprovalModalOpen, closeModal, openModal, isLoading };
 };

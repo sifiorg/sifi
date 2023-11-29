@@ -8,34 +8,36 @@ import { getChainById } from 'src/utils/chains';
 const usePartnerWithdraw = () => {
   const { data: walletClient } = useWalletClient();
 
-  return useMutation(
-    ['partnerWithdraw'],
-    async ({ tokenAddress, chainId }: { tokenAddress: string; chainId: number }) => {
-      if (!walletClient) throw new Error('WalletClient not initialised, is the user connected?');
+  const partnerWithdraw = async ({ tokenAddress, chainId }: { tokenAddress: string; chainId: number }) => {
+    if (!walletClient) throw new Error('WalletClient not initialised, is the user connected?');
 
-      const chain = getChainById(chainId);
+    const chain = getChainById(chainId);
 
-      const receipt = await walletClient.writeContract({
-        chain,
-        address: SIFI_CONTRACT_ADDRESS,
-        abi: STAR_VAULT_ABI,
-        functionName: 'partnerWithdraw',
-        args: [tokenAddress],
+    const receipt = await walletClient.writeContract({
+      chain,
+      address: SIFI_CONTRACT_ADDRESS,
+      abi: STAR_VAULT_ABI,
+      functionName: 'partnerWithdraw',
+      args: [tokenAddress],
+    });
+
+    if (receipt) {
+      const explorerLink = getEvmTxUrl(chain, receipt);
+
+      showToast({
+        text: 'Withdrawal successful',
+        type: 'success',
+        ...(explorerLink ? { link: { text: 'View Transaction', href: explorerLink } } : {}),
       });
 
-      if (receipt) {
-        const explorerLink = getEvmTxUrl(chain, receipt);
-
-        showToast({
-          text: 'Withdrawal successful',
-          type: 'success',
-          ...(explorerLink ? { link: { text: 'View Transaction', href: explorerLink } } : {}),
-        });
-
-        return receipt;
-      }
+      return receipt;
     }
-  );
+  }
+
+  return useMutation({
+    mutationKey: ['partnerWithdraw'],
+    mutationFn: partnerWithdraw,
+  });
 };
 
 export { usePartnerWithdraw };
