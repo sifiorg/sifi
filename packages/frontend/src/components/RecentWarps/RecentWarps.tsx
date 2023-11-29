@@ -59,7 +59,7 @@ const RecentWarpsTableData: FunctionComponent = () => {
                       />
                     </div>
                     <span>{`${formatTokenAmount(warp.amountInDecimal)} ${
-                      warp.tokenIn.symbol
+                      warp.tokenIn.symbol || '?'
                     }`}</span>
                   </div>
                 </div>
