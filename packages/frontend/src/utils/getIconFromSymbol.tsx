@@ -3,6 +3,8 @@ import { getTokenBySymbol } from './tokens';
 import MissingTokenIcon from 'src/assets/icons/missing-token-icon.svg';
 
 const getIconFromSymbol = (symbol: string, tokens: Token[]) => {
+  if (!symbol) return MissingTokenIcon;
+
   let logoURI = getTokenBySymbol(symbol, tokens)?.logoURI;
 
   // Symbol from the SDK is sometimes inconsistent
