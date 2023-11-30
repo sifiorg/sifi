@@ -1,13 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useForm, useFormContext } from 'react-hook-form';
-import { useAccount, useNetwork } from 'wagmi';
 import { ShiftInput } from '@sifi/shared-ui';
 import { useTokens } from 'src/hooks/useTokens';
 import { useTokenBalance } from 'src/hooks/useTokenBalance';
 import { getTokenBySymbol } from 'src/utils';
 import { SwapFormKey, SwapFormKeyHelper } from 'src/providers/SwapFormProvider';
 import { useCullQueries } from 'src/hooks/useCullQueries';
-import { useSpendableBalance } from 'src/hooks/useSpendableBalance';
 import { useQuote } from 'src/hooks/useQuote';
 import { useReferrer } from 'src/hooks/useReferrer';
 import { CreateSwapButtons } from '../CreateSwapButtons/CreateSwapButtons';
@@ -27,7 +25,7 @@ import { useExecuteSwap } from 'src/hooks/useExecuteSwap';
 const CreateSwap = () => {
   useCullQueries('quote');
   useSyncTokenUrlParams();
-  const { isConnected } = useAccount();
+  useReferrer();
   const {
     fromToken: fromTokenSymbol,
     toToken: toTokenSymbol,
@@ -72,11 +70,9 @@ const CreateSwap = () => {
   const selectedToToken = getTokenBySymbol(toTokenSymbol, toTokens) || undefined;
   const fromId = SwapFormKeyHelper.getAmountKey('from');
   const toId = SwapFormKeyHelper.getAmountKey('to');
-  const spendableBalance = useSpendableBalance({ token: fromToken });
-  const depositMax = isConnected ? spendableBalance : undefined;
   const selectedFromTokenWithNetwork = getTokenWithNetwork(selectedFromToken, fromChain);
   const selectedToTokenWithNetwork = getTokenWithNetwork(selectedToToken, toChain);
-  const { chain } = useNetwork();
+
   const fromUsdValue = useUsdValue({
     address: fromToken?.address,
     chainId: fromChain.id,
@@ -87,9 +83,6 @@ const CreateSwap = () => {
     chainId: toChain?.id,
     amount: toAmount,
   });
-  const userIsConnectedToWrongNetwork = Boolean(
-    chain?.id && fromToken?.chainId && chain.id !== fromToken.chainId
-  );
 
   const resetTokenAmounts = () => {
     setValue(SwapFormKey.FromAmount, '');
@@ -127,7 +120,7 @@ const CreateSwap = () => {
                   openSelector={() => openTokenSelector('from')}
                   formMethods={methods}
                   disabled={Boolean(isSameTokenPair)}
-                  max={userIsConnectedToWrongNetwork ? undefined : depositMax}
+                  max={depositMax}
                   usdValue={fromUsdValue}
                   hideLabel
                 />
