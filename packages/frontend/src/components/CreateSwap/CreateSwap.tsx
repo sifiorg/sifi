@@ -21,11 +21,14 @@ import { useSyncTokenUrlParams } from 'src/hooks/useSyncTokenUrlParams';
 import { enableSwapInformation } from 'src/utils/featureFlags';
 import { useUsdValue } from 'src/hooks/useUsdValue';
 import { useExecuteSwap } from 'src/hooks/useExecuteSwap';
+import { useDepositMax } from 'src/hooks/useDepositMax';
 
 const CreateSwap = () => {
   useCullQueries('quote');
   useSyncTokenUrlParams();
   useReferrer();
+  useDefaultTokens();
+  const { handleSubmit } = useForm();
   const {
     fromToken: fromTokenSymbol,
     toToken: toTokenSymbol,
@@ -34,36 +37,28 @@ const CreateSwap = () => {
     fromChain,
     toChain,
   } = useSwapFormValues();
-  const { handleSubmit } = useForm();
   const { fromTokens, toTokens } = useTokens();
   const { balanceMap: fromBalanceMap } = useMultiCallTokenBalance(
     fromTokens as MulticallToken[],
     fromChain.id
   );
-
   const { balanceMap: toTokenBalanceMap } = useMultiCallTokenBalance(
     toTokens as MulticallToken[],
     toChain.id
   );
+  const { executeSwap } = useExecuteSwap();
+  const { depositMax } = useDepositMax();
+  const { isFetching: isFetchingQuote } = useQuote();
   const fromToken = getTokenBySymbol(fromTokenSymbol, fromTokens);
   const toToken = getTokenBySymbol(toTokenSymbol, toTokens);
-  const { isFetching: isFetchingQuote } = useQuote();
   const ShiftInputLabel = { from: 'From', to: 'To' } as const;
   const { data: fromBalance } = useTokenBalance(fromToken, fromChain.id);
   const { data: toBalance } = useTokenBalance(toToken, toChain.id);
   const isSameTokenPair =
     fromToken && toToken && fromToken.address === toToken.address && fromChain === toChain;
-
   const isToSwapInputLoading = isFetchingQuote;
-
-  useReferrer();
-  useDefaultTokens();
-
-  const { executeSwap } = useExecuteSwap();
-
   const { closeTokenSelector, openTokenSelector, tokenSelectorType, isTokenSelectorOpen } =
     useTokenSelector();
-
   const { setValue } = useFormContext();
   const methods = useFormContext();
   const selectedFromToken = getTokenBySymbol(fromTokenSymbol, fromTokens) || undefined;
@@ -72,7 +67,6 @@ const CreateSwap = () => {
   const toId = SwapFormKeyHelper.getAmountKey('to');
   const selectedFromTokenWithNetwork = getTokenWithNetwork(selectedFromToken, fromChain);
   const selectedToTokenWithNetwork = getTokenWithNetwork(selectedToToken, toChain);
-
   const fromUsdValue = useUsdValue({
     address: fromToken?.address,
     chainId: fromChain.id,
