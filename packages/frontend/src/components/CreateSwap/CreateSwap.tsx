@@ -49,7 +49,6 @@ const CreateSwap = () => {
   );
   const fromToken = getTokenBySymbol(fromTokenSymbol, fromTokens);
   const toToken = getTokenBySymbol(toTokenSymbol, toTokens);
-  const [isLoading] = useState(false);
   const { isFetching: isFetchingQuote } = useQuote();
   const ShiftInputLabel = { from: 'From', to: 'To' } as const;
   const { data: fromBalance } = useTokenBalance(fromToken, fromChain.id);
@@ -156,7 +155,7 @@ const CreateSwap = () => {
                 type={tokenSelectorType}
               />
               <div className="pt-4">
-                <CreateSwapButtons isLoading={isLoading} />
+                <CreateSwapButtons />
               </div>
             </div>
           </div>
