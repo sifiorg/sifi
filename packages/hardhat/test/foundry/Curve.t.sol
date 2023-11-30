@@ -22,9 +22,7 @@ contract CurveTest is FacetTest, CurveHelpers, ILibStarVault {
   ICurve internal facet;
 
   function setUp() public override {
-    vm.createSelectFork(StdChains.getChain(1).rpcUrl, 17853419);
-
-    super.setUp();
+    setUpOn(Mainnet.CHAIN_ID, 17853419);
 
     IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](1);
 

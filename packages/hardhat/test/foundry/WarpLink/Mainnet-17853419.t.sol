@@ -14,7 +14,7 @@ import {WarpLinkTestBase} from './TestBase.sol';
 
 contract WarpLinkMainnet17853419Test is WarpLinkTestBase, CurveHelpers {
   function setUp() public override {
-    setUpOn(1, 17853419);
+    setUpOn(Mainnet.CHAIN_ID, 17853419);
   }
 
   function testFork_warpLinkEngage_Wrap() public {

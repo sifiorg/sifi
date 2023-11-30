@@ -16,7 +16,7 @@ import {IStargateComposer} from '../helpers/IStargateComposer.sol';
 // Stargate switched to requiring the composer
 contract WarpLinkMainnet18240282Test is WarpLinkTestBase {
   function setUp() public override {
-    setUpOn(1, 18240282);
+    setUpOn(Mainnet.CHAIN_ID, 18240282);
   }
 
   function testFork_warpLinkEngage_jumpStargate_EthToUsdc() public {
