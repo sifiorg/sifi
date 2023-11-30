@@ -54,7 +54,7 @@ abstract contract UniV3LikeTestBase is FacetTest {
 
 contract UniV3LikeMainnetTest is UniV3LikeTestBase {
   function setUp() public override {
-    super.setUpOn(1, 17853419);
+    setUpOn(Mainnet.CHAIN_ID, 17853419);
   }
 
   function testFork_uniswapV3LikeExactInputSingle_UsdcToUsdt() public {

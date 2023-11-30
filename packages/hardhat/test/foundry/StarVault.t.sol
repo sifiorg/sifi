@@ -44,9 +44,7 @@ contract StarVaultTest is FacetTest {
   }
 
   function setUp() public override {
-    vm.createSelectFork(StdChains.getChain(1).rpcUrl, 17853419);
-
-    super.setUp();
+    setUpOn(Mainnet.CHAIN_ID, 17853419);
 
     // Add StarVault to diamond
     IDiamondCut.FacetCut[] memory facetCuts = new IDiamondCut.FacetCut[](1);

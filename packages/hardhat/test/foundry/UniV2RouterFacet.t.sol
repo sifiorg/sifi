@@ -51,7 +51,7 @@ contract UniV2RouterFacetTestBase is FacetTest, ILibStarVault {
 
 contract UniV2RouterFacetTest is UniV2RouterFacetTestBase {
   function setUp() public override {
-    super.setUpOn(1, 17853419);
+    setUpOn(Mainnet.CHAIN_ID, 17853419);
   }
 
   function testFork_uniswapV2ExactInputSingle_EthForUsdc_PositiveSlippage() public {

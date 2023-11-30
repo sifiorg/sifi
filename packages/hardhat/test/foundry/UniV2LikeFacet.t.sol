@@ -62,7 +62,7 @@ contract UniV2LikeFacetTestBase is FacetTest {
 
 contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
   function setUp() public override {
-    super.setUpOn(1, 17853419);
+    setUpOn(Mainnet.CHAIN_ID, 17853419);
   }
 
   function testFork_uniswapV2LikeExactInputSingle_sushiEthToUsdc() public {
@@ -402,7 +402,7 @@ contract UniV2LikeFacetTest is UniV2LikeFacetTestBase {
 
 contract UniV2LikeFacetArbitrumTest is UniV2LikeFacetTestBase {
   function setUp() public override {
-    super.setUpOn(42161, 130346515);
+    setUpOn(Arbitrum.CHAIN_ID, 130346515);
   }
 
   function testFork_uniswapV2LikeExactInputSingle() public {

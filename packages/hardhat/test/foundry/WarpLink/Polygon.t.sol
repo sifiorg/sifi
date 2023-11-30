@@ -12,7 +12,7 @@ import {WarpLinkTestBase} from './TestBase.sol';
 
 contract WarpLinkPolygonTest is WarpLinkTestBase {
   function setUp() public override {
-    setUpOn(137, 47436715);
+    setUpOn(Polygon.CHAIN_ID, 47436715);
   }
 
   function testFork_Wrap() public {

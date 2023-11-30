@@ -12,7 +12,7 @@ import {WarpLinkTestBase} from './TestBase.sol';
 
 contract WarpLinkArbitrumTest is WarpLinkTestBase {
   function setUp() public override {
-    setUpOn(42161, 130346515);
+    setUpOn(Arbitrum.CHAIN_ID, 130346515);
   }
 
   function testFork_warpLinkEngage_Wrap() public {

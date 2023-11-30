@@ -11,7 +11,7 @@ import {WarpLinkTestBase} from './TestBase.sol';
 
 contract WarpLinkMainnet18069811Test is WarpLinkTestBase {
   function setUp() public override {
-    setUpOn(1, 18069811);
+    setUpOn(Mainnet.CHAIN_ID, 18069811);
   }
 
   function testFork_warpLinkEngagePermit_paraswapVector() public {

@@ -47,8 +47,7 @@ abstract contract StargateTestBase is FacetTest {
 contract StargateMainnetTest is StargateTestBase {
   function setUp() public override {
     // NOTE: This is the same block number as the WarpLink Stargate tests
-
-    super.setUpOn(1, 18331782);
+    setUpOn(Mainnet.CHAIN_ID, 18331782);
   }
 
   function testFork_stargateJumpTokens_Usdc() public {
