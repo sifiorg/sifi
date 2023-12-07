@@ -22,14 +22,14 @@ const ReferralModal: FunctionComponent = () => {
   const handleButtonClick = () => {
     if (!referralLink) {
       showToast({ text: 'Referral link is missing.', type: 'error' });
+
       return;
     }
 
     if (navigator.share) {
       // Mobile
       navigator.share({
-        title: 'Sifi Referral Link',
-        text: 'Check out Sifi.org! ',
+        title: 'Your Sifi Referral Link',
         url: referralLink,
       });
     } else {
@@ -38,6 +38,8 @@ const ReferralModal: FunctionComponent = () => {
       showToast({ text: 'Referral link copied to clipboard!', type: 'info' });
     }
   };
+
+  const buttonLabel = !!navigator.share ? 'Share Referral Link' : 'Copy Referral Link';
 
   return (
     <Modal
@@ -55,7 +57,7 @@ const ReferralModal: FunctionComponent = () => {
       <div className="flex justify-center my-8">
         {address ? (
           <Button role="button" onClick={handleButtonClick}>
-            Copy Referral Link
+            {buttonLabel}
           </Button>
         ) : (
           <ConnectWallet />
