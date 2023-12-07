@@ -4,6 +4,7 @@ import { useAccount, useDisconnect, useEnsName, useNetwork } from 'wagmi';
 import { formatAddress, formatEnsName } from 'src/utils';
 import { Link } from '../Link/Link';
 import { useSwapHistory } from 'src/providers/SwapHistoryProvider';
+import { useReferralModal } from 'src/providers/ReferralModalProvider';
 
 const HeaderMenu: FunctionComponent = () => {
   const { address, isConnected } = useAccount();
@@ -12,6 +13,7 @@ const HeaderMenu: FunctionComponent = () => {
   const { disconnect } = useDisconnect();
   const { icon, text } = useWalletBranding();
   const { toggleHistoryModal } = useSwapHistory();
+  const { openReferralModal } = useReferralModal();
 
   if (!address || !isConnected) return null;
 
@@ -25,6 +27,10 @@ const HeaderMenu: FunctionComponent = () => {
     {
       title: 'Dashboard',
       href: '/dashboard',
+    },
+    {
+      title: 'Refer',
+      onClick: () => openReferralModal(),
     },
     {
       title: 'Disconnect Wallet',

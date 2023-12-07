@@ -8,6 +8,7 @@ import { SpaceTravelCanvas } from './space-travel/SpaceTravelCanvas';
 import { RecentWarps } from './components/RecentWarps/RecentWarps';
 import { Dashboard } from 'src/pages/Dashboard';
 import { useReferrer } from 'src/hooks/useReferrer';
+import { ReferralModal } from './modals/ReferralModal/ReferralModal';
 
 const Layout: FunctionComponent<{ children: ReactNode }> = ({ children }) => {
   return (
@@ -46,6 +47,7 @@ const App = () => {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="*" element={<Home />} />
         </Routes>
+        <ReferralModal />
       </Layout>
     </AppProvider>
   );
