@@ -56,7 +56,7 @@
     "@babel/core": "^7.20.2",
     "@storybook/addon-actions": "7.3.2",
     "@storybook/addon-essentials": "7.3.2",
-    "@storybook/addon-interactions": "7.3.2",
+    "@storybook/addon-interactions": "7.6.4",
     "@storybook/addon-links": "7.3.2",
     "@storybook/addon-themes": "7.3.2",
     "@storybook/react": "7.3.2",
