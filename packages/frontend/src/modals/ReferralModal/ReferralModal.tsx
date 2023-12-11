@@ -12,7 +12,7 @@ const ReferralModal: FunctionComponent = () => {
   const generateReferralLink = () => {
     if (!address) return null;
 
-    const feeBps = 20;
+    const feeBps = 200;
 
     return `https://sifi.org/#/${address}${feeBps}`;
   };
