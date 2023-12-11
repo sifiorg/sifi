@@ -2,7 +2,7 @@
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import type { FC, PropsWithChildren } from 'react';
-import { HashRouter } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 import { CustomToastContainer } from '@sifi/shared-ui';
 import { AnalyticsProvider } from './hooks/useAnalytics';
 import { SDKProvider } from './providers/SDKProvider';
@@ -17,7 +17,7 @@ const queryClient = new QueryClient();
 
 export const AppProvider: FC<PropsWithChildren> = ({ children }) => {
   return (
-    <HashRouter>
+    <BrowserRouter>
       <QueryProvider client={queryClient}>
         <AnalyticsProvider>
           <SDKProvider>
@@ -35,6 +35,6 @@ export const AppProvider: FC<PropsWithChildren> = ({ children }) => {
         </AnalyticsProvider>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryProvider>
-    </HashRouter>
+    </BrowserRouter>
   );
 };
