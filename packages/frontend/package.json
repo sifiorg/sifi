@@ -59,7 +59,7 @@
     "@storybook/addon-interactions": "7.3.2",
     "@storybook/addon-links": "7.3.2",
     "@storybook/addon-themes": "7.3.2",
-    "@storybook/react": "7.3.2",
+    "@storybook/react": "7.6.4",
     "@storybook/react-vite": "7.3.2",
     "@storybook/testing-library": "0.2.0",
     "@synthetixio/synpress": "3.7.2-beta.7",
