@@ -5,10 +5,23 @@ import HeaderMenu from '../HeaderMenu/HeaderMenu';
 
 const Logo = () => <LogoWhite alt="Sifi logo" className="max-h-[2rem]" />;
 
+const navLinks = [
+  {
+    href: 'https://discord.gg/sXDKcUYnU8',
+    title: 'Discord',
+    external: true,
+  },
+  {
+    href: 'https://docs.sifi.org',
+    title: 'Docs',
+    external: true,
+  },
+];
+
 const Header: FunctionComponent = () => {
   return (
     <>
-      <Navbar Logo={Logo}>
+      <Navbar Logo={Logo} navLinks={navLinks}>
         <HeaderMenu />
       </Navbar>
     </>
