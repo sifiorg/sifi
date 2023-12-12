@@ -16,17 +16,17 @@ const useWalletBalance = () => {
   // const shouldFetch = Boolean(address);
   const shouldFetch = false;
 
-  const walletBalanceResponse = useQuery<WalletBalanceToken[]>(
-    ['walletBalance'],
-    async () => {
-      const { data } = await axios.get(`${baseUrl}/v1/user-wallet-balance?address=${address}`);
+  const fetchWalletBalance = async () => {
+    const { data } = await axios.get(`${baseUrl}/v1/user-wallet-balance?address=${address}`);
 
-      return data;
-    },
-    {
-      enabled: shouldFetch,
-    }
-  );
+    return data;
+  };
+
+  const walletBalanceResponse = useQuery<WalletBalanceToken[]>({
+    queryKey: ['walletBalance', address],
+    queryFn: fetchWalletBalance,
+    enabled: shouldFetch,
+  });
 
   return {
     ...walletBalanceResponse,

@@ -11,9 +11,9 @@ const useFetchTokens = (chainIds: number[]) => {
     {}
   );
 
-  const { data, refetch } = useQuery(
-    ['tokens', chainIds],
-    async () => {
+  const { data, refetch } = useQuery({
+    queryKey: ['tokens', chainIds],
+    queryFn: async () => {
       const allTokens = await Promise.all(
         chainIds.map(async chainId => {
           const data = await sifi.getTokens(chainId);
@@ -22,8 +22,8 @@ const useFetchTokens = (chainIds: number[]) => {
       );
       return allTokens.flat();
     },
-    { enabled: false }
-  );
+    enabled: false
+  });
 
   const fetchTokens = async () => {
     try {

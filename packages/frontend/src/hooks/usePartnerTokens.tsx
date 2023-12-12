@@ -50,36 +50,38 @@ type PartnerTokensResponse = {
 
 type PartnerTokensByChain = Record<string, PartnerTokensResponse | null>;
 
+const FIFTEEN_SECONDS = 1000 * 15;
+const FIVE_MINUTES = 1000 * 60 * 5;
+
 const usePartnerTokens = (address: string) => {
-  return useQuery(
-    ['partnerTokensByChain', address],
-    async () => {
-      const responses = await Promise.all(
-        Object.entries(GRAPH_URLS).map(([chainId, url]) =>
-          request(url, PARTNER_TOKENS_QUERY, { id: address.toLocaleLowerCase() })
-            .then<PartnerTokensResponse>()
-            .catch((error: any) => {
-              console.error(`Failed to fetch data for ${chainId}:`, error);
+  const fetchPartnerTokens = async () => {
+    const responses = await Promise.all(
+      Object.entries(GRAPH_URLS).map(([chainId, url]) =>
+        request(url, PARTNER_TOKENS_QUERY, { id: address.toLocaleLowerCase() })
+          .then<PartnerTokensResponse>()
+          .catch((error: any) => {
+            console.error(`Failed to fetch data for ${chainId}:`, error);
 
-              return null;
-            })
-        )
-      );
+            return null;
+          })
+      )
+    );
 
-      const result: Record<string, PartnerTokensResponse | null> = {};
-      Object.keys(GRAPH_URLS).forEach((chainId, index) => {
-        result[chainId] = responses[index];
-      });
+    const result: Record<string, PartnerTokensResponse | null> = {};
+    Object.keys(GRAPH_URLS).forEach((chainId, index) => {
+      result[chainId] = responses[index];
+    });
 
-      return result;
-    },
+    return result;
+  };
 
-    {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      refetchOnWindowFocus: false,
-      refetchInterval: 15000, // 15 seconds
-    }
-  );
+  return useQuery({
+    queryKey: ['partnerTokensByChain', address],
+    queryFn: fetchPartnerTokens,
+    staleTime: FIVE_MINUTES,
+    refetchInterval: FIFTEEN_SECONDS,
+    refetchOnWindowFocus: false,
+  });
 };
 
 export { usePartnerTokens };
