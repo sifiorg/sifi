@@ -129,7 +129,13 @@ const CreateSwap = () => {
         setThrottle(0.01);
       },
       onSuccess: async hash => {
-        const explorerLink = fromChain ? getEvmTxUrl(fromChain, hash) : undefined;
+        const isJump = fromChain.id !== toChain.id;
+        let explorerLink: string | undefined;
+        if (isJump) {
+          explorerLink = `https://layerzeroscan.com/tx/${hash}`;
+        } else {
+          explorerLink = fromChain ? getEvmTxUrl(fromChain, hash) : undefined;
+        }
 
         showToast({
           text: 'Your swap has been confirmed. Please stand by.',
