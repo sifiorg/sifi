@@ -57,8 +57,8 @@ importers:
         specifier: ~1.11.0
         version: link:../sdk
       '@sifi/shared-ui':
-        specifier: ^1.8.11
-        version: 1.8.11(@headlessui/react@1.7.11)(date-fns@2.29.3)(react-dom@18.2.0)(react-hook-form@7.43.1)(react-router-dom@6.0.1)(react@18.2.0)(viem@1.9.0)(wagmi@1.3.10)
+        specifier: ^1.10.2
+        version: 1.10.2(@headlessui/react@1.7.11)(date-fns@2.29.3)(react-dom@18.2.0)(react-hook-form@7.43.1)(react@18.2.0)(viem@1.9.0)(wagmi@1.3.10)
       '@tanstack/react-query':
         specifier: ^4.13.0
         version: 4.28.0(react-dom@18.2.0)(react@18.2.0)
@@ -282,10 +282,6 @@ importers:
       solhint-plugin-prettier:
         specifier: ^0.0.5
         version: 0.0.5(prettier-plugin-solidity@1.1.3)(prettier@2.8.8)
-
-  packages/hardhat/lib/forge-std: {}
-
-  packages/hardhat/lib/forge-std/lib/ds-test: {}
 
   packages/sdk:
     devDependencies:
@@ -6529,15 +6525,14 @@ packages:
     resolution: {integrity: sha512-RNiOoTPkptFtSVzQevY/yWtZwf/RxyVnPy/OcA9HBM3MlGDnBEYL5B41H0MTn0Uec8Hi+2qUtTfG2WWZBmMejQ==}
     dev: true
 
-  /@sifi/shared-ui@1.8.11(@headlessui/react@1.7.11)(date-fns@2.29.3)(react-dom@18.2.0)(react-hook-form@7.43.1)(react-router-dom@6.0.1)(react@18.2.0)(viem@1.9.0)(wagmi@1.3.10):
-    resolution: {integrity: sha512-+PM2jyf3wyMWQ3/P6dOtQ5mrdYYbDiQ1vwrz2k3qwCZ51AVLjRIXLGIqAgEOXl6NkB9d7izm63FJtDcM8aPrsg==}
+  /@sifi/shared-ui@1.10.2(@headlessui/react@1.7.11)(date-fns@2.29.3)(react-dom@18.2.0)(react-hook-form@7.43.1)(react@18.2.0)(viem@1.9.0)(wagmi@1.3.10):
+    resolution: {integrity: sha512-qjuIn9S+ehv1aF9MELai+IsxEdhen3W1/3YBfcGTJi/e5Ut8Bd+hiNg2eHoSS5/NVo77rxGAtYY9N8RRN86LRA==}
     peerDependencies:
       '@headlessui/react': ^1.7.3
       date-fns: 2.29.3
       react: 18.1.0
       react-dom: 18.1.0
       react-hook-form: ^7.42.1
-      react-router-dom: 6.0.1
       viem: 1.9.2
       wagmi: ^1.3.10
     dependencies:
@@ -6551,7 +6546,6 @@ packages:
       react-dom: 18.2.0(react@18.2.0)
       react-hook-form: 7.43.1(react@18.2.0)
       react-loading-skeleton: 3.3.1(react@18.2.0)
-      react-router-dom: 6.0.1(react-dom@18.2.0)(react@18.2.0)
       react-toastify: 9.0.3(react-dom@18.2.0)(react@18.2.0)
       react-tooltip: 5.7.3(react-dom@18.2.0)(react@18.2.0)
       viem: 1.9.0(typescript@5.2.2)
