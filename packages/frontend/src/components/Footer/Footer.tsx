@@ -22,6 +22,11 @@ const Footer: FunctionComponent = () => {
         title: 'Discord',
         external: true,
       },
+      {
+        href: 'https://github.com/sifiorg/brand-assets',
+        title: 'Brand Assets',
+        external: true,
+      },
     ],
   ];
 
