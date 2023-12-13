@@ -2,6 +2,7 @@ import { FunctionComponent } from 'react';
 import { Footer as FooterComponent } from '@sifi/shared-ui';
 import { ReactComponent as Logo } from '../../assets/logoWhite.svg';
 import { texts } from 'src/texts';
+import { Link } from '../Link/Link';
 
 const Footer: FunctionComponent = () => {
   const columnLinks = [
@@ -27,6 +28,7 @@ const Footer: FunctionComponent = () => {
 
   return (
     <FooterComponent
+      LinkComponent={Link}
       Logo={Logo}
       description={texts.DESCRIPTION}
       columnLinks={columnLinks}

@@ -2,6 +2,7 @@ import { FunctionComponent } from 'react';
 import { Menu, useWalletBranding } from '@sifi/shared-ui';
 import { useAccount, useDisconnect, useEnsName, useNetwork } from 'wagmi';
 import { formatAddress, formatEnsName } from 'src/utils';
+import { Link } from '../Link/Link';
 
 const HeaderMenu: FunctionComponent = () => {
   const { address, isConnected } = useAccount();
@@ -27,6 +28,7 @@ const HeaderMenu: FunctionComponent = () => {
 
   return (
     <Menu
+      LinkComponent={Link}
       icon={icon ? { src: icon, alt: `${text} icon` } : undefined}
       label={label}
       links={menuLinks}

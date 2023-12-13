@@ -2,6 +2,7 @@ import { FunctionComponent } from 'react';
 import { Navbar } from '@sifi/shared-ui';
 import { ReactComponent as LogoWhite } from 'src/assets/logoWhite.svg';
 import HeaderMenu from '../HeaderMenu/HeaderMenu';
+import { Link } from '../Link/Link';
 
 const Logo = () => <LogoWhite alt="Sifi logo" className="max-h-[2rem]" />;
 
@@ -21,7 +22,7 @@ const navLinks = [
 const Header: FunctionComponent = () => {
   return (
     <>
-      <Navbar Logo={Logo} navLinks={navLinks}>
+      <Navbar LinkComponent={Link} Logo={Logo} navLinks={navLinks}>
         <HeaderMenu />
       </Navbar>
     </>
