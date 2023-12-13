@@ -113,6 +113,9 @@ importers:
       react-router-dom:
         specifier: ^6.0.1
         version: 6.0.1(react-dom@18.2.0)(react@18.2.0)
+      react-toastify:
+        specifier: 9.0.3
+        version: 9.0.3(react-dom@18.2.0)(react@18.2.0)
       scrypt-js:
         specifier: 3.0.1
         version: 3.0.1
@@ -11100,7 +11103,7 @@ packages:
     resolution: {integrity: sha512-O0yuUDnZeQDL+ncNGlJ78BiO4jnYI3bvMsD5prT0/nsgijG/LpNBIr63gTjVTNsiGkgQhiyCShTgxt8oXOrklA==}
     engines: {node: '>=4'}
     dependencies:
-      tslib: 2.6.1
+      tslib: 2.6.2
     dev: true
 
   /ast-types@0.15.2:
@@ -16888,7 +16891,7 @@ packages:
     resolution: {integrity: sha512-AmCS+9CT34pp2u0QQVXjKztkuq3y5T+BIciuiHDDtDZucZD8VudosnSdUyXJV6IsRkN5jc4RFDhCk1O6Q3Gxjg==}
     dependencies:
       interface-store: 2.0.2
-      nanoid: 3.3.4
+      nanoid: 3.3.6
       uint8arrays: 3.1.1
     dev: false
 
@@ -16986,7 +16989,7 @@ packages:
       multiaddr: 10.0.1(node-fetch@2.6.9)
       multiaddr-to-uri: 8.0.0(node-fetch@2.6.9)
       multiformats: 9.9.0
-      nanoid: 3.3.4
+      nanoid: 3.3.6
       parse-duration: 1.1.0
       timeout-abort-controller: 2.0.0
       uint8arrays: 3.1.1
@@ -17049,7 +17052,7 @@ packages:
       it-glob: 1.0.2
       it-to-stream: 1.0.0
       merge-options: 3.0.4
-      nanoid: 3.3.4
+      nanoid: 3.3.6
       native-fetch: 3.0.0(node-fetch@2.6.9)
       node-fetch: 2.6.9
       react-native-fetch-api: 3.0.0
@@ -19641,7 +19644,6 @@ packages:
     resolution: {integrity: sha512-BGcqMMJuToF7i1rt+2PWSNVnWIkGCU78jBG3RxO/bZlnZPK2Cmi2QaffxGO/2RvWi9sL+FAiRiXMgsyxQ1DIDA==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
-    dev: true
 
   /nanomatch@1.2.13:
     resolution: {integrity: sha512-fpoe2T0RbHwBTBUOftAfBPaDEi06ufaUai0mE6Yn1kacc3SnTErfb/h+X94VXzI64rKFHYImXSvdwGGCmwOqCA==}
@@ -23981,10 +23983,6 @@ packages:
 
   /tslib@2.4.0:
     resolution: {integrity: sha512-d6xOpEDfsi2CZVlPQzGeux8XMwLT9hssAsaPYExaQMuYskwb+x1x7J371tWlbBdWHroy99KnVB6qIkUbs5X3UQ==}
-    dev: true
-
-  /tslib@2.6.1:
-    resolution: {integrity: sha512-t0hLfiEKfMUoqhG+U1oid7Pva4bbDPHYfJNiB7BiIjRkj1pyC++4N3huJfqY6aRH6VTB0rvtzQwjM4K6qpfOig==}
     dev: true
 
   /tslib@2.6.2:

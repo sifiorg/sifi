@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
+import { useAccount, useWalletClient } from 'wagmi';
 import { parseUnits } from 'viem';
-import { showToast } from '@sifi/shared-ui';
 import { useTokens } from 'src/hooks/useTokens';
 import { useTokenBalance } from 'src/hooks/useTokenBalance';
 import { useMutation } from '@tanstack/react-query';
