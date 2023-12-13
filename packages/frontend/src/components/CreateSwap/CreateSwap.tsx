@@ -142,6 +142,7 @@ const CreateSwap = () => {
           type: 'success',
           text: 'Your swap has confirmed. It may take a while until it confirms on the blockchain.',
           ...(explorerLink ? { link: { text: 'View Transaction', href: explorerLink } } : {}),
+          autoClose: false,
         });
 
         refetchFromBalance();
