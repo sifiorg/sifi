@@ -7,7 +7,7 @@ import { useTokens } from 'src/hooks/useTokens';
 import { useTokenBalance } from 'src/hooks/useTokenBalance';
 import { useMutation } from '@tanstack/react-query';
 import { useSifi } from 'src/providers/SDKProvider';
-import { getEvmTxUrl, getTokenBySymbol, getViemErrorMessage } from 'src/utils';
+import { getTokenBySymbol } from 'src/utils';
 import { SwapFormKey } from 'src/providers/SwapFormProvider';
 import { useQuote } from 'src/hooks/useQuote';
 import { localStorageKeys } from 'src/utils/localStorageKeys';
@@ -17,6 +17,7 @@ import { usePermit2 } from 'src/hooks/usePermit2';
 import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 import { useSpaceTravel } from 'src/providers/SpaceTravelProvider';
 import { defaultFeeBps } from 'src/config';
+import { useSwapToast } from './useSwapToast';
 
 const useExecuteSwap = () => {
   const { address } = useAccount();
@@ -28,8 +29,8 @@ const useExecuteSwap = () => {
     fromChain,
     toChain,
   } = useSwapFormValues();
-  const publicClient = usePublicClient({ chainId: fromChain.id });
   const { data: walletClient } = useWalletClient();
+  const { showErrorToast, showSuccessToast } = useSwapToast();
   const { fromTokens, toTokens } = useTokens();
   const { refetch: refetchFromTokenBalances } = useMultiCallTokenBalance(
     fromTokens as MulticallToken[],
@@ -95,7 +96,7 @@ const useExecuteSwap = () => {
     {
       onError: error => {
         if (error instanceof Error) {
-          showToast({ text: getViemErrorMessage(error), type: 'error' });
+          showErrorToast(error);
         } else {
           console.error(error);
         }
@@ -105,20 +106,7 @@ const useExecuteSwap = () => {
         setThrottle(0.01);
       },
       onSuccess: async hash => {
-        const explorerLink = fromChain ? getEvmTxUrl(fromChain, hash) : undefined;
-
-        showToast({
-          text: 'Your swap has been confirmed. Please stand by.',
-          type: 'info',
-        });
-
-        await publicClient.waitForTransactionReceipt({ hash });
-
-        showToast({
-          type: 'success',
-          text: 'Your swap has confirmed. It may take a while until it confirms on the blockchain.',
-          ...(explorerLink ? { link: { text: 'View Transaction', href: explorerLink } } : {}),
-        });
+        await showSuccessToast({ fromChain, hash });
 
         refetchFromBalance();
         refetchToBalance();
