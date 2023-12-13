@@ -46,7 +46,7 @@ const CreateSwap = () => {
     toTokens as MulticallToken[],
     toChain.id
   );
-  const { executeSwap } = useExecuteSwap();
+  const { executeSwap, isLoading } = useExecuteSwap();
   const { depositMax } = useDepositMax();
   const { isFetching: isFetchingQuote } = useQuote();
   const fromToken = getTokenBySymbol(fromTokenSymbol, fromTokens);
@@ -142,7 +142,7 @@ const CreateSwap = () => {
                 type={tokenSelectorType}
               />
               <div className="pt-4">
-                <CreateSwapButtons />
+                <CreateSwapButtons isLoading={isLoading} />
               </div>
             </div>
           </div>

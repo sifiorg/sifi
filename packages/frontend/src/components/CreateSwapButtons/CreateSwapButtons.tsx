@@ -14,7 +14,7 @@ import { Button } from '../Button';
 import { ConnectWallet } from '../ConnectWallet/ConnectWallet';
 import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 
-const CreateSwapButtons = () => {
+const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
   useCullQueries('routes');
   useCullQueries('quote');
   const { isConnected } = useAccount();
@@ -40,7 +40,7 @@ const CreateSwapButtons = () => {
   const fromAmountInWei = fromToken ? parseUnits(fromAmount || '0', fromToken.decimals) : BigInt(0);
   const hasSufficientBalance = fromBalance && fromBalance.value >= fromAmountInWei;
 
-  const isSwapButtonLoading = isFetchingAllowance || isFetchingQuote;
+  const isSwapButtonLoading = isLoading || isFetchingAllowance || isFetchingQuote;
 
   const showApproveButton =
     Boolean(
