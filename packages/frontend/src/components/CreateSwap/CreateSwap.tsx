@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useForm, useFormContext } from 'react-hook-form';
 import { useAccount, useWalletClient, usePublicClient, useNetwork } from 'wagmi';
 import { parseUnits } from 'viem';
-import { showToast, ShiftInput } from '@sifi/shared-ui';
+import { showToast, ShiftInput, Toast } from '@sifi/shared-ui';
 import { useTokens } from 'src/hooks/useTokens';
 import { useTokenBalance } from 'src/hooks/useTokenBalance';
 import { useMutation } from '@tanstack/react-query';
@@ -29,6 +29,7 @@ import { enableSwapInformation } from 'src/utils/featureFlags';
 import { useUsdValue } from 'src/hooks/useUsdValue';
 import { useSpaceTravel } from 'src/providers/SpaceTravelProvider';
 import { defaultFeeBps } from 'src/config';
+import { toast } from 'react-toastify';
 
 const CreateSwap = () => {
   useCullQueries('quote');
@@ -137,18 +138,30 @@ const CreateSwap = () => {
           explorerLink = fromChain ? getEvmTxUrl(fromChain, hash) : undefined;
         }
 
-        showToast({
+        setInterval(async () => {
+          const jump = await sifi.getJump(hash);
+          console.log(jump);
+        }, 2000);
+
+        const swapToast = showToast({
           text: 'Your swap has been confirmed. Please stand by.',
-          type: 'info',
+          type: 'loading',
+          hideCloseIcon: true,
+          closeButton: false,
+          closeOnClick: false,
+          autoClose: false,
+          draggable: false,
         });
 
         await publicClient.waitForTransactionReceipt({ hash });
 
-        showToast({
-          type: 'success',
-          text: 'Your swap has confirmed. It may take a while until it confirms on the blockchain.',
-          ...(explorerLink ? { link: { text: 'View Transaction', href: explorerLink } } : {}),
-        });
+        toast.update(swapToast, { render: () => <Toast text="LOL" type="loading" /> });
+
+        // showToast({
+        //   type: 'success',
+        //   text: 'Your swap has confirmed. It may take a while until it confirms on the blockchain.',
+        //   ...(explorerLink ? { link: { text: 'View Transaction', href: explorerLink } } : {}),
+        // });
 
         refetchFromBalance();
         refetchToBalance();
