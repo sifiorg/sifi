@@ -24,7 +24,7 @@ const ResearchPoints = () => {
   const points = useResearchPoints();
 
   return (
-    <div className="text-center sm:text-right relative top-2 font-display px-5 text-sm">
+    <div className="text-center sm:text-right relative top-2 font-display px-2 text-sm max-w-7xl m-auto">
       Research Points: {points.data}
     </div>
   );
