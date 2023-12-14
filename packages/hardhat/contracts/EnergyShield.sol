@@ -16,6 +16,10 @@ import {IEnergyShield} from './interfaces/IEnergyShield.sol';
  * The functions `single` and `multi` are callable by anyone. Note a caller can
  * instruct this contract to set the allowance of any token and this allowance will
  * carry over to the next caller.
+ *
+ * This contract is stateless, meaning it should never hold any balances.
+ * While there is a `drain` method, any user can effectively drain this contract
+ * by using `single` or `multi` to send tokens to themselves.
  */
 contract EnergyShield is Ownable, IEnergyShield {
   using SafeERC20 for IERC20;
@@ -29,6 +33,8 @@ contract EnergyShield is Ownable, IEnergyShield {
         : IERC20(params.tokenOut).balanceOf(msg.sender);
     }
 
+    // NOTE: `msg.value` may be zero for calls such as `approve` or `transferFrom`,
+    // and greater than zero for calls such as wrapping ETH
     (bool success, ) = params.target.call{value: msg.value}(params.data);
 
     if (!success) {
