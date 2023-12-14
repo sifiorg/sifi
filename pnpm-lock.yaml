@@ -57,8 +57,8 @@ importers:
         specifier: ~1.11.0
         version: link:../sdk
       '@sifi/shared-ui':
-        specifier: ^1.10.2
-        version: 1.10.2(@headlessui/react@1.7.11)(date-fns@2.29.3)(react-dom@18.2.0)(react-hook-form@7.43.1)(react@18.2.0)(viem@1.9.0)(wagmi@1.4.12)
+        specifier: ^1.10.6
+        version: 1.10.6(@headlessui/react@1.7.11)(date-fns@2.29.3)(react-dom@18.2.0)(react-hook-form@7.43.1)(react@18.2.0)(viem@1.9.0)(wagmi@1.4.12)
       '@tanstack/react-query':
         specifier: ^4.13.0
         version: 4.28.0(react-dom@18.2.0)(react@18.2.0)
@@ -282,10 +282,6 @@ importers:
       solhint-plugin-prettier:
         specifier: ^0.0.5
         version: 0.0.5(prettier-plugin-solidity@1.1.3)(prettier@2.8.8)
-
-  packages/hardhat/lib/forge-std: {}
-
-  packages/hardhat/lib/forge-std/lib/ds-test: {}
 
   packages/sdk:
     devDependencies:
@@ -5709,6 +5705,7 @@ packages:
     dependencies:
       is-glob: 4.0.3
       micromatch: 4.0.5
+      napi-wasm: 1.1.0
     dev: false
     bundledDependencies:
       - napi-wasm
@@ -6657,8 +6654,8 @@ packages:
     resolution: {integrity: sha512-RNiOoTPkptFtSVzQevY/yWtZwf/RxyVnPy/OcA9HBM3MlGDnBEYL5B41H0MTn0Uec8Hi+2qUtTfG2WWZBmMejQ==}
     dev: true
 
-  /@sifi/shared-ui@1.10.2(@headlessui/react@1.7.11)(date-fns@2.29.3)(react-dom@18.2.0)(react-hook-form@7.43.1)(react@18.2.0)(viem@1.9.0)(wagmi@1.4.12):
-    resolution: {integrity: sha512-qjuIn9S+ehv1aF9MELai+IsxEdhen3W1/3YBfcGTJi/e5Ut8Bd+hiNg2eHoSS5/NVo77rxGAtYY9N8RRN86LRA==}
+  /@sifi/shared-ui@1.10.6(@headlessui/react@1.7.11)(date-fns@2.29.3)(react-dom@18.2.0)(react-hook-form@7.43.1)(react@18.2.0)(viem@1.9.0)(wagmi@1.4.12):
+    resolution: {integrity: sha512-GGhdr1wiQKdwpJEu42BL+fSagyuAdgyUqi1sWAN2nooYWCgbpxvEa145ZWIkTiuodLU8jqrdcMaEhNOO7lyzYw==}
     peerDependencies:
       '@headlessui/react': ^1.7.3
       date-fns: 2.29.3
@@ -6666,7 +6663,7 @@ packages:
       react-dom: 18.1.0
       react-hook-form: ^7.42.1
       viem: 1.9.2
-      wagmi: ^1.3.10
+      wagmi: 1.4.12
     dependencies:
       '@headlessui/react': 1.7.11(react-dom@18.2.0)(react@18.2.0)
       '@heroicons/react': 2.0.13(react@18.2.0)
@@ -19870,6 +19867,10 @@ packages:
   /napi-macros@2.2.2:
     resolution: {integrity: sha512-hmEVtAGYzVQpCKdbQea4skABsdXW4RUh5t5mJ2zzqowJS2OyXZTU1KhDVFhx+NlWZ4ap9mqR9TcDO3LTTttd+g==}
     dev: true
+
+  /napi-wasm@1.1.0:
+    resolution: {integrity: sha512-lHwIAJbmLSjF9VDRm9GoVOy9AGp3aIvkjv+Kvz9h16QR3uSVYH78PNQUnT2U4X53mhlnV2M7wrhibQ3GHicDmg==}
+    dev: false
 
   /native-abort-controller@1.0.4(abort-controller@3.0.0):
     resolution: {integrity: sha512-zp8yev7nxczDJMoP6pDxyD20IU0T22eX8VwN2ztDccKvSZhRaV33yP1BGwKSZfXuqWUzsXopVFjBdau9OOAwMQ==}
