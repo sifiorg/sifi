@@ -9,7 +9,7 @@ const { publicClient, webSocketPublicClient } = configureChains(SUPPORTED_CHAINS
 ]);
 
 const config = createConfig({
-  autoConnect: false,
+  autoConnect: true,
   connectors: Object.values(connectors),
   publicClient,
   webSocketPublicClient,
