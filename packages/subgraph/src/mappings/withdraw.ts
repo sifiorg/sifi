@@ -2,7 +2,7 @@ import { Address, log } from '@graphprotocol/graph-ts';
 import { Withdraw as WithdrawEvent } from '../../generated/SifiDiamond/SifiDiamond';
 import { Partner, PartnerToken, Withdrawal } from '../../generated/schema';
 import { BIGINT_ZERO } from '../constants';
-import { amountToDecimal, getEventId } from '../helpers';
+import { amountToDecimal, getEventId, isZeroAddress } from '../helpers';
 import { getPartnerTokenId } from '../services/partnerToken';
 import { convertToUsdWithRate, memGetRateToUsd } from '../services/pricing';
 import { getOrCreateToken } from '../services/tokens';
@@ -14,8 +14,14 @@ export function handleWithdrawEvent(event: WithdrawEvent): void {
     return;
   }
 
+  // HACK: Do not track withdrawals for the protocol since it may
+  // withdraw funds to recover them, resulting in negative balances
   const tokenAddress = event.params.token;
   const partnerAddress = event.params.partner;
+
+  if (isZeroAddress(partnerAddress)) {
+    return;
+  }
 
   const rateUsd = memGetRateToUsd.get(tokenAddress);
   const token = getOrCreateToken(tokenAddress);
