@@ -14,7 +14,7 @@ const ResearchPoints = () => {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-      <div className="text-right relative bottom-3 font-display text-base pr-5 sm:bottom-0">
+      <div className="text-right relative bottom-3 font-display text-base pr-5 sm:bottom-0 max-w-7xl m-auto">
         <span className="text-2xl relative top-[0.075rem] pr-1">⚛️</span>
         <span>{data}</span>
       </div>

@@ -21,12 +21,12 @@ const navLinks = [
 ];
 
 const Header: FunctionComponent = () => {
-  console.log('Header');
   return (
     <div>
       <Navbar LinkComponent={Link} Logo={Logo} navLinks={navLinks}>
         <HeaderMenu />
       </Navbar>
+
       <ResearchPoints />
     </div>
   );
