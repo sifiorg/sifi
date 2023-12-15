@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAccount } from 'wagmi';
 
 const fetchPoints = async (address: `0x${string}`) => {
@@ -8,15 +8,32 @@ const fetchPoints = async (address: `0x${string}`) => {
   return data.total;
 };
 
+const RESERACH_POINTS_QUERY_KEY = 'researchPoints';
+
 const useResearchPoints = () => {
   const { address } = useAccount();
-  return useQuery(['researchPoints', address], () => {
-    if (address) {
-      return fetchPoints(address);
-    } else {
-      throw new Error('Address is undefined');
+  return useQuery(
+    [RESERACH_POINTS_QUERY_KEY, address],
+    () => {
+      if (address) {
+        return fetchPoints(address);
+      } else {
+        throw new Error('Address is undefined');
+      }
+    },
+    {
+      staleTime: Infinity,
+      refetchOnWindowFocus: false,
     }
-  });
+  );
 };
 
-export { useResearchPoints };
+const useRefetchResearchPoints = () => {
+  const queryClient = useQueryClient();
+
+  const refetchResearchPoints = () => queryClient.invalidateQueries([RESERACH_POINTS_QUERY_KEY]);
+
+  return { refetchResearchPoints };
+};
+
+export { useResearchPoints, useRefetchResearchPoints };
