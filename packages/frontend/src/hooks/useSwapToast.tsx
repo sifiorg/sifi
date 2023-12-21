@@ -3,10 +3,12 @@ import { getEvmTxUrl, getViemErrorMessage } from 'src/utils';
 import { usePublicClient } from 'wagmi';
 import { useSwapFormValues } from './useSwapFormValues';
 import { useSifi } from 'src/providers/SDKProvider';
+import { useRefetchBalances } from './useRefetchBalances';
 
 const useSwapToast = () => {
   const sifi = useSifi();
   const { fromChain, toChain } = useSwapFormValues();
+  const { refetchAllBalances } = useRefetchBalances();
   const publicClient = usePublicClient({ chainId: fromChain.id });
 
   const showErrorToast = (error: any) => {
@@ -35,6 +37,7 @@ const useSwapToast = () => {
     });
 
     await publicClient.waitForTransactionReceipt({ hash });
+    refetchAllBalances();
 
     // TODO: What if the transaction fails?
 
@@ -65,6 +68,7 @@ const useSwapToast = () => {
             ),
           });
         } else if (result.status === 'success') {
+          refetchAllBalances();
           updateToast(swapToastId, {
             render: (
               <Toast
@@ -81,6 +85,7 @@ const useSwapToast = () => {
     }
 
     if (!isJump) {
+      refetchAllBalances();
       updateToast(swapToastId, {
         render: (
           <Toast

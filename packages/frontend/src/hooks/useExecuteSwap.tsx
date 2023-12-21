@@ -4,15 +4,12 @@ import { useAccount, useWalletClient } from 'wagmi';
 import { parseUnits } from 'viem';
 import { showToast } from '@sifi/shared-ui';
 import { useTokens } from 'src/hooks/useTokens';
-import { useTokenBalance } from 'src/hooks/useTokenBalance';
 import { useMutation } from '@tanstack/react-query';
 import { useSifi } from 'src/providers/SDKProvider';
 import { getTokenBySymbol, getViemErrorMessage } from 'src/utils';
 import { SwapFormKey } from 'src/providers/SwapFormProvider';
 import { useQuote } from 'src/hooks/useQuote';
 import { localStorageKeys } from 'src/utils/localStorageKeys';
-import { MulticallToken } from 'src/types';
-import { useMultiCallTokenBalance } from 'src/hooks/useMulticallTokenBalance';
 import { usePermit2 } from 'src/hooks/usePermit2';
 import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 import { useSpaceTravel } from 'src/providers/SpaceTravelProvider';
@@ -27,24 +24,13 @@ const useExecuteSwap = () => {
     toToken: toTokenSymbol,
     fromAmount,
     fromChain,
-    toChain,
   } = useSwapFormValues();
   const { data: walletClient } = useWalletClient();
   const { fromTokens, toTokens } = useTokens();
-  const { refetch: refetchFromTokenBalances } = useMultiCallTokenBalance(
-    fromTokens as MulticallToken[],
-    fromChain.id
-  );
-  const { refetch: refetchToTokenBalances } = useMultiCallTokenBalance(
-    toTokens as MulticallToken[],
-    toChain.id
-  );
   const fromToken = getTokenBySymbol(fromTokenSymbol, fromTokens);
   const toToken = getTokenBySymbol(toTokenSymbol, toTokens);
   const [isLoading, setIsLoading] = useState(false);
   const { quote } = useQuote();
-  const { refetch: refetchFromBalance } = useTokenBalance(fromToken, fromChain.id);
-  const { refetch: refetchToBalance } = useTokenBalance(toToken, toChain.id);
   const { getPermit2Params } = usePermit2();
   const { setThrottle } = useSpaceTravel();
   const { setValue } = useFormContext();
@@ -108,10 +94,6 @@ const useExecuteSwap = () => {
       onSuccess: async hash => {
         await showSwapToast({ hash });
 
-        refetchFromBalance();
-        refetchToBalance();
-        refetchFromTokenBalances();
-        refetchToTokenBalances();
         setValue(SwapFormKey.FromAmount, '');
       },
     }
