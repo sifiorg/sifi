@@ -1,6 +1,7 @@
 import { showToast, Toast, updateToast } from '@sifi/shared-ui';
 import { getEvmTxUrl, getViemErrorMessage } from 'src/utils';
 import { usePublicClient } from 'wagmi';
+import { useSpaceTravel } from 'src/providers/SpaceTravelProvider';
 import { useSwapFormValues } from './useSwapFormValues';
 import { useSifi } from 'src/providers/SDKProvider';
 import { useRefetchBalances } from './useRefetchBalances';
@@ -10,6 +11,7 @@ const useSwapToast = () => {
   const { fromChain, toChain } = useSwapFormValues();
   const { refetchAllBalances } = useRefetchBalances();
   const publicClient = usePublicClient({ chainId: fromChain.id });
+  const { setThrottle } = useSpaceTravel();
 
   const showErrorToast = (error: any) => {
     if (error instanceof Error) {
@@ -49,7 +51,7 @@ const useSwapToast = () => {
           updateToast(swapToastId, {
             render: (
               <Toast
-                text="Jump initiated. Hold tight."
+                text="In hyperspace. Arrival imminent..."
                 type="loading"
                 link={explorerLink ? { text: 'View Jump', href: explorerLink } : undefined}
                 hideCloseIcon
@@ -57,10 +59,11 @@ const useSwapToast = () => {
             ),
           });
         } else if (result.status === 'inflight') {
+          setThrottle(0.25);
           updateToast(swapToastId, {
             render: (
               <Toast
-                text="In hyperspace. Arrival imminent."
+                text="Arriving..."
                 type="loading"
                 link={explorerLink ? { text: 'View Jump', href: explorerLink } : undefined}
                 hideCloseIcon
@@ -69,6 +72,7 @@ const useSwapToast = () => {
           });
         } else if (result.status === 'success') {
           refetchAllBalances();
+          setThrottle(0.01);
           updateToast(swapToastId, {
             render: (
               <Toast
@@ -86,6 +90,7 @@ const useSwapToast = () => {
 
     if (!isJump) {
       refetchAllBalances();
+      setThrottle(0.01);
       updateToast(swapToastId, {
         render: (
           <Toast

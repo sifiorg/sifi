@@ -81,6 +81,7 @@ const useExecuteSwap = () => {
     },
     {
       onError: error => {
+        setThrottle(0.01);
         if (error instanceof Error) {
           showToast({ text: getViemErrorMessage(error), type: 'error' });
         } else {
@@ -89,7 +90,6 @@ const useExecuteSwap = () => {
       },
       onSettled: () => {
         setIsLoading(false);
-        setThrottle(0.01);
       },
       onSuccess: async hash => {
         await showSwapToast({ hash });
