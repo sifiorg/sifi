@@ -14,9 +14,12 @@ const useGasFee = () => {
 
   useEffect(() => {
     const getGasPrice = async () => {
-      const gasPrice = await publicClient.getGasPrice();
-
-      setGasPriceWei(gasPrice);
+      try {
+        const gasPrice = await publicClient.getGasPrice();
+        setGasPriceWei(gasPrice);
+      } catch (error) {
+        console.error('Failed to fetch gas price:', error);
+      }
     };
 
     getGasPrice();
