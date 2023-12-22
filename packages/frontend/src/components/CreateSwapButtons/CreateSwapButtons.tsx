@@ -41,6 +41,8 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
   const hasSufficientBalance = fromBalance && fromBalance.value >= fromAmountInWei;
 
   const isSwapButtonLoading = isLoading || isFetchingAllowance || isFetchingQuote;
+  const isJump = fromChain.id !== toChain.id;
+  const executeButtonLabel = isJump ? 'Execute Jump' : 'Execute Swap';
 
   const showApproveButton =
     Boolean(
@@ -73,7 +75,7 @@ const CreateSwapButtons = ({ isLoading }: { isLoading: boolean }) => {
       return 'Insufficient Balance';
     }
 
-    return 'Execute Swap';
+    return executeButtonLabel;
   };
 
   if (!isConnected) return <ConnectWallet />;
