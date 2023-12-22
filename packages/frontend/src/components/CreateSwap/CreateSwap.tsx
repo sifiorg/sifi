@@ -22,6 +22,7 @@ import { enableSwapInformation } from 'src/utils/featureFlags';
 import { useUsdValue } from 'src/hooks/useUsdValue';
 import { useExecuteSwap } from 'src/hooks/useExecuteSwap';
 import { useDepositMax } from 'src/hooks/useDepositMax';
+import { SwapDetails } from '../SwapDetails/SwapDetails';
 
 const CreateSwap = () => {
   useCullQueries('quote');
@@ -101,7 +102,7 @@ const CreateSwap = () => {
         <form className="space-y-6" onSubmit={handleSubmit(executeSwap)}>
           <div>
             <div className="pb-2">
-              <div className="mb-2">
+              <div>
                 <div className="flex justify-between align-bottom items-end">
                   <div className="font-display text-smoke">{ShiftInputLabel.from}</div>
                   <ChainSelector chainToSet={SwapFormKey.FromChain} />
@@ -141,6 +142,9 @@ const CreateSwap = () => {
                 isOpen={isTokenSelectorOpen}
                 type={tokenSelectorType}
               />
+              <div>
+                <SwapDetails />
+              </div>
               <div className="pt-4">
                 <CreateSwapButtons isLoading={isLoading} />
               </div>
