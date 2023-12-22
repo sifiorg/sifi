@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useAccount } from 'wagmi';
 
 const fetchPoints = async (address: `0x${string}`) => {
@@ -28,12 +28,4 @@ const useResearchPoints = () => {
   );
 };
 
-const useRefetchResearchPoints = () => {
-  const queryClient = useQueryClient();
-
-  const refetchResearchPoints = () => queryClient.invalidateQueries([RESERACH_POINTS_QUERY_KEY]);
-
-  return { refetchResearchPoints };
-};
-
-export { useResearchPoints, useRefetchResearchPoints };
+export { useResearchPoints };
