@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ETH_CONTRACT_ADDRESS } from 'src/constants';
 import { useQuote } from './useQuote';
 import { useUsdValue } from './useUsdValue';
@@ -25,19 +25,19 @@ const useGasFee = () => {
     getGasPrice();
   }, [publicClient]);
 
-  const getTotalGasCostEther = () => {
-    if (!gasPriceWei || !quote?.estimatedGas) return null;
+  const totalGasCostEther = useMemo(() => {
+    if (!gasPriceWei || !quote?.estimatedGas) return '';
 
     const totalGasCostWei = quote.estimatedGas * gasPriceWei;
     const totalGasCostEther = Number(totalGasCostWei) / 1e18;
 
-    return totalGasCostEther;
-  };
+    return totalGasCostEther.toString();
+  }, [gasPriceWei, quote?.estimatedGas]);
 
   const fetchedGasFeeEstimateUsd = useUsdValue({
     address: ETH_CONTRACT_ADDRESS,
     chainId: fromChain.id,
-    amount: String(getTotalGasCostEther() || ''),
+    amount: totalGasCostEther,
   });
 
   useEffect(() => {
