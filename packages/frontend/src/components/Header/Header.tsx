@@ -3,6 +3,7 @@ import { Navbar } from '@sifi/shared-ui';
 import { ReactComponent as LogoWhite } from 'src/assets/logoWhite.svg';
 import HeaderMenu from '../HeaderMenu/HeaderMenu';
 import { Link } from '../Link/Link';
+import { ResearchPoints } from '../ResarchPoints/ResearchPoints';
 
 const Logo = () => <LogoWhite alt="Sifi logo" className="max-h-[2rem]" />;
 
@@ -21,11 +22,13 @@ const navLinks = [
 
 const Header: FunctionComponent = () => {
   return (
-    <>
+    <div>
       <Navbar LinkComponent={Link} Logo={Logo} navLinks={navLinks}>
         <HeaderMenu />
       </Navbar>
-    </>
+
+      <ResearchPoints />
+    </div>
   );
 };
 
