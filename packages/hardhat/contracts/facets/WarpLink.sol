@@ -991,7 +991,7 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     }
 
     // Enforce minimum amount/max slippage
-    if (amountOut < LibWarp.applySlippage(params.amountOut, params.slippageBps)) {
+    if (amountOut == 0 || amountOut < LibWarp.applySlippage(params.amountOut, params.slippageBps)) {
       revert InsufficientOutputAmount();
     }
 
