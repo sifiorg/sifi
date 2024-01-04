@@ -4,6 +4,7 @@ import { useQuote } from './useQuote';
 import { useUsdValue } from './useUsdValue';
 import { useSwapFormValues } from './useSwapFormValues';
 import { usePublicClient } from 'wagmi';
+import { formatEther } from 'viem';
 
 const useGasFee = () => {
   const { quote } = useQuote();
@@ -29,9 +30,9 @@ const useGasFee = () => {
     if (!gasPriceWei || !quote?.estimatedGas) return '';
 
     const totalGasCostWei = quote.estimatedGas * gasPriceWei;
-    const totalGasCostEther = Number(totalGasCostWei) / 1e18;
+    const totalGasCostEther = formatEther(totalGasCostWei);
 
-    return totalGasCostEther.toString();
+    return totalGasCostEther;
   }, [gasPriceWei, quote?.estimatedGas]);
 
   const fetchedGasFeeEstimateUsd = useUsdValue({
