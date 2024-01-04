@@ -11,7 +11,6 @@ const useGasFee = () => {
   const { fromChain } = useSwapFormValues();
   const publicClient = usePublicClient({ chainId: fromChain.id });
   const [gasPriceWei, setGasPriceWei] = useState<bigint | null>(null);
-  const [gasFeeEstimateUsd, setGasFeeEstimateUsd] = useState<string | null>(null);
 
   useEffect(() => {
     const getGasPrice = async () => {
@@ -41,12 +40,8 @@ const useGasFee = () => {
     amount: totalGasCostEther,
   });
 
-  useEffect(() => {
-    setGasFeeEstimateUsd(fetchedGasFeeEstimateUsd);
-  }, [quote]);
-
   return {
-    gasFeeEstimateUsd: quote ? gasFeeEstimateUsd : null,
+    gasFeeEstimateUsd: quote ? fetchedGasFeeEstimateUsd : null,
   };
 };
 
