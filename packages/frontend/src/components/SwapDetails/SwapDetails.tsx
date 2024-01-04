@@ -15,9 +15,10 @@ const GasFee = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="flex items-center"
+              className="flex items-center text-sm"
             >
-              <GasIcon className="fill-smoke w-5 h-5 mr-2" /> ${gasFeeEstimateUsd}
+              <GasIcon className="fill-smoke w-4 h-4 mr-2" />
+              <span className="min-w-[7rem]">${gasFeeEstimateUsd}</span>
             </motion.div>
           )}
         </AnimatePresence>
