@@ -14,7 +14,7 @@ const GasFee = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.1 }}
               className="flex items-center text-sm"
             >
               <GasIcon className="fill-smoke w-4 h-4 mr-2" />
