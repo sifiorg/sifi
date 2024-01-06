@@ -22,6 +22,7 @@ library LibWarp {
     IWETH weth;
     IPermit2 permit2;
     IStargateComposer stargateComposer;
+    uint256 unusedEnergyShieldLegacy;
     IEnergyShield energyShield;
   }
 
