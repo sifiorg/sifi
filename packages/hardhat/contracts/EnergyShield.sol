@@ -151,4 +151,9 @@ contract EnergyShield is Ownable, IEnergyShield {
       IERC20(token).safeTransfer(msg.sender, IERC20(token).balanceOf(address(this)));
     }
   }
+
+  /**
+   * Allow receiving ETH
+   */
+  receive() external payable {}
 }

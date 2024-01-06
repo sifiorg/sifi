@@ -209,6 +209,50 @@ contract StatelessMainnetTest is StatelessTestBase {
 
     assertEq(Mainnet.DAI.balanceOf(user), 1991846446632959177237 - 3983692893265918354);
   }
+
+  function testFork_singlePermit_wethWithdraw() public {
+    uint256 amountIn = 1 ether;
+
+    deal(address(Mainnet.WETH), user, amountIn);
+
+    vm.prank(user);
+    Mainnet.WETH.forceApprove(address(Addresses.PERMIT2), amountIn);
+
+    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle(
+      IAllowanceTransfer.PermitDetails({
+        token: address(Mainnet.WETH),
+        amount: (uint160)(amountIn),
+        expiration: deadline,
+        nonce: 0
+      }),
+      address(diamond),
+      deadline
+    );
+
+    bytes memory sig = getPermitSignature(permit, privateKey, permit2.DOMAIN_SEPARATOR());
+
+    vm.prank(user);
+    facet.warpStatelessSinglePermit(
+      IStateless.SingleParams({
+        amountIn: amountIn,
+        amountOut: 1 ether,
+        recipient: user,
+        slippageBps: 50,
+        feeBps: 20,
+        deadline: (uint48)(deadline),
+        partner: address(0),
+        tokenIn: address(Mainnet.WETH),
+        tokenOut: address(0),
+        target: address(Mainnet.WETH),
+        data: abi.encodeWithSelector(IWETH.withdraw.selector, amountIn),
+        push: false,
+        delivers: false
+      }),
+      PermitParams({nonce: permit.details.nonce, signature: sig})
+    );
+
+    assertEq(address(user).balance, 0.998 ether);
+  }
 }
 
 contract StatelessOptimismTest is StatelessTestBase {
