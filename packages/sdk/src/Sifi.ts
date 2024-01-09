@@ -23,12 +23,141 @@ export type GetQuoteOptions = {
   fromAmount: bigint | string;
 };
 
+type QuoteSifiActionBase<Type extends string> = {
+  type: Type;
+  fromToken: string;
+  toToken: string;
+};
+
+export type QuoteSifiWarpUniV2Action = QuoteSifiActionBase<'warpUniV2'> & {
+  pools: string[]; // Included because WarpLink has no UniV2 command yet
+  tokens: string[]; // From token, ...intermediary tokens, to token
+  exchange: 'UniswapV2';
+};
+
+export type QuoteSifiWarpUniV2LikeAction = QuoteSifiActionBase<'warpUniV2Like'> & {
+  pools: string[];
+  poolFeesBps: bigint[];
+  tokens: string[]; // From token, ...intermediary tokens, to token
+  exchange: string;
+};
+
+export type QuoteSifiWarpUniV3LikeAction = QuoteSifiActionBase<'warpUniV3Like'> & {
+  pools: string[];
+  tokens: string[]; // From token, ...intermediary tokens, to token
+  exchange: string;
+};
+
+export type QuoteSifiWarpCurveAction = QuoteSifiActionBase<'warpCurve'> & {
+  kind: number;
+  pool: string;
+  fromTokenIndex: number; // i
+  toTokenIndex: number; // j
+  underlying: boolean;
+  exchange: string;
+};
+
+export type QuoteSifiSplitAction = QuoteSifiActionBase<'split'> & {
+  parts: QuoteSifiElement[];
+};
+
+export type QuoteSifiJumpStargateAction = QuoteSifiActionBase<'jumpStargate'> & {
+  dstChainId: number;
+  srcPoolId: number;
+  dstPoolId: number;
+  /**
+   * Amount of native tokens required to pay the LayerZero, and optionally the gas
+   * fee to engage WarpLink on the other chain. Obtained with `IStargateComposer.quoteLayerZeroFee`
+   */
+  lzFee?: bigint;
+  /**
+   * Optional post-jump WarpLink engage parameters
+   */
+  dstWarpLinkEngage?: {
+    /**
+     * Actions to run after jumping to the destination chain
+     */
+    element: QuoteSifiElement;
+    /**
+     * Quoted output amount after running the post-jump WarpLink engage
+     */
+    amountOut: bigint;
+    gasForCall?: bigint;
+  };
+  exchange: 'Stargate';
+};
+
+export type QuoteSifiElement = {
+  shareBps: bigint;
+  fromToken: string;
+  toToken: string;
+  actions: EitherQuoteSifiAction[];
+};
+
+export type QuoteSifiWarpWoofiV2Action = QuoteSifiActionBase<'warpWooFiV2'> & {
+  pools: string[];
+};
+
+export type QuoteSifiWarpBalancerV2Action = QuoteSifiActionBase<'warpBalancerV2'> & {
+  pools: string[];
+  poolIds: string[];
+};
+
+export type QuoteSifiWarpNerveAction = QuoteSifiActionBase<'warpNerve'> & {
+  tokenIndexFrom: number;
+  tokenIndexTo: number;
+  router: string;
+};
+
+export type EitherQuoteSifiAction =
+  | QuoteSifiWarpUniV2Action
+  | QuoteSifiWarpUniV2LikeAction
+  | QuoteSifiSplitAction
+  | QuoteSifiWarpUniV3LikeAction
+  | QuoteSifiWarpCurveAction
+  | QuoteSifiJumpStargateAction
+  | QuoteSifiWarpWoofiV2Action
+  | QuoteSifiWarpBalancerV2Action
+  | QuoteSifiWarpNerveAction;
+
+export const sifiContractMethod = {
+  uniswapV2ExactInputSingle: 'uniswapV2ExactInputSingle',
+  uniswapV2ExactInput: 'uniswapV2ExactInput',
+  uniswapV2LikeExactInputSingle: 'uniswapV2LikeExactInputSingle',
+  uniswapV2LikeExactInput: 'uniswapV2LikeExactInput',
+  uniswapV3LikeExactInputSingle: 'uniswapV3LikeExactInputSingle',
+  uniswapV3LikeExactInput: 'uniswapV3LikeExactInput',
+  curveExactInputSingle: 'curveExactInputSingle',
+  stargateJumpNative: 'stargateJumpNative',
+  stargateJumpToken: 'stargateJumpToken',
+  warpLinkEngage: 'warpLinkEngage',
+  warpStateless: 'warpStateless',
+} as const;
+
+export type SifiContractMethod = (typeof sifiContractMethod)[keyof typeof sifiContractMethod];
+
+export type QuoteSifi = {
+  contractMethod: SifiContractMethod;
+  element: QuoteSifiElement;
+};
+
+export type QuoteSource =
+  | {
+      name: 'sifi';
+      quote: QuoteSifi;
+    }
+  | {
+      name: 'paraswap';
+      quote: {};
+    };
+
 export type Quote = {
   fromAmount: bigint;
   fromToken: Token;
   toToken: Token;
   toAmount: bigint;
   estimatedGas: bigint;
+  source: QuoteSource;
   /**
    * The address of the Permit2 contract to use, or undefined if not using Permit2 or if moving the native token.
    */
@@ -41,10 +170,6 @@ export type Quote = {
    */
   approveAddress?: string;
   toAmountAfterFeesUsd: string;
-  source: {
-    name: string;
-    data: unknown;
-  };
 };
 
 export type GetSwapOptions = {
@@ -187,7 +312,7 @@ export class Sifi {
 
     const query = new URLSearchParams(params).toString();
 
-    const response = (await fetch(`${this.baseUrl}quote?${query}`).then(handleResponse)) as any;
+    const response = (await fetch(`${this.baseUrl}quote?${query}`).then(handleResponse)) as Quote;
 
     return {
       fromAmount: BigInt(response.fromAmount),
@@ -203,13 +328,13 @@ export class Sifi {
   }
 
   async getSwap(options: GetSwapOptions): Promise<Swap> {
-    const response = (await fetch(`${this.baseUrl}swap`, {
+    const response = await fetch(`${this.baseUrl}swap`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: serializeJson(options),
-    }).then(handleResponse)) as any;
+    }).then(handleResponse);
     return {
       tx: response.tx,
       estimatedGasTotalUsd: response.estimatedGasTotalUsd,
