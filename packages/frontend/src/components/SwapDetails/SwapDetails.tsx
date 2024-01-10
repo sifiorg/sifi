@@ -87,60 +87,60 @@ const GasFee = () => {
 const Path = () => {
   const { quote } = useQuote();
 
-  if (quote && 'element' in quote.source.quote && quote.source.quote.element.actions) {
-    let steps: Step[] = [];
-
-    quote.source.quote.element.actions.forEach(action => {
-      if (action.type === 'split') {
-        action.parts.forEach(part => {
-          part.actions.forEach(partAction => {
-            const icon = getIconForExchange(partAction);
-            const exchangeName = getExchangeName(partAction);
-
-            if (!icon || !exchangeName) return;
-
-            steps.push({ icon, exchangeName });
-          });
-        });
-      } else {
-        const icon = getIconForExchange(action);
-        const exchangeName = getExchangeName(action);
-
-        if (!icon || !exchangeName) return;
-
-        steps.push({ icon, exchangeName });
-      }
-    });
-
-    // The UI can only fit 6 steps
-    steps = steps.slice(-6);
-
-    return (
-      <AnimatePresence>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.1 }}
-          className="flex items-center"
-        >
-          {steps.map((step, index) => (
-            <div key={index}>
-              <div className="flex text-sm items-center">
-                {step.icon && <div className="mx-1">{step.icon}</div>}
-                {step.exchangeName && steps.length < 4 && (
-                  <div className="hidden xs:block ml-1">{step.exchangeName}</div>
-                )}
-                {step.icon && index !== steps.length - 1 && <ArrowRight className="w-4 mx-1" />}
-              </div>
-            </div>
-          ))}
-        </motion.div>
-      </AnimatePresence>
-    );
+  if (!quote || !('element' in quote.source.quote) || !quote.source.quote.element.actions) {
+    return null;
   }
 
-  return null;
+  let steps: Step[] = [];
+
+  quote.source.quote.element.actions.forEach(action => {
+    if (action.type === 'split') {
+      action.parts.forEach(part => {
+        part.actions.forEach(partAction => {
+          const icon = getIconForExchange(partAction);
+          const exchangeName = getExchangeName(partAction);
+
+          if (!icon || !exchangeName) return;
+
+          steps.push({ icon, exchangeName });
+        });
+      });
+    } else {
+      const icon = getIconForExchange(action);
+      const exchangeName = getExchangeName(action);
+
+      if (!icon || !exchangeName) return;
+
+      steps.push({ icon, exchangeName });
+    }
+  });
+
+  // The UI can only fit 6 steps
+  steps = steps.slice(-6);
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.1 }}
+        className="flex items-center"
+      >
+        {steps.map((step, index) => (
+          <div key={index}>
+            <div className="flex text-sm items-center">
+              {step.icon && <div className="mx-1">{step.icon}</div>}
+              {step.exchangeName && steps.length < 4 && (
+                <div className="hidden xs:block ml-1">{step.exchangeName}</div>
+              )}
+              {step.icon && index !== steps.length - 1 && <ArrowRight className="w-4 mx-1" />}
+            </div>
+          </div>
+        ))}
+      </motion.div>
+    </AnimatePresence>
+  );
 };
 
 const SwapDetails = () => {
