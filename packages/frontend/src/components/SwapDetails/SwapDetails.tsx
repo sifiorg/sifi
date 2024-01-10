@@ -40,7 +40,7 @@ const getIconForExchange = (action: EitherQuoteSifiAction) => {
   return null;
 };
 
-const getExhangeName = (action: EitherQuoteSifiAction): string | null => {
+const getExchangeName = (action: EitherQuoteSifiAction): string | null => {
   if ('exchange' in action) {
     const exchange = action.exchange.toLowerCase();
 
@@ -95,7 +95,7 @@ const Path = () => {
         action.parts.forEach(part => {
           part.actions.forEach(partAction => {
             const icon = getIconForExchange(partAction);
-            const exchangeName = getExhangeName(partAction);
+            const exchangeName = getExchangeName(partAction);
 
             if (!icon || !exchangeName) return;
 
@@ -104,7 +104,7 @@ const Path = () => {
         });
       } else {
         const icon = getIconForExchange(action);
-        const exchangeName = getExhangeName(action);
+        const exchangeName = getExchangeName(action);
 
         if (!icon || !exchangeName) return;
 
