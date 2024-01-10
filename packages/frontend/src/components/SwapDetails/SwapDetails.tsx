@@ -8,47 +8,44 @@ import { ReactComponent as CurveIcon } from 'src/assets/bridges/curve.svg';
 import { ReactComponent as StargateIcon } from 'src/assets/bridges/stargate.svg';
 import { ReactComponent as ArrowRight } from 'src/assets/arrow-right.svg';
 
-type ExchangeDetails = {
-  [key: string]: { icon: JSX.Element; name: string } | undefined;
+type StepDetails = {
+  [key: string]: { icon: JSX.Element; name: string };
 };
 
 type Step = {
-  icon: JSX.Element | null;
-  exchangeName: string | null;
+  icon: JSX.Element;
+  name: string;
 };
 
 const iconClassName = 'w-4 h-4 border-smoke border rounded-full';
 
-const exchangeDetails: ExchangeDetails = {
+const stepDetails: StepDetails = {
   uniswap: { icon: <UniswapIcon className={iconClassName} />, name: 'Uniswap' },
   stargate: { icon: <StargateIcon className={iconClassName} />, name: 'Stargate' },
   curve: { icon: <CurveIcon className={iconClassName} />, name: 'Curve' },
 };
 
-const getIconForExchange = (action: EitherQuoteSifiAction) => {
-  if ('exchange' in action) {
-    const exchange = action.exchange.toLowerCase();
-
-    for (let key in exchangeDetails) {
-      const regex = new RegExp(key, 'i');
-
-      if (regex.test(exchange)) {
-        return exchangeDetails[key]?.icon || null;
-      }
-    }
-  }
-  return null;
+type StepInfo = {
+  icon: JSX.Element;
+  name: string;
 };
 
-const getExchangeName = (action: EitherQuoteSifiAction): string | null => {
+const getStepDetailsFromAction = (action: EitherQuoteSifiAction): StepInfo | null => {
   if ('exchange' in action) {
     const exchange = action.exchange.toLowerCase();
 
-    for (let key in exchangeDetails) {
+    for (let key in stepDetails) {
       const regex = new RegExp(key, 'i');
 
       if (regex.test(exchange)) {
-        return exchangeDetails[key]?.name || null;
+        const detail = stepDetails[key];
+
+        if (detail) {
+          return {
+            icon: detail.icon,
+            name: detail.name,
+          };
+        }
       }
     }
   }
@@ -97,21 +94,19 @@ const Path = () => {
     if (action.type === 'split') {
       action.parts.forEach(part => {
         part.actions.forEach(partAction => {
-          const icon = getIconForExchange(partAction);
-          const exchangeName = getExchangeName(partAction);
+          const step = getStepDetailsFromAction(partAction);
 
-          if (!icon || !exchangeName) return;
+          if (!step) return;
 
-          steps.push({ icon, exchangeName });
+          steps.push(step);
         });
       });
     } else {
-      const icon = getIconForExchange(action);
-      const exchangeName = getExchangeName(action);
+      const step = getStepDetailsFromAction(action);
 
-      if (!icon || !exchangeName) return;
+      if (!step) return;
 
-      steps.push({ icon, exchangeName });
+      steps.push(step);
     }
   });
 
@@ -131,8 +126,8 @@ const Path = () => {
           <div key={index}>
             <div className="flex text-sm items-center">
               {step.icon && <div className="mx-1">{step.icon}</div>}
-              {step.exchangeName && steps.length < 4 && (
-                <div className="hidden xs:block ml-1">{step.exchangeName}</div>
+              {step.name && steps.length < 4 && (
+                <div className="hidden xs:block ml-1">{step.name}</div>
               )}
               {step.icon && index !== steps.length - 1 && <ArrowRight className="w-4 mx-1" />}
             </div>
