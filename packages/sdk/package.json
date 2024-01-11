@@ -1,6 +1,6 @@
 {
   "name": "@sifi/sdk",
-  "version": "1.11.0",
+  "version": "1.12.0",
   "license": "MIT",
   "description": "🛸 SDK for integrating with Sifi.org",
   "repository": {
