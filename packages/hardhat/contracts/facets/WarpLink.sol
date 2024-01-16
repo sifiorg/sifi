@@ -142,6 +142,25 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     }
   }
 
+  /**
+   * Moves `t.amount` of `t.token` to this contract if `t.payer` is not this contract.
+   * If `t.token` is the native token, no checks are made/actions taken.
+   */
+  function moveTokensToContract(TransientState memory t) internal {
+    if (t.payer != address(this) && t.token != address(0)) {
+      if (t.usePermit == 1) {
+        // Transfer tokens from the sender to this contract
+        LibWarp.state().permit2.transferFrom(t.payer, address(this), (uint160)(t.amount), t.token);
+      } else {
+        // NOTE: `t.usePermit` is left as 1
+        IERC20(t.token).safeTransferFrom(t.payer, address(this), t.amount);
+      }
+
+      // Update the payer to this contract
+      t.payer = address(this);
+    }
+  }
+
   function processSplit(
     uint256 stream,
     TransientState memory t
@@ -251,25 +270,11 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       revert UnexpectedTokenForUnwrap();
     }
 
-    address prevPayer = t.payer;
-    bool shouldMoveTokensFirst = prevPayer != address(this);
-
-    if (shouldMoveTokensFirst) {
-      t.payer = address(this);
-    }
-
-    t.token = address(0);
-
-    if (shouldMoveTokensFirst) {
-      if (t.usePermit == 1) {
-        s.permit2.transferFrom(prevPayer, address(this), (uint160)(t.amount), address(s.weth));
-      } else {
-        // NOTE: `t.usePermit` is left as 1
-        IERC20(address(s.weth)).transferFrom(prevPayer, address(this), t.amount);
-      }
-    }
+    moveTokensToContract(t);
 
     s.weth.withdraw(t.amount);
+
+    t.token = address(0);
 
     return t;
   }
@@ -656,18 +661,7 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     bool isFromEth = t.token == address(0);
     bool isToEth = params.tokenOut == address(0);
 
-    if (t.payer != address(this)) {
-      if (t.usePermit == 1) {
-        // Transfer tokens from the sender to this contract
-        LibWarp.state().permit2.transferFrom(t.payer, address(this), (uint160)(t.amount), t.token);
-      } else {
-        // NOTE: `t.usePermit` is left as 1
-        IERC20(t.token).safeTransferFrom(t.payer, address(this), t.amount);
-      }
-
-      // Update the payer to this contract
-      t.payer = address(this);
-    }
+    moveTokensToContract(t);
 
     uint256 balancePrev = isToEth
       ? address(this).balance
@@ -862,26 +856,9 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
 
     IStargateComposer stargateComposer = LibWarp.state().stargateComposer;
 
+    moveTokensToContract(t);
+
     if (t.token != address(0)) {
-      if (t.payer != address(this)) {
-        if (t.usePermit == 1) {
-          // Transfer tokens from the sender to this contract
-          LibWarp.state().permit2.transferFrom(
-            t.payer,
-            address(this),
-            (uint160)(t.amount),
-            t.token
-          );
-        } else {
-          // NOTE: `t.usePermit` is left as 1
-          IERC20(t.token).safeTransferFrom(t.payer, address(this), t.amount);
-        }
-
-        // Update the payer to this contract
-        // TODO: Is this value ever read?
-        t.payer = address(this);
-      }
-
       // Allow Stargate to transfer the tokens. When there is a payload, the composer is used, else the router
       IERC20(t.token).forceApprove(
         params.payload.length == 0 ? stargateComposer.stargateRouter() : address(stargateComposer),
