@@ -143,22 +143,36 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
   }
 
   /**
+   * Moves `t.amount` of `t.token` to `to` if `t.payer` is not this contract.
+   * When `t.token` is the native token, no actions are taken.
+   * `t.payer`  and `t.usePermit` are left unchanged.
+   */
+  function moveTokensTo(TransientState memory t, address to) internal {
+    if (t.payer == address(this)) {
+      if (t.token != address(0)) {
+        IERC20(t.token).safeTransfer(to, t.amount);
+      }
+    } else {
+      // Transfer tokens from the sender
+      if (t.usePermit == 1) {
+        // NOTE: `t.usePermit` is left as 1
+        LibWarp.state().permit2.transferFrom(t.payer, to, uint160(t.amount), t.token);
+      } else {
+        IERC20(t.token).safeTransferFrom(t.payer, to, t.amount);
+      }
+    }
+  }
+
+  /**
    * Moves `t.amount` of `t.token` to this contract if `t.payer` is not this contract.
    * If `t.token` is the native token, no checks are made/actions taken.
+   * `t.payer` is set to this contract.
    */
   function moveTokensToContract(TransientState memory t) internal {
-    if (t.payer != address(this) && t.token != address(0)) {
-      if (t.usePermit == 1) {
-        // Transfer tokens from the sender to this contract
-        LibWarp.state().permit2.transferFrom(t.payer, address(this), (uint160)(t.amount), t.token);
-      } else {
-        // NOTE: `t.usePermit` is left as 1
-        IERC20(t.token).safeTransferFrom(t.payer, address(this), t.amount);
-      }
+    moveTokensTo(t, address(this));
 
-      // Update the payer to this contract
-      t.payer = address(this);
-    }
+    // Update the payer to this contract
+    t.payer = address(this);
   }
 
   function processSplit(
@@ -947,33 +961,7 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
 
     IEnergyShield energyShield = LibWarp.state().energyShield;
 
-    // Transfer tokens from the sender to this contract when `params.push` is true, else to the target
-    // Native tokens are never pushed to the target, but included as value in the call
-    if (t.payer == address(this)) {
-      if (t.token != address(0)) {
-        IERC20(t.token).safeTransfer(params.push ? params.target : address(energyShield), t.amount);
-      }
-    } else {
-      // Transfer tokens from the sender to the energy shield
-      if (t.usePermit == 1) {
-        // NOTE: `t.usePermit` is left as 1
-        LibWarp.state().permit2.transferFrom(
-          t.payer,
-          params.push ? params.target : address(energyShield),
-          uint160(t.amount),
-          t.token
-        );
-      } else {
-        IERC20(t.token).safeTransferFrom(
-          t.payer,
-          params.push ? params.target : address(energyShield),
-          t.amount
-        );
-      }
-
-      // Update the payer to this contract
-      t.payer = address(this);
-    }
+    moveTokensTo(t, params.push ? params.target : address(energyShield));
 
     // NOTE: The EnergyShield is trusted to report the correct output amount
     t.amount = LibWarp.state().energyShield.single{value: t.token == address(0) ? t.amount : 0}(
@@ -986,6 +974,7 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     );
 
     t.token = params.tokenOut;
+    t.payer = address(this);
 
     return t;
   }
@@ -1060,36 +1049,7 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
 
     IEnergyShield energyShield = LibWarp.state().energyShield;
 
-    // Transfer tokens from the sender to this contract when `params.push` is true, else to the target
-    // Native tokens are never pushed to the target, but included as value in the call
-    if (t.payer == address(this)) {
-      if (t.token != address(0)) {
-        IERC20(t.token).safeTransfer(
-          params.push ? params.targets[0] : address(energyShield),
-          t.amount
-        );
-      }
-    } else {
-      // Transfer tokens from the sender to the energy shield
-      if (t.usePermit == 1) {
-        // NOTE: `t.usePermit` is left as 1
-        LibWarp.state().permit2.transferFrom(
-          t.payer,
-          params.push ? params.targets[0] : address(energyShield),
-          uint160(t.amount),
-          t.token
-        );
-      } else {
-        IERC20(t.token).safeTransferFrom(
-          t.payer,
-          params.push ? params.targets[0] : address(energyShield),
-          t.amount
-        );
-      }
-
-      // Update the payer to this contract
-      t.payer = address(this);
-    }
+    moveTokensTo(t, params.push ? params.targets[0] : address(energyShield));
 
     // NOTE: The EnergyShield is trusted to report the correct output amount
     t.amount = LibWarp.state().energyShield.multi{value: t.token == address(0) ? t.amount : 0}(
@@ -1103,6 +1063,7 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     );
 
     t.token = params.tokenOut;
+    t.payer = address(this);
 
     return t;
   }
