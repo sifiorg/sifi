@@ -3,6 +3,7 @@ import { Menu, useWalletBranding } from '@sifi/shared-ui';
 import { useAccount, useDisconnect, useEnsName, useNetwork } from 'wagmi';
 import { formatAddress, formatEnsName } from 'src/utils';
 import { Link } from '../Link/Link';
+import { useSwapHistory } from 'src/providers/SwapHistoryProvider';
 
 const HeaderMenu: FunctionComponent = () => {
   const { address, isConnected } = useAccount();
@@ -10,12 +11,17 @@ const HeaderMenu: FunctionComponent = () => {
   const { chain } = useNetwork();
   const { disconnect } = useDisconnect();
   const { icon, text } = useWalletBranding();
+  const { toggleHistoryModal } = useSwapHistory();
 
   if (!address || !isConnected) return null;
 
   const label = ensName ? formatEnsName(ensName) : formatAddress(address);
 
   const menuLinks = [
+    {
+      title: 'Swap History',
+      onClick: () => toggleHistoryModal(),
+    },
     {
       title: 'Dashboard',
       href: '/dashboard',
