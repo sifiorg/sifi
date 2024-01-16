@@ -1175,11 +1175,9 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     return t;
   }
 
-  function warpLinkEngage(Params calldata params) external payable {
-    if (block.timestamp > params.deadline) {
-      revert DeadlineExpired();
-    }
-
+  function createTransientStateFromParams(
+    Params calldata params
+  ) internal pure returns (TransientState memory) {
     TransientState memory t;
     t.paramPartner = params.partner;
     t.paramFeeBps = params.feeBps;
@@ -1192,6 +1190,16 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     t.paramDeadline = params.deadline;
     t.amount = params.amountIn;
     t.token = params.tokenIn;
+
+    return t;
+  }
+
+  function warpLinkEngage(Params calldata params) external payable {
+    if (block.timestamp > params.deadline) {
+      revert DeadlineExpired();
+    }
+
+    TransientState memory t = createTransientStateFromParams(params);
 
     if (params.tokenIn == address(0)) {
       if (msg.value < params.amountIn) {
@@ -1265,18 +1273,8 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     Params calldata params,
     PermitParams calldata permit
   ) external payable {
-    TransientState memory t;
-    t.paramPartner = params.partner;
-    t.paramFeeBps = params.feeBps;
-    t.paramSlippageBps = params.slippageBps;
-    t.paramRecipient = params.recipient;
-    t.paramTokenIn = params.tokenIn;
-    t.paramAmountIn = params.amountIn;
-    t.paramAmountOut = params.amountOut;
-    t.paramSlippageBps = params.slippageBps;
-    t.paramDeadline = params.deadline;
-    t.amount = params.amountIn;
-    t.token = params.tokenIn;
+    TransientState memory t = createTransientStateFromParams(params);
+
     t.usePermit = 1;
 
     // Tokens will initially moved from the sender
