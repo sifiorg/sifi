@@ -1194,29 +1194,11 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     return t;
   }
 
-  function warpLinkEngage(Params calldata params) external payable {
-    if (block.timestamp > params.deadline) {
-      revert DeadlineExpired();
-    }
-
-    TransientState memory t = createTransientStateFromParams(params);
-
-    if (params.tokenIn == address(0)) {
-      if (msg.value < params.amountIn) {
-        revert InsufficientEthValue();
-      }
-
-      t.nativeValueRemaining = msg.value - params.amountIn;
-
-      // The ETH has already been moved to this contract
-      t.payer = address(this);
-    } else {
-      // Tokens will initially moved from the sender
-      t.payer = msg.sender;
-
-      t.nativeValueRemaining = msg.value;
-    }
-
+  /**
+   * Shared logic for `warpLinkEngage` and `warpLinkEngagePermit` to be run once the `TransientState`
+   * has been initialized.
+   */
+  function warpLinkEngageRoot(Params calldata params, TransientState memory t) internal {
     uint256 stream = Stream.createStream(params.commands);
 
     t = engageInternal(stream, t);
@@ -1269,6 +1251,32 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     emit LibWarp.Warp(params.partner, params.tokenIn, params.tokenOut, params.amountIn, amountOut);
   }
 
+  function warpLinkEngage(Params calldata params) external payable {
+    if (block.timestamp > params.deadline) {
+      revert DeadlineExpired();
+    }
+
+    TransientState memory t = createTransientStateFromParams(params);
+
+    if (params.tokenIn == address(0)) {
+      if (msg.value < params.amountIn) {
+        revert InsufficientEthValue();
+      }
+
+      t.nativeValueRemaining = msg.value - params.amountIn;
+
+      // The ETH has already been moved to this contract
+      t.payer = address(this);
+    } else {
+      // Tokens will initially moved from the sender
+      t.payer = msg.sender;
+
+      t.nativeValueRemaining = msg.value;
+    }
+
+    warpLinkEngageRoot(params, t);
+  }
+
   function warpLinkEngagePermit(
     Params calldata params,
     PermitParams calldata permit
@@ -1298,51 +1306,6 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       permit.signature
     );
 
-    uint256 stream = Stream.createStream(params.commands);
-
-    t = engageInternal(stream, t);
-
-    uint256 amountOut = t.amount;
-    address tokenOut = t.token;
-
-    if (tokenOut != params.tokenOut) {
-      revert UnexpectedTokenOut();
-    }
-
-    // Enforce minimum amount/max slippage
-    if (amountOut == 0 || amountOut < LibWarp.applySlippage(params.amountOut, params.slippageBps)) {
-      revert InsufficientOutputAmount();
-    }
-
-    if (t.jumped == 1) {
-      // The coins have jumped away from this chain. Fees are colelcted before
-      // the jump or on the other chain.
-      //
-      // `t.nativeValueRemaining` is not checked since it should be zero
-      return;
-    }
-
-    emit LibWarp.Warp(params.partner, params.tokenIn, params.tokenOut, params.amountIn, amountOut);
-
-    // Collect fees
-    amountOut = LibStarVault.calculateAndRegisterFee(
-      params.partner,
-      params.tokenOut,
-      params.feeBps,
-      params.amountOut,
-      amountOut
-    );
-
-    // Deliver tokens
-    if (tokenOut == address(0)) {
-      payable(params.recipient).transfer(amountOut);
-    } else {
-      IERC20(tokenOut).safeTransfer(params.recipient, amountOut);
-    }
-
-    if (t.nativeValueRemaining > 0) {
-      // TODO: Is this the correct recipient?
-      payable(msg.sender).transfer(t.nativeValueRemaining);
-    }
+    warpLinkEngageRoot(params, t);
   }
 }
