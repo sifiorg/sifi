@@ -127,6 +127,21 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     uint256 nativeValueRemaining;
   }
 
+  /**
+   * Reverts with `InsufficientTokensDelivered` if less than `amount` tokens were delivered
+   */
+  function ensureDeliveredTokens(
+    uint256 amount,
+    uint256 balancePrev,
+    uint256 balanceNext
+  ) internal pure {
+    unchecked {
+      if (balanceNext < balancePrev || balanceNext < balancePrev + amount) {
+        revert InsufficientTokensDelivered();
+      }
+    }
+  }
+
   function processSplit(
     uint256 stream,
     TransientState memory t
@@ -333,11 +348,7 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       ''
     );
 
-    uint256 balanceNext = IERC20(params.tokenOut).balanceOf(address(this));
-
-    if (balanceNext < balancePrev || balanceNext < balancePrev + t.amount) {
-      revert InsufficientTokensDelivered();
-    }
+    ensureDeliveredTokens(t.amount, balancePrev, IERC20(params.tokenOut).balanceOf(address(this)));
 
     t.token = params.tokenOut;
 
@@ -387,7 +398,7 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
     params.pools = stream.readAddresses(poolLength);
     params.poolFeesBps = stream.readUint16s(poolLength);
 
-    uint256 tokenOutBalancePrev = IERC20(params.tokens[poolLength]).balanceOf(address(this));
+    uint256 balancePrev = IERC20(params.tokens[poolLength]).balanceOf(address(this));
 
     uint256[] memory amounts = LibUniV2Like.getAmountsOut(
       params.poolFeesBps,
@@ -435,17 +446,13 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       }
     }
 
-    uint256 nextTokenOutBalance = IERC20(params.tokens[poolLength]).balanceOf(address(this));
-
     t.amount = amounts[amounts.length - 1];
 
-    if (
-      // TOOD: Is this overflow check necessary?
-      nextTokenOutBalance < tokenOutBalancePrev ||
-      nextTokenOutBalance < tokenOutBalancePrev + t.amount
-    ) {
-      revert InsufficientTokensDelivered();
-    }
+    ensureDeliveredTokens(
+      t.amount,
+      balancePrev,
+      IERC20(params.tokens[poolLength]).balanceOf(address(this))
+    );
 
     t.token = params.tokens[poolLength];
 
@@ -518,11 +525,7 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
 
     LibUniV3Like.afterCallback();
 
-    uint256 balanceNext = IERC20(params.tokenOut).balanceOf(address(this));
-
-    if (balanceNext < balancePrev || balanceNext < balancePrev + t.amount) {
-      revert InsufficientTokensDelivered();
-    }
+    ensureDeliveredTokens(t.amount, balancePrev, IERC20(params.tokenOut).balanceOf(address(this)));
 
     t.token = params.tokenOut;
 
@@ -563,7 +566,7 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
 
     address lastToken = params.tokens[poolLength - 1];
 
-    uint256 tokenOutBalancePrev = IERC20(lastToken).balanceOf(address(this));
+    uint256 balancePrev = IERC20(lastToken).balanceOf(address(this));
 
     for (uint index; index < poolLength; ) {
       address tokenIn = index == 0 ? t.token : params.tokens[index - 1]; // TOOD: unchecked
@@ -616,15 +619,7 @@ contract WarpLink is IWarpLink, IStargateReceiver, WarpLinkCommandTypes {
       }
     }
 
-    uint256 nextTokenOutBalance = IERC20(t.token).balanceOf(address(this));
-
-    if (
-      // TOOD: Is this overflow check necessary?
-      nextTokenOutBalance < tokenOutBalancePrev ||
-      nextTokenOutBalance < tokenOutBalancePrev + t.amount
-    ) {
-      revert InsufficientTokensDelivered();
-    }
+    ensureDeliveredTokens(t.amount, balancePrev, IERC20(lastToken).balanceOf(address(this)));
 
     return t;
   }
