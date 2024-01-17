@@ -15,6 +15,7 @@ import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 import { useSpaceTravel } from 'src/providers/SpaceTravelProvider';
 import { defaultFeeBps } from 'src/config';
 import { useSwapToast } from './useSwapToast';
+import { useSwapHistory } from 'src/providers/SwapHistoryProvider';
 
 const useExecuteSwap = () => {
   const { address } = useAccount();
@@ -35,6 +36,7 @@ const useExecuteSwap = () => {
   const { setThrottle } = useSpaceTravel();
   const { setValue } = useFormContext();
   const { showSwapToast } = useSwapToast();
+  const { dispatch } = useSwapHistory();
 
   const mutation = useMutation(
     async () => {
@@ -93,6 +95,21 @@ const useExecuteSwap = () => {
       },
       onSuccess: async hash => {
         await showSwapToast({ hash });
+
+        if (!quote) {
+          console.warn('Quote is missing, skipping swap event dispatch.');
+
+          return;
+        }
+
+        dispatch({
+          type: 'ADD_SWAP_EVENT',
+          payload: {
+            quote,
+            createdAt: new Date(),
+            hash,
+          },
+        });
 
         setValue(SwapFormKey.FromAmount, '');
       },
