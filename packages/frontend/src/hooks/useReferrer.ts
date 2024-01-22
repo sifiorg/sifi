@@ -1,26 +1,26 @@
 import { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { localStorageKeys } from 'src/utils/localStorageKeys';
 import { isAddress } from 'viem';
 
-const REFERRER_ADDRESS_LENGTH = 42;
-
 const useReferrer = () => {
-  const { ref: refParam } = useParams();
+  const { ref: refParam, fromToken, toToken } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
-
     if (!refParam) return;
+    const existingReferrer = localStorage.getItem(localStorageKeys.REFFERRER_ADDRESS);
 
-    const referrerAddress = refParam.slice(0, REFERRER_ADDRESS_LENGTH);
+    if (existingReferrer) return;
+
+    const [referrerAddress, referrerFeeBps] = refParam.split(':');
 
     if (!isAddress(referrerAddress)) {
-      console.error('Invalid Referrer Address. Address should be 42 characters');
+      console.error('Invalid Referrer Address. Address should be a valid Ethereum address.');
 
       return;
     }
 
-    const referrerFeeBps = refParam.slice(42);
     const formattedReferrerFeeBps =
       referrerFeeBps && Number(referrerFeeBps) > 0 ? referrerFeeBps : null;
 
@@ -29,10 +29,16 @@ const useReferrer = () => {
     if (formattedReferrerFeeBps) {
       localStorage.setItem(localStorageKeys.REFERRER_FEE_BPS, formattedReferrerFeeBps);
     } else {
-      // In case there is a new referral address without a set fee bps, we remove the old one
       localStorage.removeItem(localStorageKeys.REFERRER_FEE_BPS);
     }
-  }, []);
+
+    // Navigate to the new URL without the referral part
+    if (fromToken && toToken) {
+      navigate(`/${fromToken}/${toToken}`);
+    } else {
+      navigate('/');
+    }
+  }, [refParam, fromToken, toToken, navigate]);
 };
 
 export { useReferrer };

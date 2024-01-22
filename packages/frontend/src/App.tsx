@@ -7,6 +7,7 @@ import { Route, Routes } from 'react-router-dom';
 import { SpaceTravelCanvas } from './space-travel/SpaceTravelCanvas';
 import { RecentWarps } from './components/RecentWarps/RecentWarps';
 import { Dashboard } from 'src/pages/Dashboard';
+import { useReferrer } from 'src/hooks/useReferrer';
 
 const Layout: FunctionComponent<{ children: ReactNode }> = ({ children }) => {
   return (
@@ -24,6 +25,8 @@ const Layout: FunctionComponent<{ children: ReactNode }> = ({ children }) => {
 };
 
 const Home: FunctionComponent = () => {
+  useReferrer();
+
   return (
     <>
       <Hero />
@@ -37,9 +40,9 @@ const App = () => {
     <AppProvider>
       <Layout>
         <Routes>
-          <Route path="/:ref" element={<Home />} />
+          <Route path="/r/:ref" element={<Home />} />
           <Route path="/:fromToken/:toToken" element={<Home />} />
-          <Route path="/:fromToken/:toToken/:ref" element={<Home />} />
+          <Route path="/r/:ref/:fromToken/:toToken" element={<Home />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="*" element={<Home />} />
         </Routes>
