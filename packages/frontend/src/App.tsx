@@ -8,6 +8,7 @@ import { SpaceTravelCanvas } from './space-travel/SpaceTravelCanvas';
 import { RecentWarps } from './components/RecentWarps/RecentWarps';
 import { Dashboard } from 'src/pages/Dashboard';
 import { useReferrer } from 'src/hooks/useReferrer';
+import { Audits } from './components/Audits/Audits';
 
 const Layout: FunctionComponent<{ children: ReactNode }> = ({ children }) => {
   return (
@@ -30,6 +31,7 @@ const Home: FunctionComponent = () => {
   return (
     <>
       <Hero />
+      <Audits />
       <RecentWarps />
     </>
   );
