@@ -47,7 +47,7 @@ const ReferralModal: FunctionComponent = () => {
       className="pb-0"
     >
       <p className="font-light mb-4 dark:text-smoke text-new-black">
-        Refer someone to Sifi and earn 1% of their trading fees.
+        Refer someone to Sifi and earn 0.2% of their trading fees.
       </p>
 
       {address && <div className="select-all break-words text-md">{referralLink}</div>}
