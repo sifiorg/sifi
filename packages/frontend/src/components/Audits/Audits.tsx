@@ -11,10 +11,8 @@ const auditList = [
 
 const Audits: FunctionComponent = () => {
   return (
-    <section className="mx-auto w-full max-w-5xl pt-6 pb-16 sm:pt-16 sm:pb-28">
-      <h3 className="font-display mt-0 mb-10 text-center text-2xl sm:mb-12 sm:text-3xl">
-        Audited By
-      </h3>
+    <section className="mx-auto w-full max-w-5xl pt-10">
+      <h3 className="font-display text-center text-2xl mb-5 sm:text-2xl">Audited By</h3>
       <div className="grid gap-6">
         {auditList.map(({ Icon, name, url }, index) => (
           <div
