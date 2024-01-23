@@ -13,7 +13,7 @@ import { localStorageKeys } from 'src/utils/localStorageKeys';
 import { usePermit2 } from 'src/hooks/usePermit2';
 import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 import { useSpaceTravel } from 'src/providers/SpaceTravelProvider';
-import { defaultFeeBps } from 'src/config';
+import { defaultFeeBps, defaultReferralFeeBps } from 'src/config';
 import { useSwapToast } from './useSwapToast';
 import { useSwapHistory } from 'src/providers/SwapHistoryProvider';
 
@@ -49,6 +49,11 @@ const useExecuteSwap = () => {
 
       const partnerAddress = localStorage.getItem(localStorageKeys.REFFERRER_ADDRESS);
       const partnerFeeBps = localStorage.getItem(localStorageKeys.REFERRER_FEE_BPS);
+      let feeBps = defaultFeeBps;
+
+      if (partnerAddress) {
+        feeBps = partnerFeeBps ? Number(partnerFeeBps) : defaultReferralFeeBps;
+      }
 
       const permit =
         quote.approveAddress && quote.permit2Address
@@ -66,7 +71,7 @@ const useExecuteSwap = () => {
         quote,
         permit,
         partner: partnerAddress || undefined,
-        feeBps: partnerFeeBps && partnerAddress ? Number(partnerFeeBps) : defaultFeeBps,
+        feeBps,
       });
 
       const res = await walletClient.sendTransaction({
