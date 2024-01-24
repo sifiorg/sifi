@@ -40,7 +40,7 @@ const RecentWarpsTableData: FunctionComponent = () => {
 
         return (
           <Table.Row className="overflow-y-auto max-w-xs m-auto sm:max-w-none" key={warp.addedAt}>
-            <Table.Cell className="mb-4 w-full sm:w-2/3 md:w-4/5 sm:mb-0">
+            <Table.Cell className="mb-4 w-full sm:w-4/5 sm:mb-0">
               <div className="mx-auto grid items-center sm:grid-cols-[3fr_1fr_3fr]">
                 <div className="mb-4 grid grid-cols-[1fr_3fr] sm:mb-0 sm:inline-block sm:pl-8">
                   <span className="dark:text-flashbang-white text-new-black font-medium uppercase sm:hidden">
@@ -101,7 +101,7 @@ const RecentWarpsTableData: FunctionComponent = () => {
                 </div>
               </div>
             </Table.Cell>
-            <Table.Cell className="sm:w-1/3 md:w-1/5 w-full">
+            <Table.Cell className="sm:w-1/5 w-full">
               <div className="grid grid-cols-[1fr_3fr] sm:mb-0 sm:inline-block">
                 <span className="dark:text-flashbang-white text-new-black font-medium uppercase sm:hidden">
                   TX
@@ -131,17 +131,15 @@ const RecentWarps: FunctionComponent = () => {
           <h2 className="text-center text-3xl">Recent</h2>
           <div className="dark:border-darker-gray border-smoke w-full border-t mt-4">
             <Table>
-              <thead>
-                <Table.Row className="font-text">
-                  <Table.Heading className="md:w-4/5 sm:w-2/3">
+              <thead className="sm:grid">
+                <Table.Row className="font-text sm:flex">
+                  <Table.Heading className="w-4/5">
                     <div className="mx-auto grid max-w-2xl sm:grid-cols-[3fr_1fr_3fr] font-medium">
                       <span className="col-span-2 inline-block sm:pl-8">From</span>
                       <span className="sm:pl-8">To</span>
                     </div>
                   </Table.Heading>
-                  <Table.Heading className="md:w-1/5 sm:w-1/3 font-medium">
-                    Transaction
-                  </Table.Heading>
+                  <Table.Heading className="font-medium w-1/5">Transaction</Table.Heading>
                 </Table.Row>
               </thead>
               <Table.Body>
