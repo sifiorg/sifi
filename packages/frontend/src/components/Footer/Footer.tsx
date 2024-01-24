@@ -3,8 +3,11 @@ import { Footer as FooterComponent } from '@sifi/shared-ui';
 import { ReactComponent as Logo } from '../../assets/logoWhite.svg';
 import { texts } from 'src/texts';
 import { Link } from '../Link/Link';
+import { useReferralModal } from 'src/providers/ReferralModalProvider';
 
 const Footer: FunctionComponent = () => {
+  const { openReferralModal } = useReferralModal();
+
   const columnLinks = [
     [
       {
@@ -15,6 +18,11 @@ const Footer: FunctionComponent = () => {
         href: 'https://docs.sifi.org',
         title: 'Docs',
         external: true,
+      },
+      {
+        title: 'Refer',
+        href: '#',
+        onClick: () => openReferralModal(),
       },
     ],
     [
