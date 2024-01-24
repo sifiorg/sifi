@@ -3,7 +3,7 @@ import { Modal, showToast, WalletOption, useWalletBranding } from '@sifi/shared-
 import useConnectWallet from 'src/hooks/useConnectWallet';
 import { type SupportedWallet } from 'src/connectors';
 import { getViemErrorMessage } from 'src/utils';
-import { Button } from '../Button';
+import { Button, ButtonSizes } from '../Button';
 
 const supportedWallets: SupportedWallet[] = ['injected', 'coinbase', 'walletconnect'];
 
@@ -42,13 +42,13 @@ const ConnectWalletModal: FunctionComponent<ConnectWalletModalProps> = ({
   );
 };
 
-const ConnectWallet: FunctionComponent = () => {
+const ConnectWallet: FunctionComponent<{ size?: ButtonSizes }> = ({ size = 'normal' }) => {
   const { isLoading } = useConnectWallet();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   return (
     <>
-      <Button type="button" isLoading={isLoading} onClick={() => setIsModalOpen(true)}>
+      <Button type="button" size={size} isLoading={isLoading} onClick={() => setIsModalOpen(true)}>
         Connect Wallet
       </Button>
       <ConnectWalletModal isOpen={isModalOpen} closeModal={() => setIsModalOpen(false)} />
