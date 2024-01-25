@@ -1,7 +1,6 @@
 import { ButtonHTMLAttributes, FunctionComponent } from 'react';
 import { Spinner } from '../Spinner/Spinner';
-
-type ButtonSizes = 'large' | 'normal' | 'small';
+import { ButtonSizes } from './Button.types';
 
 type ButtonProps = {
   isLoading?: boolean;
@@ -32,4 +31,3 @@ const Button: FunctionComponent<ButtonProps> = ({
 };
 
 export { Button };
-export type { ButtonSizes };

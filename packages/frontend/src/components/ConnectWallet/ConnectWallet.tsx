@@ -3,7 +3,8 @@ import { Modal, showToast, WalletOption, useWalletBranding } from '@sifi/shared-
 import useConnectWallet from 'src/hooks/useConnectWallet';
 import { type SupportedWallet } from 'src/connectors';
 import { getViemErrorMessage } from 'src/utils';
-import { Button, ButtonSizes } from '../Button';
+import { Button } from '../Button';
+import { ButtonSizes } from '../Button/Button.types';
 
 const supportedWallets: SupportedWallet[] = ['injected', 'coinbase', 'walletconnect'];
 
