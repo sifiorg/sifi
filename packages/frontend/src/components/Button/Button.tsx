@@ -1,9 +1,10 @@
 import { ButtonHTMLAttributes, FunctionComponent } from 'react';
 import { Spinner } from '../Spinner/Spinner';
+import { ButtonSizes } from './Button.types';
 
 type ButtonProps = {
   isLoading?: boolean;
-  size?: 'large' | 'normal' | 'small';
+  size?: ButtonSizes;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
 
 const Button: FunctionComponent<ButtonProps> = ({

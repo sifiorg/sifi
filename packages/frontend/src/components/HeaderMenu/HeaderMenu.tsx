@@ -5,6 +5,7 @@ import { formatAddress, formatEnsName } from 'src/utils';
 import { Link } from '../Link/Link';
 import { useSwapHistory } from 'src/providers/SwapHistoryProvider';
 import { useReferralModal } from 'src/providers/ReferralModalProvider';
+import { ConnectWallet } from '../ConnectWallet/ConnectWallet';
 
 const HeaderMenu: FunctionComponent = () => {
   const { address, isConnected } = useAccount();
@@ -15,7 +16,12 @@ const HeaderMenu: FunctionComponent = () => {
   const { toggleHistoryModal } = useSwapHistory();
   const { openReferralModal } = useReferralModal();
 
-  if (!address || !isConnected) return null;
+  if (!address || !isConnected)
+    return (
+      <div className="hidden md:block">
+        <ConnectWallet size="small" />
+      </div>
+    );
 
   const label = ensName ? formatEnsName(ensName) : formatAddress(address);
 
