@@ -79,7 +79,7 @@ jobs:
         # Slither findings are treated as error, so we need to
         # ckeck manually for sucesss by existence of SARIF file
         id: check_files
-        uses: andstor/file-existence-action@v1
+        uses: andstor/file-existence-action@v3
         with:
           files: 'packages/hardhat/results.sarif'
 
