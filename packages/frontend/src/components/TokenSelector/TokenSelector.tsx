@@ -46,7 +46,8 @@ const TokenSelector: FunctionComponent<{
         networkDisplayName: null,
         symbol: token.symbol,
         networkLogoURI,
-        balance: balanceData?.balance,
+        // Not showing any values if the balance is not available. Loading state should repalce this.
+        balance: balanceData?.balance || (!!balanceMapsByChain ? '0' : undefined),
         balanceInUsd: balanceData?.usdValue,
       };
     });
