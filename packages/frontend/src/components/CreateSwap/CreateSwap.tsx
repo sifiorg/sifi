@@ -11,8 +11,6 @@ import { useReferrer } from 'src/hooks/useReferrer';
 import { CreateSwapButtons } from '../CreateSwapButtons/CreateSwapButtons';
 import { TokenSelector, useTokenSelector } from '../TokenSelector';
 import { SwapInformation } from '../SwapInformation';
-import { MulticallToken } from 'src/types';
-import { useMultiCallTokenBalance } from 'src/hooks/useMulticallTokenBalance';
 import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 import { ChainSelector } from 'src/components/ChainSelector/ChainSelector';
 import { getTokenWithNetwork } from 'src/utils/getTokenWithNetwork';
@@ -24,6 +22,7 @@ import { useExecuteSwap } from 'src/hooks/useExecuteSwap';
 import { useDepositMax } from 'src/hooks/useDepositMax';
 import { useSuggestMevProtection } from 'src/hooks/useSuggestMevProtection';
 import { SwapDetails } from '../SwapDetails/SwapDetails';
+import { useWalletBalances } from 'src/hooks/useWalletBalances';
 
 const CreateSwap = () => {
   useCullQueries('quote');
@@ -41,14 +40,9 @@ const CreateSwap = () => {
     toChain,
   } = useSwapFormValues();
   const { fromTokens, toTokens } = useTokens();
-  const { balanceMap: fromBalanceMap } = useMultiCallTokenBalance(
-    fromTokens as MulticallToken[],
-    fromChain.id
-  );
-  const { balanceMap: toTokenBalanceMap } = useMultiCallTokenBalance(
-    toTokens as MulticallToken[],
-    toChain.id
-  );
+  const { balanceMapsByChain } = useWalletBalances();
+  const fromBalanceMap = balanceMapsByChain?.[fromChain.id] || null;
+  const toTokenBalanceMap = balanceMapsByChain?.[toChain.id] || null;
   const { executeSwap, isLoading } = useExecuteSwap();
   const { depositMax } = useDepositMax();
   const { isFetching: isFetchingQuote } = useQuote();
@@ -139,7 +133,6 @@ const CreateSwap = () => {
                 usdValue={toUsdValue}
               />
               <TokenSelector
-                balanceMap={tokenSelectorType === 'from' ? fromBalanceMap : toTokenBalanceMap}
                 close={closeTokenSelector}
                 isOpen={isTokenSelectorOpen}
                 type={tokenSelectorType}
