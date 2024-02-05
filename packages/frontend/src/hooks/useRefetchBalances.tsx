@@ -1,9 +1,8 @@
 import { useTokenBalance } from 'src/hooks/useTokenBalance';
-import { useMultiCallTokenBalance } from 'src/hooks/useMulticallTokenBalance';
 import { useSwapFormValues } from './useSwapFormValues';
 import { useTokens } from './useTokens';
 import { getTokenBySymbol } from 'src/utils';
-import { MulticallToken } from 'src/types';
+import { useWalletBalances } from './useWalletBalances';
 
 const useRefetchBalances = () => {
   const {
@@ -17,28 +16,19 @@ const useRefetchBalances = () => {
   const toToken = getTokenBySymbol(toTokenSymbol, toTokens);
   const { refetch: refetchFromBalance } = useTokenBalance(fromToken, fromChain.id);
   const { refetch: refetchToBalance } = useTokenBalance(toToken, toChain.id);
-  const { refetch: refetchFromTokenBalances } = useMultiCallTokenBalance(
-    fromTokens as MulticallToken[],
-    fromChain.id
-  );
-  const { refetch: refetchToTokenBalances } = useMultiCallTokenBalance(
-    toTokens as MulticallToken[],
-    toChain.id
-  );
+  const { refetchBalances } = useWalletBalances();
 
   const refetchAllBalances = () => {
     refetchFromBalance();
     refetchToBalance();
-    refetchFromTokenBalances();
-    refetchToTokenBalances();
+    refetchBalances();
   };
 
   return {
     refetchAllBalances,
     refetchFromBalance,
     refetchToBalance,
-    refetchFromTokenBalances,
-    refetchToTokenBalances,
+    refetchBalances,
   };
 };
 
