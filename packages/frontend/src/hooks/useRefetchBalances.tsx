@@ -16,7 +16,7 @@ const useRefetchBalances = () => {
   const toToken = getTokenBySymbol(toTokenSymbol, toTokens);
   const { refetch: refetchFromBalance } = useTokenBalance(fromToken, fromChain.id);
   const { refetch: refetchToBalance } = useTokenBalance(toToken, toChain.id);
-  const { refetchBalances } = useWalletBalances();
+  const { refetch: refetchBalances } = useWalletBalances();
 
   const refetchAllBalances = () => {
     refetchFromBalance();

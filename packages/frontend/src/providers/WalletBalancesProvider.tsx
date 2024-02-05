@@ -22,12 +22,12 @@ type BalanceMapsByChain = Record<number, BalanceMap>;
 
 const WalletBalancesContext = createContext<{
   balanceMapsByChain: BalanceMapsByChain | null;
-  refetchBalances: () => void;
+  refetch: () => void;
   isLoading: boolean;
   error: unknown;
 }>({
   balanceMapsByChain: null,
-  refetchBalances: () => {},
+  refetch: () => {},
   isLoading: false,
   error: null,
 });
@@ -49,11 +49,7 @@ const useFetchBalances = (address?: string) => {
     }
   };
 
-  const {
-    refetch: refetchBalances,
-    isLoading,
-    error,
-  } = useQuery(
+  const { refetch, isLoading, error } = useQuery(
     ['balances', address],
     async () => {
       const response = await fetch(`${baseUrl}/balances/${address}`);
@@ -120,25 +116,25 @@ const useFetchBalances = (address?: string) => {
 
   useEffect(() => {
     if (address) {
-      refetchBalances();
+      refetch();
     }
   }, [address]);
 
-  return { balanceMapsByChain, refetchBalances, isLoading, error };
+  return { balanceMapsByChain, refetch, isLoading, error };
 };
 
 const WalletBalancesProvider: FC<PropsWithChildren> = ({ children }) => {
   const { address } = useAccount();
-  const { balanceMapsByChain, refetchBalances, isLoading, error } = useFetchBalances(address);
+  const { balanceMapsByChain, refetch, isLoading, error } = useFetchBalances(address);
 
   const contextValue = useMemo(
     () => ({
       balanceMapsByChain,
-      refetchBalances,
+      refetch,
       isLoading,
       error,
     }),
-    [balanceMapsByChain, refetchBalances, isLoading, error]
+    [balanceMapsByChain, refetch, isLoading, error]
   );
 
   return (
