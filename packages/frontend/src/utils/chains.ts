@@ -101,4 +101,4 @@ const getChainById = (chainId: number): Chain => {
   return chain;
 };
 
-export { SUPPORTED_CHAINS, getChainIcon, getChainById };
+export { SUPPORTED_CHAINS, getChainIcon, getChainById, getChainIdByShortName };
