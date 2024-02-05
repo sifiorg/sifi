@@ -20,6 +20,7 @@ import {
 } from 'viem/chains';
 import { isTest } from './environments';
 
+// When adding a new chain, make sure to also add it to `getChainIsByShortName`
 const PRODUCTION_CHAINS: Chain[] = [
   // The order in which the chains are displayed in the UI
   mainnet,
@@ -45,6 +46,27 @@ const PRODUCTION_CHAINS: Chain[] = [
   optimism,
   polygon,
 ];
+
+const getChainIdByShortName = (shortName: string): number | null => {
+  switch (shortName) {
+    case 'eth':
+      return mainnet.id;
+    case 'arb':
+      return arbitrum.id;
+    case 'avax':
+      return avalanche.id;
+    case 'bsc':
+      return bsc.id;
+    case 'op':
+      return optimism.id;
+    case 'base':
+      return base.id;
+    case 'matic':
+      return polygon.id;
+    default:
+      return null;
+  }
+};
 
 const TEST_CHAINS: Chain[] = [sepolia, goerli];
 
