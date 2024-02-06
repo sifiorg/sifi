@@ -82,28 +82,28 @@ const useFetchBalances = (address?: string) => {
 
         Promise.all(balancePromises)
           .then(balances => {
-            const newBalanceMapsByChain: Record<number, BalanceMap> = {};
-
-            balances.forEach(balance => {
-              if (balance) {
-                const { chainId, tokenId, formattedBalance, usdValue } = balance;
-                if (
-                  chainId !== undefined &&
-                  tokenId !== undefined &&
-                  formattedBalance !== undefined
-                ) {
-                  if (!newBalanceMapsByChain[chainId]) {
-                    newBalanceMapsByChain[chainId] = new Map();
-                  }
-                  newBalanceMapsByChain[chainId].set(tokenId as `0x${string}`, {
-                    balance: formattedBalance,
-                    usdValue,
-                  });
+            const newBalanceMapsByChain = balances.reduce<Record<number, BalanceMap>>(
+              (acc, balance) => {
+                if (!balance) {
+                  console.error('Encountered undefined balance object');
+                  return acc;
                 }
-              } else {
-                console.error('Encountered undefined balance object');
-              }
-            });
+
+                const { chainId, tokenId, formattedBalance, usdValue } = balance;
+                const map = acc[chainId] ?? new Map();
+
+                map.set(tokenId as `0x${string}`, {
+                  balance: formattedBalance,
+                  usdValue,
+                });
+
+                return {
+                  ...acc,
+                  [chainId]: map,
+                };
+              },
+              {}
+            );
 
             setBalanceMapsByChain(newBalanceMapsByChain);
           })
