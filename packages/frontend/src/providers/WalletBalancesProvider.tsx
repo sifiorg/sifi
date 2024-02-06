@@ -8,6 +8,7 @@ import { getChainIdByShortName } from 'src/utils/chains';
 import { ETH_CONTRACT_ADDRESS } from 'src/constants';
 import { useSifi } from './SDKProvider';
 import Big from 'big.js';
+import { SifiError } from '@sifi/sdk';
 
 // TODO: Maybe get this from the SDK?
 type TokenBalance = {
@@ -40,10 +41,13 @@ const useFetchBalances = (address?: string) => {
     try {
       const usdPriceData = await sifi.getUsdPrice(chainId, tokenId);
       const usdPricePerToken = usdPriceData?.usdPrice || '0';
-
       return Big(balance).times(usdPricePerToken).toFixed(2);
     } catch (error) {
-      console.error('Error fetching USD price for token', tokenId, error);
+      if (error instanceof SifiError && error.message.includes('Could not resolve Coingecko ID')) {
+        // Skipping these to avoid spamming the console
+        return null;
+      }
+      console.error(`Error fetching USD price for token ${tokenId}:`, error);
 
       return null;
     }
