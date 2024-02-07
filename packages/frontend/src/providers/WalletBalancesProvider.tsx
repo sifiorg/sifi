@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, PropsWithChildren, FC, useMemo } from 'react';
+import { createContext, useState, useEffect, PropsWithChildren, FC, useMemo, useRef } from 'react';
 import { useAccount } from 'wagmi';
 import { BalanceMap } from 'src/types';
 import { useQuery } from '@tanstack/react-query';
@@ -36,11 +36,14 @@ const WalletBalancesContext = createContext<{
 const useFetchBalances = (address?: string) => {
   const sifi = useSifi();
   const [balanceMapsByChain, setBalanceMapsByChain] = useState<BalanceMapsByChain | null>(null);
+  const [isLoadingUsdValue, setIsLoadingUsdValue] = useState(false);
+  const isFirstFetch = useRef(true);
 
   const calculateUsdValue = async (tokenId: string, chainId: number, balance: string) => {
     try {
       const usdPriceData = await sifi.getUsdPrice(chainId, tokenId);
       const usdPricePerToken = usdPriceData?.usdPrice || '0';
+
       return Big(balance).times(usdPricePerToken).toFixed(2);
     } catch (error) {
       if (error instanceof SifiError && error.message.includes('Could not resolve Coingecko ID')) {
@@ -53,7 +56,11 @@ const useFetchBalances = (address?: string) => {
     }
   };
 
-  const { refetch, isLoading, error } = useQuery(
+  const {
+    refetch,
+    isLoading: isLoadingBalances,
+    error,
+  } = useQuery(
     ['balances', address],
     async () => {
       const response = await fetch(`${baseUrl}/balances/${address}`);
@@ -65,6 +72,10 @@ const useFetchBalances = (address?: string) => {
       staleTime: 1000 * 60 * 1, // 1 minute
       refetchOnWindowFocus: false,
       onSuccess: async data => {
+        if (isFirstFetch.current) {
+          setIsLoadingUsdValue(true);
+        }
+
         const balancePromises = data.map((token: TokenBalance) => {
           return (async () => {
             const chainId = getChainIdByShortName(token.chain);
@@ -90,6 +101,7 @@ const useFetchBalances = (address?: string) => {
               (acc, balance) => {
                 if (!balance) {
                   console.error('Encountered undefined balance object');
+
                   return acc;
                 }
 
@@ -110,9 +122,19 @@ const useFetchBalances = (address?: string) => {
             );
 
             setBalanceMapsByChain(newBalanceMapsByChain);
+
+            if (isFirstFetch.current) {
+              setIsLoadingUsdValue(false);
+              isFirstFetch.current = false;
+            }
           })
           .catch(error => {
             console.error('An error occurred while fetching balances:', error);
+
+            if (isFirstFetch.current) {
+              setIsLoadingUsdValue(false);
+              isFirstFetch.current = false;
+            }
           });
       },
     }
@@ -124,21 +146,28 @@ const useFetchBalances = (address?: string) => {
     }
   }, [address]);
 
-  return { balanceMapsByChain, refetch, isLoading, error };
+  return {
+    balanceMapsByChain,
+    refetch,
+    isLoadingBalances: address ? isLoadingBalances : false,
+    error,
+    isLoadingUsdValue,
+  };
 };
 
 const WalletBalancesProvider: FC<PropsWithChildren> = ({ children }) => {
   const { address } = useAccount();
-  const { balanceMapsByChain, refetch, isLoading, error } = useFetchBalances(address);
+  const { balanceMapsByChain, refetch, isLoadingBalances, error, isLoadingUsdValue } =
+    useFetchBalances(address);
 
   const contextValue = useMemo(
     () => ({
       balanceMapsByChain,
       refetch,
-      isLoading,
+      isLoading: isLoadingBalances || isLoadingUsdValue,
       error,
     }),
-    [balanceMapsByChain, refetch, isLoading, error]
+    [balanceMapsByChain, refetch, isLoadingBalances, error, isLoadingUsdValue]
   );
 
   return (
