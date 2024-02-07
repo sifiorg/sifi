@@ -23,7 +23,7 @@ const TokenSelector: FunctionComponent<{
   const fetchTokenByAddress = type === 'from' ? fetchFromTokenByAddress : fetchToTokenByAddress;
   const { setValue, watch } = useFormContext();
   const selectedToken = getTokenBySymbol(watch(selectId), tokens);
-  const { balanceMapsByChain } = useWalletBalances();
+  const { balanceMapsByChain, isLoading: isLoadingBalances } = useWalletBalances();
   const balanceMap = balanceMapsByChain?.[chain.id] || null;
 
   const handleSelectToken = (newTokenAddress: `0x${string}`) => {
@@ -62,6 +62,7 @@ const TokenSelector: FunctionComponent<{
       options={formattedTokens}
       isOpen={isOpen}
       onClose={close}
+      isLoadingBalances={isLoadingBalances}
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       onSelect={tokenId => handleSelectToken(tokenId as `0x${string}`)}
       onTokenAddressInput={fetchTokenByAddress}
