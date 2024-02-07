@@ -5,24 +5,26 @@ import { CoinSelector } from '@sifi/shared-ui';
 import { SwapFormKeyHelper, SwapFormType } from 'src/providers/SwapFormProvider';
 import { useTokens } from 'src/hooks/useTokens';
 import { getTokenBySymbol } from 'src/utils';
-import type { BalanceMap } from 'src/types';
 import { getChainIcon } from 'src/utils/chains';
 import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
+import { useWalletBalances } from 'src/hooks/useWalletBalances';
 
 const TokenSelector: FunctionComponent<{
   close: () => void;
   isOpen: boolean;
   type: SwapFormType;
-  balanceMap: BalanceMap | null;
-}> = ({ isOpen, close, type, balanceMap }) => {
+}> = ({ isOpen, close, type }) => {
   const selectId = SwapFormKeyHelper.getTokenKey(type);
   const { address } = useAccount();
   const { fromChain, toChain } = useSwapFormValues();
+  const chain = type === 'from' ? fromChain : toChain;
   const { fromTokens, toTokens, fetchFromTokenByAddress, fetchToTokenByAddress } = useTokens();
   const tokens = type === 'from' ? fromTokens : toTokens;
   const fetchTokenByAddress = type === 'from' ? fetchFromTokenByAddress : fetchToTokenByAddress;
   const { setValue, watch } = useFormContext();
   const selectedToken = getTokenBySymbol(watch(selectId), tokens);
+  const { balanceMapsByChain } = useWalletBalances();
+  const balanceMap = balanceMapsByChain?.[chain.id] || null;
 
   const handleSelectToken = (newTokenAddress: `0x${string}`) => {
     const newToken = tokens?.find(token => token.address === newTokenAddress);
@@ -44,7 +46,8 @@ const TokenSelector: FunctionComponent<{
         networkDisplayName: null,
         symbol: token.symbol,
         networkLogoURI,
-        balance: balanceData?.balance,
+        // Not showing any values if the balance is not available. Loading state should repalce this.
+        balance: balanceData?.balance || (!!balanceMapsByChain ? '0' : undefined),
         balanceInUsd: balanceData?.usdValue,
       };
     });
