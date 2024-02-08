@@ -169,8 +169,8 @@ importers:
         specifier: ^4.24.6
         version: 4.24.9(@tanstack/react-query@4.28.0)(react-dom@18.2.0)(react@18.2.0)
       '@types/big.js':
-        specifier: ^6.1.6
-        version: 6.1.6
+        specifier: ^6.2.2
+        version: 6.2.2
       '@types/debounce':
         specifier: ^1.2.1
         version: 1.2.1
@@ -8365,8 +8365,8 @@ packages:
       '@babel/types': 7.22.10
     dev: true
 
-  /@types/big.js@6.1.6:
-    resolution: {integrity: sha512-0r9J+Zz9rYm2hOTwiMAVkm3XFQ4u5uTK37xrQMhc9bysn/sf/okzovWMYYIBMFTn/yrEZ11pusgLEaoarTlQbA==}
+  /@types/big.js@6.2.2:
+    resolution: {integrity: sha512-e2cOW9YlVzFY2iScnGBBkplKsrn2CsObHQ2Hiw4V1sSyiGbgWL8IyqE3zFi1Pt5o1pdAtYkDAIsF3KKUPjdzaA==}
     dev: true
 
   /@types/bn.js@4.11.6:
