@@ -35,6 +35,6 @@
     "lodash": "^4.17.21",
     "p-map": "^4.0.0",
     "solhint": "^3.6.2",
-    "solhint-plugin-prettier": "^0.0.5"
+    "solhint-plugin-prettier": "^0.1.0"
   }
 }
