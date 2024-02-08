@@ -172,8 +172,8 @@ importers:
         specifier: ^6.1.6
         version: 6.1.6
       '@types/debounce':
-        specifier: ^1.2.1
-        version: 1.2.1
+        specifier: ^1.2.4
+        version: 1.2.4
       '@types/react':
         specifier: ^18.0.17
         version: 18.0.28
@@ -8451,8 +8451,8 @@ packages:
       '@types/node': 18.11.19
     dev: true
 
-  /@types/debounce@1.2.1:
-    resolution: {integrity: sha512-epMsEE85fi4lfmJUH/89/iV/LI+F5CvNIvmgs5g5jYFPfhO2S/ae8WSsLOKWdwtoaZw9Q2IhJ4tQ5tFCcS/4HA==}
+  /@types/debounce@1.2.4:
+    resolution: {integrity: sha512-jBqiORIzKDOToaF63Fm//haOCHuwQuLa2202RK4MozpA6lh93eCBc+/8+wZn5OzjJt3ySdc+74SXWXB55Ewtyw==}
     dev: true
 
   /@types/debug@4.1.7:
