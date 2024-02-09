@@ -2,11 +2,19 @@ import { ReactComponent as GasIcon } from 'src/assets/icons/gas.svg';
 import { useGasFee } from 'src/hooks/useGasFee';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuote } from 'src/hooks/useQuote';
-import { EitherQuoteSifiAction } from '@sifi/sdk';
+import { EitherQuoteSifiAction, Quote } from '@sifi/sdk';
 import { ReactComponent as UniswapIcon } from 'src/assets/bridges/uniswap.svg';
 import { ReactComponent as CurveIcon } from 'src/assets/bridges/curve.svg';
 import { ReactComponent as StargateIcon } from 'src/assets/bridges/stargate.svg';
 import { ReactComponent as ArrowRight } from 'src/assets/arrow-right.svg';
+
+type GasFeeProps = {
+  quote: Quote | null;
+};
+
+type PathProps = {
+  quote: Quote | null;
+};
 
 type StepDetails = {
   [key: string]: { icon: JSX.Element; name: string };
@@ -52,8 +60,8 @@ const getStepDetailsFromAction = (action: EitherQuoteSifiAction): StepInfo | nul
   return null;
 };
 
-const GasFee = () => {
-  const { gasFeeEstimateUsd } = useGasFee();
+const GasFee: React.FC<GasFeeProps> = ({ quote }) => {
+  const { gasFeeEstimateUsd } = useGasFee(quote);
 
   return (
     <div className="relative flex items-center">
@@ -81,9 +89,7 @@ const GasFee = () => {
   );
 };
 
-const Path = () => {
-  const { quote } = useQuote();
-
+const Path: React.FC<PathProps> = ({ quote }) => {
   if (!quote || !('element' in quote.source.quote) || !quote.source.quote.element.actions) {
     return null;
   }
@@ -139,12 +145,18 @@ const Path = () => {
 };
 
 const SwapDetails = () => {
+  const { quote } = useQuote();
+
   return (
     <div className="flex justify-between min-h-[1.75rem] pt-2 px-4 text-smoke">
-      <GasFee />
-      <Path />
+      {quote && (
+        <>
+          <GasFee quote={quote} />
+          <Path quote={quote} />
+        </>
+      )}
     </div>
   );
 };
 
-export { SwapDetails };
+export { SwapDetails, GasFee, Path };
