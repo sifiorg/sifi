@@ -1,20 +1,20 @@
-import { Quote } from '@sifi/sdk';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ReactComponent as GasIcon } from 'src/assets/icons/gas.svg';
-import { useGasFee } from 'src/hooks/useGasFee';
+import { useGasFeeUsd } from 'src/hooks/useGasFeeUsd';
 
 type GasFeeProps = {
-  quote: Quote | null;
+  gas: bigint;
+  chainId: number;
 };
 
-const GasFee: React.FC<GasFeeProps> = ({ quote }) => {
-  const { gasFeeEstimateUsd } = useGasFee(quote);
+const GasFeeUsd: React.FC<GasFeeProps> = ({ gas, chainId }) => {
+  const { gasFeeUsd } = useGasFeeUsd({ gas, chainId });
 
   return (
     <div className="relative flex items-center">
       <div className="absolute">
         <AnimatePresence>
-          {gasFeeEstimateUsd && (
+          {gasFeeUsd && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -23,7 +23,7 @@ const GasFee: React.FC<GasFeeProps> = ({ quote }) => {
               className="flex items-center text-sm"
             >
               <GasIcon className="fill-smoke w-4 h-4 mr-2" />
-              <span className="min-w-[7rem]">${gasFeeEstimateUsd}</span>
+              <span className="min-w-[7rem]">${gasFeeUsd}</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -36,4 +36,4 @@ const GasFee: React.FC<GasFeeProps> = ({ quote }) => {
   );
 };
 
-export { GasFee };
+export { GasFeeUsd };
