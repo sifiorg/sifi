@@ -1,5 +1,5 @@
 import { useQuote } from 'src/hooks/useQuote';
-import { GasFeeUsd } from './GasFee';
+import { GasFeeUsd } from '../GasFeeUsd/GasFeeUsd';
 import { SwapPath } from '../SwapPath/SwapPath';
 
 const SwapDetails = () => {
