@@ -27,7 +27,7 @@ const useGasFeeUsd = ({ gas, chainId }: UseGasFeeUsdParams) => {
   }, [publicClient]);
 
   const totalGasCostEther = useMemo(() => {
-    if (!gasPriceWei || gas) return '';
+    if (!gasPriceWei || !gas) return '';
 
     const totalGasCostWei = gas * gasPriceWei;
     const totalGasCostEther = formatEther(totalGasCostWei);
