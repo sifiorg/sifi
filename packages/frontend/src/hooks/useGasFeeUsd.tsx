@@ -5,13 +5,14 @@ import { usePublicClient } from 'wagmi';
 import { formatEther } from 'viem';
 
 type UseGasFeeUsdParams = {
-  gas: bigint;
+  gas: bigint | string | number;
   chainId: number;
 };
 
 const useGasFeeUsd = ({ gas, chainId }: UseGasFeeUsdParams) => {
   const publicClient = usePublicClient({ chainId });
-  const [gasPriceWei, setGasPriceWei] = useState<bigint>(gas);
+  const gasBigInt = BigInt(gas);
+  const [gasPriceWei, setGasPriceWei] = useState<bigint>(gasBigInt);
 
   useEffect(() => {
     const getGasPrice = async () => {
@@ -29,7 +30,7 @@ const useGasFeeUsd = ({ gas, chainId }: UseGasFeeUsdParams) => {
   const totalGasCostEther = useMemo(() => {
     if (!gasPriceWei || !gas) return '';
 
-    const totalGasCostWei = gas * gasPriceWei;
+    const totalGasCostWei = gasBigInt * gasPriceWei;
     const totalGasCostEther = formatEther(totalGasCostWei);
 
     return totalGasCostEther;
