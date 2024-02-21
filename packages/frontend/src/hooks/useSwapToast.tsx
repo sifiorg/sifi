@@ -96,29 +96,31 @@ const useSwapToast = () => {
     });
     setSwapToastId(swapToastId);
 
-    await publicClient.waitForTransactionReceipt({ hash });
-    setHash(hash);
-    refetchAllBalances();
-
-    // TODO: What if the transaction fails?
-
-    if (isJump) {
-      startPollingJumpStatus(hash);
-    }
-
-    if (!isJump) {
+    try {
+      await publicClient.waitForTransactionReceipt({ hash });
+      setHash(hash);
       refetchAllBalances();
-      setThrottle(0.01);
-      updateToast(swapToastId, {
-        render: (
-          <Toast
-            text="Swap completed."
-            type="success"
-            link={explorerLink ? { text: 'View Swap', href: explorerLink } : undefined}
-          />
-        ),
-        closeOnClick: true,
-      });
+
+      if (isJump) {
+        startPollingJumpStatus(hash);
+      }
+
+      if (!isJump) {
+        refetchAllBalances();
+        setThrottle(0.01);
+        updateToast(swapToastId, {
+          render: (
+            <Toast
+              text="Swap completed."
+              type="success"
+              link={explorerLink ? { text: 'View Swap', href: explorerLink } : undefined}
+            />
+          ),
+          closeOnClick: true,
+        });
+      }
+    } catch (error) {
+      showErrorToast(error);
     }
   };
 
