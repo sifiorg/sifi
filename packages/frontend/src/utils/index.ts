@@ -4,7 +4,7 @@ export * from './tokens';
 export * from './queries';
 export * from './api';
 export * from './parseErrorMessage';
-export * from './evm';
+export * from './explorerLink';
 export * from './isValidTokenAmount';
 export * from './getViemErrorMessage';
 export * from './viemToEthersAdapters';
