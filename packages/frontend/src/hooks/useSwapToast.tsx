@@ -21,12 +21,18 @@ const useSwapToast = () => {
   } = useJumpStatus();
   const isJump = fromChain.id !== toChain.id;
   const [swapToastId, setSwapToastId] = useState<string | number | null>(null);
-  const [hash, setHash] = useState<`0x${string}` | null>(null);
-  const [explorerLink, setExplorerLink] = useState<string | undefined>(undefined);
+  const [toastLink, setToastLink] = useState<{ text: string; href: string } | undefined>(undefined);
+
+  // TODO: Create a reusable utility function for this
+  const getExplorerLink = (hash: `0x${string}`): string | undefined => {
+    if (isJump) {
+      return `https://layerzeroscan.com/tx/${hash}`;
+    } else {
+      return getEvmTxUrl(fromChain, hash);
+    }
+  };
 
   const updateJumpToast = (status: JumpStatus) => {
-    const toastLink = explorerLink ? { text: 'View Jump', href: explorerLink } : undefined;
-
     let toastContent = {};
 
     switch (status) {
@@ -67,10 +73,10 @@ const useSwapToast = () => {
   };
 
   useEffect(() => {
-    if (hash && isFetching && isJump && jumpStatus && swapToastId) {
+    if (isFetching && isJump && jumpStatus && swapToastId) {
       updateJumpToast(jumpStatus);
     }
-  }, [hash, isFetching, isJump, jumpStatus, swapToastId]);
+  }, [isFetching, isJump, jumpStatus, swapToastId]);
 
   const showErrorToast = (error: any) => {
     if (error instanceof Error) {
@@ -81,14 +87,14 @@ const useSwapToast = () => {
   };
 
   const showSwapToast = async ({ hash }: { hash: `0x${string}` }) => {
-    if (isJump) {
-      setExplorerLink(`https://layerzeroscan.com/tx/${hash}`);
-    } else {
-      setExplorerLink(fromChain ? getEvmTxUrl(fromChain, hash) : undefined);
-    }
+    const explorerLink = getExplorerLink(hash);
+    const newToastLink = explorerLink ? { text: 'View Jump', href: explorerLink } : undefined;
+    // Need to store this in state so updateJumpToast can access it
+    setToastLink(newToastLink);
 
     const swapToastId = showToast({
       text: `${isJump ? 'Jump' : 'Swap'} initiated. Hold tight.`,
+      link: newToastLink,
       type: 'loading',
       hideCloseIcon: true,
       closeOnClick: false,
@@ -98,7 +104,7 @@ const useSwapToast = () => {
 
     try {
       await publicClient.waitForTransactionReceipt({ hash });
-      setHash(hash);
+
       refetchAllBalances();
 
       if (isJump) {
@@ -109,13 +115,7 @@ const useSwapToast = () => {
         refetchAllBalances();
         setThrottle(0.01);
         updateToast(swapToastId, {
-          render: (
-            <Toast
-              text="Swap completed."
-              type="success"
-              link={explorerLink ? { text: 'View Swap', href: explorerLink } : undefined}
-            />
-          ),
+          render: <Toast text="Swap completed." type="success" link={newToastLink} />,
           closeOnClick: true,
         });
       }
