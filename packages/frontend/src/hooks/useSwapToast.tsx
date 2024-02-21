@@ -78,7 +78,7 @@ const useSwapToast = () => {
   };
 
   const showSwapToast = async ({ hash }: { hash: `0x${string}` }) => {
-    const explorerLink = getSwapExplorerLink(fromChain, toChain, hash);
+    const explorerLink = getSwapExplorerLink(fromChain.id, toChain.id, hash);
     const newToastLink = explorerLink ? { text: 'View Jump', href: explorerLink } : undefined;
     // Need to store this in state so updateJumpToast can access it
     setToastLink(newToastLink);
