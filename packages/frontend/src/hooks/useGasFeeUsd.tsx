@@ -1,15 +1,18 @@
 import { useState, useEffect, useMemo } from 'react';
 import { ETH_CONTRACT_ADDRESS } from 'src/constants';
 import { useUsdValue } from './useUsdValue';
-import { useSwapFormValues } from './useSwapFormValues';
 import { usePublicClient } from 'wagmi';
 import { formatEther } from 'viem';
-import type { Quote } from '@sifi/sdk';
 
-const useGasFee = (quote: Quote | null) => {
-  const { fromChain } = useSwapFormValues();
-  const publicClient = usePublicClient({ chainId: fromChain.id });
-  const [gasPriceWei, setGasPriceWei] = useState<bigint | null>(null);
+type UseGasFeeUsdParams = {
+  gas: bigint | string | number;
+  chainId: number;
+};
+
+const useGasFeeUsd = ({ gas, chainId }: UseGasFeeUsdParams) => {
+  const publicClient = usePublicClient({ chainId });
+  const gasBigInt = BigInt(gas);
+  const [gasPriceWei, setGasPriceWei] = useState<bigint>(gasBigInt);
 
   useEffect(() => {
     const getGasPrice = async () => {
@@ -25,23 +28,23 @@ const useGasFee = (quote: Quote | null) => {
   }, [publicClient]);
 
   const totalGasCostEther = useMemo(() => {
-    if (!gasPriceWei || !quote?.estimatedGas) return '';
+    if (!gasPriceWei || !gas) return '';
 
-    const totalGasCostWei = quote.estimatedGas * gasPriceWei;
+    const totalGasCostWei = gasBigInt * gasPriceWei;
     const totalGasCostEther = formatEther(totalGasCostWei);
 
     return totalGasCostEther;
-  }, [gasPriceWei, quote?.estimatedGas]);
+  }, [gasPriceWei, gas]);
 
   const fetchedGasFeeEstimateUsd = useUsdValue({
     address: ETH_CONTRACT_ADDRESS,
-    chainId: fromChain.id,
+    chainId,
     amount: totalGasCostEther,
   });
 
   return {
-    gasFeeEstimateUsd: quote ? fetchedGasFeeEstimateUsd : null,
+    gasFeeUsd: fetchedGasFeeEstimateUsd,
   };
 };
 
-export { useGasFee };
+export { useGasFeeUsd };
