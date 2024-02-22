@@ -58,30 +58,23 @@ const SwapPath: React.FC<SwapPathProps> = ({ quote }) => {
     return null;
   }
 
-  let steps: Step[] = [];
-
-  quote.source.quote.element.actions.forEach(action => {
+  const steps: Step[] = quote.source.quote.element.actions.reduce((acc: Step[], action) => {
     if (action.type === 'split') {
       action.parts.forEach(part => {
         part.actions.forEach(partAction => {
           const step = getStepDetailsFromAction(partAction);
-
-          if (!step) return;
-
-          steps.push(step);
+          if (step) acc.push(step);
         });
       });
     } else {
       const step = getStepDetailsFromAction(action);
-
-      if (!step) return;
-
-      steps.push(step);
+      if (step) acc.push(step);
     }
-  });
+    return acc;
+  }, []);
 
   // The UI can only fit 6 steps
-  steps = steps.slice(-6);
+  const lastSteps = steps.slice(-6);
 
   return (
     <AnimatePresence>
@@ -92,7 +85,7 @@ const SwapPath: React.FC<SwapPathProps> = ({ quote }) => {
         transition={{ duration: 0.1 }}
         className="flex items-center"
       >
-        {steps.map((step, index) => (
+        {lastSteps.map((step, index) => (
           <div key={index}>
             <div className="flex text-sm items-center">
               {step.icon && <div className="mx-1">{step.icon}</div>}
