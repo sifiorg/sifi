@@ -1,13 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { ETH_CONTRACT_ADDRESS } from 'src/constants';
-import { useQuote } from './useQuote';
 import { useUsdValue } from './useUsdValue';
 import { useSwapFormValues } from './useSwapFormValues';
 import { usePublicClient } from 'wagmi';
 import { formatEther } from 'viem';
+import type { Quote } from '@sifi/sdk';
 
-const useGasFee = () => {
-  const { quote } = useQuote();
+const useGasFee = (quote: Quote | null) => {
   const { fromChain } = useSwapFormValues();
   const publicClient = usePublicClient({ chainId: fromChain.id });
   const [gasPriceWei, setGasPriceWei] = useState<bigint | null>(null);
