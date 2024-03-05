@@ -1,54 +1,53 @@
 import React from 'react';
 import { Modal } from '@sifi/shared-ui';
-import { useSwapHistory } from 'src/providers/SwapHistoryProvider';
+import { useSwapHistory, SwapEvent } from 'src/providers/SwapHistoryProvider';
 import { SwapSideSummary } from 'src/components/SwapSideSummary/SwapSideSummary';
-import { formatTokenAmount, getEvmTxUrl } from 'src/utils';
-import { getChainById } from 'src/utils/chains';
-import { Quote } from '@sifi/sdk';
+import { formatTokenAmount } from 'src/utils';
 import { ReactComponent as ShipIcon } from 'src/assets/ship-180px.svg';
+import { useSwapModal } from 'src/hooks/useSwapModal';
 
 type SwapHistoryModalProps = {
   isOpen: boolean;
   closeModal: () => void;
 };
 
-type SwapHistoryItemProps = {
-  quote: Quote;
-  createdAt: Date;
-  hash: string;
-};
+const SwapHistoryItem: React.FC<SwapEvent> = ({ quote, createdAt, hash }) => {
+  const { openSwapModal } = useSwapModal();
 
-const SwapHistoryItem: React.FC<SwapHistoryItemProps> = ({ quote, createdAt, hash }) => (
-  <li key={hash} className="overflow-hidden rounded border">
-    <a
-      href={getEvmTxUrl(getChainById(quote.fromToken.chainId), hash)}
-      target="_blank"
-      rel="noreferrer"
-    >
-      <dl className="px-6 py-6">
-        <div className="flex justify-between">
-          <span className="text-smoke">{createdAt.toISOString().slice(0, 10)}</span>
-          <span className="text-smoke">
-            {createdAt.toLocaleTimeString(undefined, {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </span>
-        </div>
-        <div className="pt-6 grid gap-4">
-          <SwapSideSummary
-            amount={formatTokenAmount(quote.fromAmount.toString(), quote.fromToken.decimals)}
-            token={quote.fromToken}
-          />
-          <SwapSideSummary
-            amount={formatTokenAmount(quote.toAmount.toString(), quote.toToken.decimals)}
-            token={quote.toToken}
-          />
-        </div>
-      </dl>
-    </a>
-  </li>
-);
+  return (
+    <li key={hash} className="overflow-hidden rounded border">
+      <div
+        onClick={() => openSwapModal(quote, hash)}
+        className="cursor-pointer"
+        role="button"
+        tabIndex={0}
+        onKeyDown={e => e.key === 'Enter' && openSwapModal(quote, hash)}
+      >
+        <dl className="px-6 py-6">
+          <div className="flex justify-between">
+            <span className="text-smoke">{createdAt.toISOString().slice(0, 10)}</span>
+            <span className="text-smoke">
+              {createdAt.toLocaleTimeString(undefined, {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </span>
+          </div>
+          <div className="pt-6 grid gap-4">
+            <SwapSideSummary
+              amount={formatTokenAmount(quote.fromAmount.toString(), quote.fromToken.decimals)}
+              token={quote.fromToken}
+            />
+            <SwapSideSummary
+              amount={formatTokenAmount(quote.toAmount.toString(), quote.toToken.decimals)}
+              token={quote.toToken}
+            />
+          </div>
+        </dl>
+      </div>
+    </li>
+  );
+};
 
 const SwapHistoryModalContent: React.FC = () => {
   const { state } = useSwapHistory();
