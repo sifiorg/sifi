@@ -7,6 +7,7 @@ type SwapEvent = {
   quote: Quote;
   createdAt: Date;
   hash: `0x${string}`;
+  status: 'pending' | 'completed' | 'failed';
 };
 
 type SwapHistoryState = {
@@ -46,11 +47,20 @@ const SwapHistoryContext = createContext<{
 const SwapHistoryProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const [state, dispatch] = useReducer(swapHistoryReducer, undefined, () => {
     const storedState = localStorage.getItem(localStorageKeys.SWAP_HISTORY);
-    const swapHistory = JSON.parse(storedState !== null ? storedState : '[]') as SwapEvent[];
+    const swapHistory = JSON.parse(storedState !== null ? storedState : '[]').map(
+      (event: SwapEvent) => ({
+        ...event,
+        quote: {
+          ...event.quote,
+          fromAmount: BigInt(event.quote.fromAmount),
+          toAmount: BigInt(event.quote.toAmount),
+          estimatedGas: BigInt(event.quote.estimatedGas),
+        },
+        createdAt: new Date(event.createdAt),
+      })
+    );
 
-    return {
-      swapHistory: swapHistory.map(event => ({ ...event, createdAt: new Date(event.createdAt) })),
-    };
+    return { swapHistory };
   });
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
@@ -83,3 +93,4 @@ const SwapHistoryProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
 const useSwapHistory = () => useContext(SwapHistoryContext);
 
 export { SwapHistoryProvider, useSwapHistory };
+export type { SwapEvent };
