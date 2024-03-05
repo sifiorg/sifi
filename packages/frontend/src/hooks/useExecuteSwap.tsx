@@ -14,8 +14,9 @@ import { usePermit2 } from 'src/hooks/usePermit2';
 import { useSwapFormValues } from 'src/hooks/useSwapFormValues';
 import { useSpaceTravel } from 'src/providers/SpaceTravelProvider';
 import { defaultFeeBps, defaultReferralFeeBps } from 'src/config';
-import { useSwapToast } from './useSwapToast';
 import { useSwapHistory } from 'src/providers/SwapHistoryProvider';
+import { useSwapModal } from './useSwapModal';
+import { useSwapToast } from './useSwapToast';
 
 const useExecuteSwap = () => {
   const { address } = useAccount();
@@ -37,6 +38,7 @@ const useExecuteSwap = () => {
   const { setValue } = useFormContext();
   const { showSwapToast } = useSwapToast();
   const { dispatch } = useSwapHistory();
+  const { setHash } = useSwapModal();
 
   const mutation = useMutation(
     async () => {
@@ -74,7 +76,7 @@ const useExecuteSwap = () => {
         feeBps,
       });
 
-      const res = await walletClient.sendTransaction({
+      const hash = await walletClient.sendTransaction({
         chain: fromChain,
         data: tx.data as `0x${string}`,
         account: tx.from as `0x${string}`,
@@ -83,8 +85,9 @@ const useExecuteSwap = () => {
         value: tx.value !== undefined ? BigInt(tx.value) : undefined,
       });
       setThrottle(1);
+      setHash(hash);
 
-      return res;
+      return hash;
     },
     {
       onError: error => {

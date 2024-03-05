@@ -18,17 +18,18 @@ import { useDefaultTokens } from 'src/hooks/useDefaultTokens';
 import { useSyncTokenUrlParams } from 'src/hooks/useSyncTokenUrlParams';
 import { enableSwapInformation } from 'src/utils/featureFlags';
 import { useUsdValue } from 'src/hooks/useUsdValue';
-import { useExecuteSwap } from 'src/hooks/useExecuteSwap';
 import { useDepositMax } from 'src/hooks/useDepositMax';
 import { useSuggestMevProtection } from 'src/hooks/useSuggestMevProtection';
 import { SwapDetails } from '../SwapDetails/SwapDetails';
-import { useWalletBalances } from 'src/hooks/useWalletBalances';
+import { useExecuteSwap } from 'src/hooks/useExecuteSwap';
+import { useSwapModal } from 'src/hooks/useSwapModal';
 
 const CreateSwap = () => {
   useCullQueries('quote');
   useSyncTokenUrlParams();
   useReferrer();
   useDefaultTokens();
+
   const { handleSubmit } = useForm();
   useSuggestMevProtection();
   const {
@@ -40,12 +41,10 @@ const CreateSwap = () => {
     toChain,
   } = useSwapFormValues();
   const { fromTokens, toTokens } = useTokens();
-  const { balanceMapsByChain } = useWalletBalances();
-  const fromBalanceMap = balanceMapsByChain?.[fromChain.id] || null;
-  const toTokenBalanceMap = balanceMapsByChain?.[toChain.id] || null;
   const { executeSwap, isLoading } = useExecuteSwap();
   const { depositMax } = useDepositMax();
-  const { isFetching: isFetchingQuote } = useQuote();
+  const { isFetching: isFetchingQuote, quote } = useQuote();
+  const { openSwapModal, isSwapModalOpen } = useSwapModal();
   const fromToken = getTokenBySymbol(fromTokenSymbol, fromTokens);
   const toToken = getTokenBySymbol(toTokenSymbol, toTokens);
   const ShiftInputLabel = { from: 'From', to: 'To' } as const;
@@ -92,10 +91,15 @@ const CreateSwap = () => {
     }
   }, [fromToken]);
 
+  const handleSwap = () => {
+    openSwapModal(quote);
+    executeSwap();
+  };
+
   return (
     <div className="m:w-full sm:max-w-md">
-      <div className="bg-white pb-4 shadow sm:rounded-lg">
-        <form className="space-y-6" onSubmit={handleSubmit(executeSwap)}>
+      <div className={` ${isSwapModalOpen ? 'hidden' : ''} bg-white pb-4 shadow sm:rounded-lg`}>
+        <form className="space-y-6" onSubmit={handleSubmit(handleSwap)}>
           <div>
             <div className="pb-2">
               <div>
