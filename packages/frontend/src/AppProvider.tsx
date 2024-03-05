@@ -13,6 +13,7 @@ import { SpaceTravelProvider } from './providers/SpaceTravelProvider';
 import { SwapHistoryProvider } from './providers/SwapHistoryProvider';
 import { ReferralModalProvider } from './providers/ReferralModalProvider';
 import { WalletBalancesProvider } from './providers/WalletBalancesProvider';
+import { SwapModalProvider } from './providers/SwapModalProvider';
 
 const QueryProvider = QueryClientProvider;
 const queryClient = new QueryClient();
@@ -27,12 +28,14 @@ export const AppProvider: FC<PropsWithChildren> = ({ children }) => {
               <SwapFormProvider>
                 <TokensProvider>
                   <WalletBalancesProvider>
-                    <SwapHistoryProvider>
-                      <ReferralModalProvider>
-                        <SpaceTravelProvider>{children}</SpaceTravelProvider>
-                        <CustomToastContainer />
-                      </ReferralModalProvider>
-                    </SwapHistoryProvider>
+                    <SwapModalProvider>
+                      <SwapHistoryProvider>
+                        <ReferralModalProvider>
+                          <SpaceTravelProvider>{children}</SpaceTravelProvider>
+                          <CustomToastContainer />
+                        </ReferralModalProvider>
+                      </SwapHistoryProvider>
+                    </SwapModalProvider>
                   </WalletBalancesProvider>
                 </TokensProvider>
               </SwapFormProvider>
