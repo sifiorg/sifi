@@ -115,6 +115,7 @@ const useExecuteSwap = () => {
           payload: {
             quote,
             createdAt: new Date(),
+            status: 'pending',
             hash,
           },
         });
