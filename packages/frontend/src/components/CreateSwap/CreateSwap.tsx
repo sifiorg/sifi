@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useForm, useFormContext } from 'react-hook-form';
-import { ShiftInput } from '@sifi/shared-ui';
+import { ShiftInput, showToast } from '@sifi/shared-ui';
 import { useTokens } from 'src/hooks/useTokens';
 import { useTokenBalance } from 'src/hooks/useTokenBalance';
 import { getTokenBySymbol } from 'src/utils';
@@ -92,6 +92,13 @@ const CreateSwap = () => {
   }, [fromToken]);
 
   const handleSwap = () => {
+    if (!quote) {
+      showToast({ text: 'Attempted to execute swap without a quote.', type: 'error' });
+      console.log('Attempted to execute swap without a quote.');
+
+      return;
+    }
+
     openSwapModal(quote);
     executeSwap();
   };
